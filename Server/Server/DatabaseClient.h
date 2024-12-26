@@ -1,13 +1,11 @@
 #pragma once
 
+#include <QtCore/QCoreApplication>
 #include <qsqldatabase.h>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QJsonValue>
-#include <QFile>
+
 #include <QTextStream>
 #include <QList>
+#include <QDebug>
 #include "CoreData.h"
 
 namespace btyGoose
@@ -26,6 +24,9 @@ public:
 	bool addAccount(const data::Account&);
 	bool updataAccount(const data::Account&);
 	data::Account searchAccountByID(const QString& id);
+	data::Account searchAccountByName(const QString& name);
+	data::Account searchAccountByPhone(const QString& phone);
+
 	bool delAccountByID(const QString& id);
 
 	//dish CURD
