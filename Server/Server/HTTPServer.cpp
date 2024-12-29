@@ -113,9 +113,8 @@ void btyGoose::HTTPServer::initAccountAPI()
             {
                 res.status = 200;
                 resJson["message"] = "登录认证成功!";
-                resJson["message"] = "login success!";
-
                 resJson["success"] = true;
+                resJson["account"] = record_acc.toJson();
                 QJsonDocument doc(resJson);
                 res.body = doc.toJson().toStdString();
                 res.set_header("Content-Type", "application/json;charset=UTF-8");
@@ -169,9 +168,8 @@ void btyGoose::HTTPServer::initAccountAPI()
             {
                 res.status = 200;
                 resJson["message"] = "登录认证成功!";
-                resJson["message"] = "login success!";
-
                 resJson["success"] = true;
+                resJson["account"] = record_acc.toJson();
                 QJsonDocument doc(resJson);
                 res.body = doc.toJson().toStdString();
                 res.set_header("Content-Type", "application/json;charset=UTF-8");
@@ -215,6 +213,7 @@ void btyGoose::HTTPServer::initAccountAPI()
             jsonObj = QJsonObject();
         }
         QJsonObject resJson;
+        res.set_header("Content-Type", "application/json;charset=UTF-8");
         try {
             if (jsonObj.isEmpty())
             {
@@ -222,9 +221,88 @@ void btyGoose::HTTPServer::initAccountAPI()
             }
 
             data::Account acc;
-            acc.loadFromJson(req.body);
+            acc.loadFromJson(req.body);//加载acc
 
             data::Account record_acc = db.searchAccountByID(acc.uuid);
+
+            if (record_acc.name.isEmpty())
+            {
+                if (!db.addAccount(acc))
+                {
+                    throw HTTPException("databse add account failed");
+                }
+                resJson["success"] = true;
+                resJson["message"] = "账号创建成功";
+                resJson["account"] = acc.toJson();
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+            }
+            else
+            {
+                data::Account record_acc = db.searchAccountByName(acc.name);
+                if(record_acc.)
+            }
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
+
+
+    svr.Post("/account/consumer/update", [this](const httplib::Request& req, httplib::Response& res) {
+        qDebug() << "/account/consumer/update get a post!";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+            QString uuid = jsonObj["uuid"].toString();
+            double pay = jsonObj["pay"].toDouble();
+            QString level = jsonObj["level"].toString();
+            data::Account acc = db.searchAccountByID(uuid);
+            bool ret = getPay(pay);
+            if (ret == true)
+            {
+                //支付成功
+                if (level == "VIP") acc.level = data::Account::Level::VIP;
+                else if (level == "SUVIP") acc.level = data::Account::Level::SUVIP;
+                else throw HTTPException("未知Level等级" + level);
+                
+
+
+            }
+            else
+            {
+                QJsonObject resJson;
+                resJson["success"] = false;
+                resJson["message"] = "用户升级失败";
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+            }
+            
         }
         catch (const HTTPException& e)
         {

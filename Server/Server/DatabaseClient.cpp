@@ -4,7 +4,7 @@ btyGoose::DatabaseClient::DatabaseClient()
 {
     if (loadConfig() == false)
     {
-        //qDebug() << "ÅäÖÃÎÄ¼þ¼ÓÔØ³ö´í";
+        //qDebug() << "é…ç½®æ–‡ä»¶åŠ è½½å‡ºé”™";
         qDebug() << "fail to load";
         QCoreApplication::quit();
     }
@@ -33,7 +33,7 @@ bool btyGoose::DatabaseClient::loadConfig()
             return true;
         }
     }
-    //·´ÐòÁÐ»¯Ê§°Ü
+    //ååºåˆ—åŒ–å¤±è´¥
     user = "unkown";
     password = "unkown";
     database = "unkown";
@@ -58,13 +58,13 @@ void btyGoose::DatabaseClient::saveConfig()
     }
     else
     {
-        std::cerr << "databaseÅäÖÃÎÄ¼þ´ò¿ª´íÎó";
+        std::cerr << "databaseé…ç½®æ–‡ä»¶æ‰“å¼€é”™è¯¯";
     }
 }
 
 bool btyGoose::DatabaseClient::addAccount(const data::Account&)
 {
-    return false;
+    return true;
 }
 
 bool btyGoose::DatabaseClient::updataAccount(const data::Account&)

@@ -30,6 +30,8 @@ public:
 	void initConsumerAPI();
 	void initMerchantAPI();
 	void initAdminAPI();
+
+	bool getPay(double pay);
 private:
 	httplib::Server svr;
 	DatabaseClient db;
