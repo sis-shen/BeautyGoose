@@ -30,6 +30,23 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         datacenter.cpp
 
         DataCenterCoreData.h
+        loginbynamewidget.h
+        loginbynamewidget.cpp
+        loginbyphone.h
+        loginbyphone.cpp
+        consumerdishlistwidget.h
+        consumerdishlistwidget.cpp
+        Nav.h
+        consumercartlistwidget.h
+        consumercartlistwidget.cpp
+        consumerorderlistwidget.h
+        consumerorderlistwidget.cpp
+        consumerorderdetailwidget.h
+        consumerorderdetailwidget.cpp
+        consumerdishdetailwidget.h
+        consumerorderdetailwidget.cpp
+
+
 
     )
 # Define target properties for Android with Qt 6 as:

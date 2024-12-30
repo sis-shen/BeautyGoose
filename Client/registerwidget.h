@@ -41,6 +41,8 @@ private:
 public slots:
     void registerSlot();
     void getCodeSlot();
+    void toNameSlot();
+    void toPhoneSlot();
 signals:
     void toNameLoginSignal();
     void toPhoneLoginSignal();

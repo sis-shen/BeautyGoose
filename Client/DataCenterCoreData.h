@@ -1,9 +1,9 @@
 #ifndef DATACENTERCOREDATA_H
 #define DATACENTERCOREDATA_H
 #include <QString>
-#include <unordered_map>
 #include <QList>
 #include <QHash>
+#include <QPointer>
 namespace btyGoose
 {
 struct DishItem
@@ -20,11 +20,26 @@ struct DishList
     QList<DishItem> list;
 };
 
-class Cart
+struct Cart
 {
+    using ptr= QSharedPointer<Cart>;
     QList<DishItem> list;
 };
 
-Cart
+struct CartList
+{
+    QHash<QString,Cart::ptr> CartTable;
+};
+
+struct OrderItem
+{
+
+
+};
+
+struct OrderList
+{
+
+};
 }
 #endif // DATACENTERCOREDATA_H

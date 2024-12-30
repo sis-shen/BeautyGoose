@@ -91,7 +91,7 @@ namespace btyGoose
 					}
 
 					if (jsonObj.contains("password") && jsonObj["password"].isString()) {
-						name = jsonObj["password"].toString();
+						password = jsonObj["password"].toString();
 					}
 
 					if (jsonObj.contains("nickname") && jsonObj["nickname"].isString()) {

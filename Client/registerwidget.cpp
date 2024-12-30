@@ -17,13 +17,13 @@ RegisterWidget::RegisterWidget(QWidget *parent)
     label->setText("账户类型");
     layout->addWidget(label,0,0);
     consumerRadio = new QRadioButton;
+    consumerRadio->setChecked(true);
     layout->addWidget(consumerRadio,0,1);
 
     label = new QLabel ;
     label->setText("我是消费者");
     layout->addWidget(label,0,2);
     merchantRadio = new QRadioButton;
-    merchantRadio->setChecked(true);
     layout->addWidget(merchantRadio,0,3);
     label = new QLabel;
     label->setText("我是商家");
@@ -82,6 +82,8 @@ RegisterWidget::RegisterWidget(QWidget *parent)
 
     connect(registerBtn,&QPushButton::clicked,this,&RegisterWidget::registerSlot);
     connect(getCodeBtn,&QPushButton::clicked,this,&RegisterWidget::getCodeSlot);
+    connect(toNameLoginBtn,&QPushButton::clicked,this,&RegisterWidget::toNameLoginSignal);
+    connect(toPhoneLoginBtn,&QPushButton::clicked,this,&RegisterWidget::toPhoneLoginSignal);
 }
 
 bool RegisterWidget::check()
@@ -160,5 +162,15 @@ void RegisterWidget::getCodeSlot()
     {
         emit authCodeSignal();
     }
+}
+
+void RegisterWidget::toNameSlot()
+{
+    emit toNameLoginSignal();
+}
+
+void RegisterWidget::toPhoneSlot()
+{
+    emit toPhoneLoginSignal();
 }
 

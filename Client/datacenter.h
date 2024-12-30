@@ -2,7 +2,6 @@
 #define DATACENTER_H
 #include "CoreData.h"
 #include "DataCenterCoreData.h"
-#include "httplib.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -40,9 +39,6 @@ public:
     OrderList order_list;
     bool consumerOrderGenerate();
 
-
-private:
-    httplib::Client client;
 };
 
 #endif // DATACENTER_H
