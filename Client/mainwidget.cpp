@@ -346,7 +346,37 @@ void MainWidget::mddCloseSlot()
     mdd_win = nullptr;
 }
 
-void MainWidget::merchantDishEditSlot()
+void MainWidget::merchantDishEditSlot(QString dish_id)
+{
+    if(mde_win != nullptr)
+    {
+        return;//不允许同时打开多个窗口
+    }
+    mdd_win->close();//编辑菜品时关闭详情页
+    mde_win = new MerchantDishEditWindow;
+    //连接内部信号
+    connect(mde_win->mde,&MerchantDishEditWidget::merchantDishSaveSignal,this,&MainWidget::merchantDishEditSaveSlot);
+    connect(mde_win->mde,&MerchantDishEditWidget::merchantDishDelSignal,this,&MainWidget::merchantDishDelSlot);
+    //连接窗口关闭信号
+    connect(mde_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::mdeCloseSlot);
+
+    mde_win->exec();
+}
+
+
+void MainWidget::mdeCloseSlot()
+{
+    qDebug()<<"close mod window";
+    sender()->deleteLater();
+    mde_win = nullptr;
+}
+
+void MainWidget::merchantDishEditSaveSlot(MerchantDishEditWidget::Input input)
+{
+
+}
+
+void MainWidget::merchantDishDelSlot(QString dish_id)
 {
 
 }

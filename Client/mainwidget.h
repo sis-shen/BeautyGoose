@@ -19,6 +19,7 @@
 #include "merchantdishregisterwindow.h"
 #include "merchantorderdetailwindow.h"
 #include "merchantdishdetailwindow.h"
+#include "merchantdisheditwindow.h"
 
 #include <QMessageBox>
 #include <QList>
@@ -76,6 +77,7 @@ public:
     MerchantDishRegisterWindow* mdr_win = nullptr;    //商家注册菜品窗口
     MerchantOrderDetailWindow* mod_win = nullptr;       //商家订单处理窗口
     MerchantDishDetailWindow* mdd_win = nullptr;        //商家查看菜品详情
+    MerchantDishEditWindow* mde_win = nullptr;      //商家编辑菜品窗口
 public slots:
     void toMerchantDishListSlot();  //转到商家的菜品列表
     void toMerchantDishInfoWindowSlot(QString dish_id);    //转到商家菜品详情窗口
@@ -88,7 +90,10 @@ public slots:
     void merchantDishAcceptSlot(QString order_id);  //商家接单处理函数
     void merchantDishRejecttSlot(QString order_id);  //商家接单处理函数
     void mddCloseSlot();        //商家菜品详情窗口关闭处理函数
-    void merchantDishEditSlot();//商家菜品编辑处理函数
+    void merchantDishEditSlot(QString dish_id);//商家菜品编辑窗口
+    void mdeCloseSlot();        //商家菜品编辑窗口关闭处理函数
+    void merchantDishEditSaveSlot(MerchantDishEditWidget::Input input);
+    void merchantDishDelSlot(QString dish_id);
 private:
     QString host = "127.0.0.1";
     int port = 80;
