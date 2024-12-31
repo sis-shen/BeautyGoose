@@ -260,6 +260,20 @@ void MainWidget::toMerchantOrderListSlot()
 
 }
 
+void MainWidget::toMerchantOrderDetailSlot()
+{
+    clearAll();
+    MerchantOrderListWidget* mol = new MerchantOrderListWidget;
+    this->layout()->addWidget(mol);
+
+    //连导航栏
+    connect(mol->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
+    connect(mol->leftNavW,&MerchantNavWidget::toOrderListSignal,this,&MainWidget::toMerchantOrderListSlot);
+    connect(mol->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);
+    //连接其它信号
+    connect(mol,&MerchantOrderListWidget::merchantOrderInfoSignal,this,&MainWidget::toMerchantOrderDetailSlot);
+}
+
 void MainWidget::toDishRegisterWindowSlot()
 {
 

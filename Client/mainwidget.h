@@ -15,6 +15,8 @@
 #include "consumerdishdetailwindow.h"
 //商家界面
 #include "merchantdishlistwidget.h"
+#include "merchantorderlistwidget.h"
+
 #include <QMessageBox>
 #include <QList>
 QT_BEGIN_NAMESPACE
@@ -73,6 +75,7 @@ public slots:
     void toMerchantDishListSlot();  //转到商家的菜品列表
     void toMerchantDishInfoWindowSlot(QString dish_id);    //转到商家菜品详情窗口
     void toMerchantOrderListSlot();//前往商家订单列表
+    void toMerchantOrderDetailSlot();   //商家查看订单详情
     void toDishRegisterWindowSlot();    //打开商品注册窗口
 private:
     QString host = "127.0.0.1";
