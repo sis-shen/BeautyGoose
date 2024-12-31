@@ -43,8 +43,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         consumerorderlistwidget.cpp
         consumerorderdetailwidget.h
         consumerorderdetailwidget.cpp
-        consumerdishdetailwidget.h
+
         consumerorderdetailwidget.cpp
+        consumerdishdetailwidget.cpp
+        consumerdishdetailwidget.h
+        consumerdishdetailwidget.h
+        consumerdishdetailwindow.h
+
 
 
 

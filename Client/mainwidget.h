@@ -10,7 +10,7 @@
 #include "consumercartlistwidget.h"
 #include "consumerorderlistwidget.h"
 #include "consumerorderdetailwidget.h"
-#include "consumerdishdetailwidget.h"
+#include "consumerdishdetailwindow.h"
 #include <QMessageBox>
 #include <QList>
 QT_BEGIN_NAMESPACE
@@ -44,10 +44,15 @@ public slots:
 
 public:
 //消费者子系统
+    ConsumerDishDetailWindow* cdd_win = nullptr;      //显示菜品详情的唯一窗口
 public slots:
     void toDishListSlot();              //转到菜品列表界面
-
+    void cddCloseSlot();                //关闭窗口时执行的槽函数
     void dishInfoSlot(QString dish_id); //转到转到菜品详情窗口
+    void cartDsihAddSlot(QString merchant_id,
+                         QString dish_id);  //购物车添加一个菜品
+    void cartDsihPopSlot(QString merchant_id,
+                         QString dish_id);  //购物车减少一个菜品
     void toCartListSlot();              //转到购物车列表界面
     void cartClearSlot(QString merchant_id);    //清空某个购物车
     void orderGenerateSlot(QString merchant_id);//生成订单

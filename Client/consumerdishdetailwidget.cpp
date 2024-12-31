@@ -94,10 +94,10 @@ void ConsumerDishDetailWidget::initDown()
 
 void ConsumerDishDetailWidget::addSlot()
 {
-    emit CartDishAdd(merchant_id,dish_id);
+    emit cartDishAddSignal(merchant_id,dish_id);
 }
 
 void ConsumerDishDetailWidget::popSlot()
 {
-    emit CartDishPop(merchant_id,dish_id);
+    emit cartDishPopSignal(merchant_id,dish_id);
 }

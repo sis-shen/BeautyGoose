@@ -112,7 +112,43 @@ void MainWidget::toDishListSlot()
     connect(cdl,&ConsumerDishListWidget::dishInfoSignal,this,&MainWidget::dishInfoSlot);
 }
 
+void MainWidget::cddCloseSlot()
+{
+    qDebug()<<"close subwindow";
+    sender()->deleteLater();
+    cdd_win = nullptr;
+}
+
 void MainWidget::dishInfoSlot(QString dish_id)
+{
+    if(cdd_win != nullptr)
+    {
+        //已经有窗口打开了，所以不开新的窗口
+        return;
+    }
+    //若不存在，则创建窗口并显示
+    cdd_win =new ConsumerDishDetailWindow;
+    //连接窗口信号
+    connect(cdd_win,&ConsumerDishDetailWindow::finished,this,&MainWidget::cddCloseSlot);
+    //连接控件信号
+    connect(cdd_win->cdd,
+            &ConsumerDishDetailWidget::cartDishAddSignal,
+            this,
+            &MainWidget::cartDsihAddSlot);
+    connect(cdd_win->cdd,
+            &ConsumerDishDetailWidget::cartDishAddSignal,
+            this,
+            &MainWidget::cartDsihPopSlot);
+
+    cdd_win->exec();
+}
+
+void MainWidget::cartDsihAddSlot(QString merchant_id, QString dish_id)
+{
+
+}
+
+void MainWidget::cartDsihPopSlot(QString merchant_id, QString dish_id)
 {
 
 }

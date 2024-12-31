@@ -32,8 +32,8 @@ public slots:
     void popSlot();
 
 signals:
-    void CartDishAdd(QString merchant_id,QString order_id);
-    void CartDishPop(QString merchant_id,QString order_id);
+    void cartDishAddSignal(QString merchant_id,QString order_id);
+    void cartDishPopSignal(QString merchant_id,QString order_id);
 };
 
 #endif // CONSUMERDISHDETAILWIDGET_H
