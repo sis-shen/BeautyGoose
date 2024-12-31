@@ -88,28 +88,29 @@ void MainWidget::registerSlot(RegisterWidget::Input input)
 void MainWidget::loginNameSlot(LoginByNameWidget::Input input)
 {
     //TODO
-    toDishListSlot();
+    if(input.type == "CONSUMER")toConsumerDishListSlot();
+    else toMerchantDishListSlot();
 }
 
 void MainWidget::loginPhoneSlot(LoginByPhoneWidget::Input input)
 {
     //TODO
-    toDishListSlot();
+    toConsumerDishListSlot();
 }
 
-void MainWidget::toDishListSlot()
+void MainWidget::toConsumerDishListSlot()
 {
     clearAll();
     ConsumerDishListWidget* cdl = new ConsumerDishListWidget;
     this->layout()->addWidget((cdl));
     //连导航栏
     connect(cdl->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
-    connect(cdl->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toDishListSlot);
-    connect(cdl->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toOrderListSlot);
+    connect(cdl->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
+    connect(cdl->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
     connect(cdl->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
 
     //连其它信号
-    connect(cdl,&ConsumerDishListWidget::dishInfoSignal,this,&MainWidget::dishInfoSlot);
+    connect(cdl,&ConsumerDishListWidget::dishInfoSignal,this,&MainWidget::consumerDishInfoSlot);
 }
 
 void MainWidget::cddCloseSlot()
@@ -119,7 +120,7 @@ void MainWidget::cddCloseSlot()
     cdd_win = nullptr;
 }
 
-void MainWidget::dishInfoSlot(QString dish_id)
+void MainWidget::consumerDishInfoSlot(QString dish_id)
 {
     if(cdd_win != nullptr)
     {
@@ -162,12 +163,12 @@ void MainWidget::toCartListSlot()
 
     //连导航栏
     connect(ccl->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
-    connect(ccl->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toDishListSlot);
-    connect(ccl->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toOrderListSlot);
+    connect(ccl->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
+    connect(ccl->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
     connect(ccl->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
 
     //其它信号
-    connect(ccl,&ConsumerCartListWidget::dishInfoSignal,this,&MainWidget::dishInfoSlot);
+    connect(ccl,&ConsumerCartListWidget::dishInfoSignal,this,&MainWidget::consumerDishInfoSlot);
     connect(ccl,&ConsumerCartListWidget::orderGenerateSignal,this,&MainWidget::orderGenerateSlot);
     connect(ccl,&ConsumerCartListWidget::cartClearSignal,this,&MainWidget::cartClearSlot);
 }
@@ -182,22 +183,22 @@ void MainWidget::orderGenerateSlot(QString merchant_id)
 
 }
 
-void MainWidget::toOrderListSlot()
+void MainWidget::toConsumerOrderListSlot()
 {
     clearAll();
     ConsumerOrderListWidget* col = new ConsumerOrderListWidget;
     this->layout()->addWidget(col);
     //连导航栏
     connect(col->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
-    connect(col->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toDishListSlot);
-    connect(col->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toOrderListSlot);
+    connect(col->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
+    connect(col->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
     connect(col->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
 
     //连其它信号
-    connect(col,&ConsumerOrderListWidget::toOrderInfoSignal,this,&MainWidget::orderInfoSlot);
+    connect(col,&ConsumerOrderListWidget::toOrderInfoSignal,this,&MainWidget::consumerOrderInfoSlot);
 }
 
-void MainWidget::orderInfoSlot(QString order_id)
+void MainWidget::consumerOrderInfoSlot(QString order_id)
 {
     //TODO
     //没做传入id的接口
@@ -207,12 +208,12 @@ void MainWidget::orderInfoSlot(QString order_id)
 
     //连导航栏
     connect(cod->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
-    connect(cod->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toDishListSlot);
-    connect(cod->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toOrderListSlot);
+    connect(cod->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
+    connect(cod->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
     connect(cod->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
 
     //连其它信号
-    connect(cod,&ConsumerOrderDetailWidget::toOrderListSignal,this,&MainWidget::toOrderListSlot);
+    connect(cod,&ConsumerOrderDetailWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
     connect(cod,&ConsumerOrderDetailWidget::payOrderSignal,this,&MainWidget::payOrderSlot);
     connect(cod,&ConsumerOrderDetailWidget::cancelSignal,this,&MainWidget::orderCancelSlot);
 }
@@ -229,6 +230,37 @@ void MainWidget::payOrderSlot(QString order_id)
 }
 
 void MainWidget::orderCancelSlot(QString order_id)
+{
+
+}
+
+void MainWidget::toMerchantDishListSlot()
+{
+    clearAll();
+    MerchantDishListWidget* mdl = new MerchantDishListWidget;
+    this->layout()->addWidget(mdl);
+
+    //连导航栏
+    connect(mdl->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
+    connect(mdl->leftNavW,&MerchantNavWidget::toOrderListSignal,this,&MainWidget::toMerchantOrderListSlot);
+    connect(mdl->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);
+
+    //连其它信号
+    connect(mdl,&MerchantDishListWidget::merchantDishInfoSignal,this,&MainWidget::toMerchantDishInfoWindowSlot);
+}
+
+void MainWidget::toMerchantDishInfoWindowSlot(QString dish_id)
+{
+
+}
+
+
+void MainWidget::toMerchantOrderListSlot()
+{
+
+}
+
+void MainWidget::toDishRegisterWindowSlot()
 {
 
 }

@@ -49,6 +49,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         consumerdishdetailwidget.h
         consumerdishdetailwidget.h
         consumerdishdetailwindow.h
+        merchantdishlistwidget.h
+        merchantdishlistwidget.cpp
+        merchantdishlistwidget.cpp
+        merchantorderlistwidget.h
+        merchantorderlistwidget.cpp
 
 
 

@@ -2,15 +2,19 @@
 #define MAINWIDGET_H
 
 #include <QWidget>
-#include "registerwidget.h"
 #include "datacenter.h"
+//账户界面
+#include "registerwidget.h"
 #include "loginbynamewidget.h"
 #include "loginbyphone.h"
+//消费者界面
 #include "consumerdishlistwidget.h"
 #include "consumercartlistwidget.h"
 #include "consumerorderlistwidget.h"
 #include "consumerorderdetailwidget.h"
 #include "consumerdishdetailwindow.h"
+//商家界面
+#include "merchantdishlistwidget.h"
 #include <QMessageBox>
 #include <QList>
 QT_BEGIN_NAMESPACE
@@ -46,9 +50,9 @@ public:
 //消费者子系统
     ConsumerDishDetailWindow* cdd_win = nullptr;      //显示菜品详情的唯一窗口
 public slots:
-    void toDishListSlot();              //转到菜品列表界面
+    void toConsumerDishListSlot();              //转到菜品列表界面
     void cddCloseSlot();                //关闭窗口时执行的槽函数
-    void dishInfoSlot(QString dish_id); //转到转到菜品详情窗口
+    void consumerDishInfoSlot(QString dish_id); //转到转到菜品详情窗口
     void cartDsihAddSlot(QString merchant_id,
                          QString dish_id);  //购物车添加一个菜品
     void cartDsihPopSlot(QString merchant_id,
@@ -56,11 +60,20 @@ public slots:
     void toCartListSlot();              //转到购物车列表界面
     void cartClearSlot(QString merchant_id);    //清空某个购物车
     void orderGenerateSlot(QString merchant_id);//生成订单
-    void toOrderListSlot();             //转到订单列表界面
-    void orderInfoSlot(QString order_id);   //转到订单详情界面
+    void toConsumerOrderListSlot();             //转到订单列表界面
+    void consumerOrderInfoSlot(QString order_id);   //转到订单详情界面
     void toVIPSlot();                   //转到VIP界面
     void payOrderSlot(QString order_id);//支付某个订单
     void orderCancelSlot(QString order_id);//取消某个订单
+
+public:
+    //商家子系统
+
+public slots:
+    void toMerchantDishListSlot();  //转到商家的菜品列表
+    void toMerchantDishInfoWindowSlot(QString dish_id);    //转到商家菜品详情窗口
+    void toMerchantOrderListSlot();//前往商家订单列表
+    void toDishRegisterWindowSlot();    //打开商品注册窗口
 private:
     QString host = "127.0.0.1";
     int port = 80;
