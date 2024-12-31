@@ -251,7 +251,17 @@ void MainWidget::toMerchantDishListSlot()
 
 void MainWidget::toMerchantDishInfoWindowSlot(QString dish_id)
 {
+    if(mdd_win != nullptr)
+    {
+        return;//不允许同时打开多个窗口
+    }
+    mdd_win = new MerchantDishDetailWindow;
+    //连接内部信号
+    connect(mdd_win->mdd,&MerchantDishDetailWidget::dishEditSignal,this,&MainWidget::merchantDishEditSlot);
+    //连接窗口关闭信号
+    connect(mdd_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::mddCloseSlot);
 
+    mdd_win->exec();
 }
 
 
@@ -280,7 +290,7 @@ void MainWidget::toMerchantOrderDetailSlot()
     connect(mod_win->mod,&MerchantOrderDetailWidget::acceptOrderSignal,this,&MainWidget::merchantDishAcceptSlot);
     connect(mod_win->mod,&MerchantOrderDetailWidget::rejectOrderSignal,this,&MainWidget::merchantDishRejecttSlot);
     //连接窗口关闭信号
-    connect(mod_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::mdrCloseSlot);
+    connect(mod_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::modCloseSlot);
 
     mod_win->exec();
 }
@@ -313,7 +323,8 @@ void MainWidget::merchantDishRegisterSlot(MerchantDishRegisterWidget::Input inpu
 }
 
 void MainWidget::modCloseSlot()
-{    qDebug()<<"close mod window";
+{
+    qDebug()<<"close mod window";
     sender()->deleteLater();
     mod_win = nullptr;
 }
@@ -326,6 +337,18 @@ void MainWidget::merchantDishAcceptSlot(QString order_id)
 void MainWidget::merchantDishRejecttSlot(QString order_id)
 {
     mod_win->close();
+}
+
+void MainWidget::mddCloseSlot()
+{
+    qDebug()<<"close mod window";
+    sender()->deleteLater();
+    mdd_win = nullptr;
+}
+
+void MainWidget::merchantDishEditSlot()
+{
+
 }
 
 
