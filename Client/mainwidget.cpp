@@ -89,13 +89,19 @@ void MainWidget::loginNameSlot(LoginByNameWidget::Input input)
 {
     //TODO
     if(input.type == "CONSUMER")toConsumerDishListSlot();
-    else toMerchantDishListSlot();
+    else if (input.type == "MERCHANT")toMerchantDishListSlot();
+    else toAdminOrderListSlot();
 }
 
 void MainWidget::loginPhoneSlot(LoginByPhoneWidget::Input input)
 {
     //TODO
     toConsumerDishListSlot();
+}
+
+void MainWidget::toUserInfoSlot()
+{
+
 }
 
 void MainWidget::toConsumerDishListSlot()
@@ -221,12 +227,44 @@ void MainWidget::consumerOrderInfoSlot(QString order_id)
 
 void MainWidget::toVIPSlot()
 {
+    clearAll();
+    ConsumerVIPWidget* vip = new ConsumerVIPWidget;
+    this->layout()->addWidget(vip);
+
+    connect(vip,&ConsumerVIPWidget::accountUpgradeSignal,this,&MainWidget::accountUpgradeSlot);
+}
+
+void MainWidget::accountUpgradeSlot(QString level)
+{
 
 }
 
 void MainWidget::payOrderSlot(QString order_id)
 {
+    if( tpw_win!= nullptr)
+    {
+        return;//不允许同时打开多个窗口
+    }
+    tpw_win = new ThirdPayWindow;
+    tpw_win->order_id=order_id;
+    //连接内部信号
+    connect(tpw_win,&ThirdPayWindow::payConfirmlySignal,this,&MainWidget::payConfirmlySlot);
+    //连接窗口关闭信号
+    connect(tpw_win,&ThirdPayWindow::finished,this,&MainWidget::tpwCloseSlot);
 
+    tpw_win->exec();
+}
+
+void MainWidget::payConfirmlySlot(QString order_id)
+{
+
+}
+
+void MainWidget::tpwCloseSlot()
+{
+    qDebug()<<"close mod window";
+    sender()->deleteLater();
+    tpw_win = nullptr;
 }
 
 void MainWidget::orderCancelSlot(QString order_id)
@@ -379,6 +417,13 @@ void MainWidget::merchantDishEditSaveSlot(MerchantDishEditWidget::Input input)
 void MainWidget::merchantDishDelSlot(QString dish_id)
 {
 
+}
+
+void MainWidget::toAdminOrderListSlot()
+{
+    clearAll();
+    AdminOrderListWidget* aol = new AdminOrderListWidget;
+    this->layout()->addWidget(aol);
 }
 
 

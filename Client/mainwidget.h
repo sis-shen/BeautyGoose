@@ -13,6 +13,7 @@
 #include "consumerorderlistwidget.h"
 #include "consumerorderdetailwidget.h"
 #include "consumerdishdetailwindow.h"
+#include "consumervipwidget.h"
 //商家界面
 #include "merchantdishlistwidget.h"
 #include "merchantorderlistwidget.h"
@@ -20,6 +21,10 @@
 #include "merchantorderdetailwindow.h"
 #include "merchantdishdetailwindow.h"
 #include "merchantdisheditwindow.h"
+//管理员界面
+#include "adminorderlistwidget.h"
+//第三方支付界面
+#include "thirdpaywindow.h"
 
 #include <QMessageBox>
 #include <QList>
@@ -51,10 +56,11 @@ public slots:
     void registerSlot(RegisterWidget::Input input); //发起注册请求
     void loginNameSlot(LoginByNameWidget::Input input);//发起登录请求
     void loginPhoneSlot(LoginByPhoneWidget::Input input);//发起登录请求
-
+    void toUserInfoSlot();  //转到个人界面
 public:
 //消费者子系统
     ConsumerDishDetailWindow* cdd_win = nullptr;      //显示菜品详情的唯一窗口
+    ThirdPayWindow* tpw_win = nullptr;
 public slots:
     void toConsumerDishListSlot();              //转到菜品列表界面
     void cddCloseSlot();                //关闭消费者菜品详情窗口时执行的槽函数
@@ -69,7 +75,10 @@ public slots:
     void toConsumerOrderListSlot();             //转到订单列表界面
     void consumerOrderInfoSlot(QString order_id);   //转到订单详情界面
     void toVIPSlot();                   //转到VIP界面
+    void accountUpgradeSlot(QString level);        //用户升级实现
     void payOrderSlot(QString order_id);//支付某个订单
+    void payConfirmlySlot(QString order_id);//真正开始支付某个订单
+    void tpwCloseSlot();
     void orderCancelSlot(QString order_id);//取消某个订单
 
 public:
@@ -94,6 +103,10 @@ public slots:
     void mdeCloseSlot();        //商家菜品编辑窗口关闭处理函数
     void merchantDishEditSaveSlot(MerchantDishEditWidget::Input input);
     void merchantDishDelSlot(QString dish_id);
+
+public:
+    //管理员子系统
+    void toAdminOrderListSlot();    //打开管理员界面
 private:
     QString host = "127.0.0.1";
     int port = 80;
