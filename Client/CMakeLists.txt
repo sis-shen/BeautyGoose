@@ -54,6 +54,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         merchantdishlistwidget.cpp
         merchantorderlistwidget.h
         merchantorderlistwidget.cpp
+        merchantdishegisterwidget.h merchantdishregisterwidget.cpp merchantdishregisterwindow.h
 
 
 

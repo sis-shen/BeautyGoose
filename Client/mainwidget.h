@@ -16,6 +16,7 @@
 //商家界面
 #include "merchantdishlistwidget.h"
 #include "merchantorderlistwidget.h"
+#include "merchantdishregisterwindow.h"
 
 #include <QMessageBox>
 #include <QList>
@@ -53,7 +54,7 @@ public:
     ConsumerDishDetailWindow* cdd_win = nullptr;      //显示菜品详情的唯一窗口
 public slots:
     void toConsumerDishListSlot();              //转到菜品列表界面
-    void cddCloseSlot();                //关闭窗口时执行的槽函数
+    void cddCloseSlot();                //关闭消费者菜品详情窗口时执行的槽函数
     void consumerDishInfoSlot(QString dish_id); //转到转到菜品详情窗口
     void cartDsihAddSlot(QString merchant_id,
                          QString dish_id);  //购物车添加一个菜品
@@ -70,13 +71,16 @@ public slots:
 
 public:
     //商家子系统
-
+    MerchantDishRegisterWindow* mdr_win = nullptr;    //商家注册菜品窗口
 public slots:
     void toMerchantDishListSlot();  //转到商家的菜品列表
     void toMerchantDishInfoWindowSlot(QString dish_id);    //转到商家菜品详情窗口
     void toMerchantOrderListSlot();//前往商家订单列表
     void toMerchantOrderDetailSlot();   //商家查看订单详情
     void toDishRegisterWindowSlot();    //打开商品注册窗口
+    void mdrCloseSlot();
+    void merchantDishRegisterSlot(MerchantDishRegisterWidget::Input input);
+
 private:
     QString host = "127.0.0.1";
     int port = 80;

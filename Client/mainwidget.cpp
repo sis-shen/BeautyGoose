@@ -257,11 +257,6 @@ void MainWidget::toMerchantDishInfoWindowSlot(QString dish_id)
 
 void MainWidget::toMerchantOrderListSlot()
 {
-
-}
-
-void MainWidget::toMerchantOrderDetailSlot()
-{
     clearAll();
     MerchantOrderListWidget* mol = new MerchantOrderListWidget;
     this->layout()->addWidget(mol);
@@ -274,9 +269,36 @@ void MainWidget::toMerchantOrderDetailSlot()
     connect(mol,&MerchantOrderListWidget::merchantOrderInfoSignal,this,&MainWidget::toMerchantOrderDetailSlot);
 }
 
-void MainWidget::toDishRegisterWindowSlot()
+void MainWidget::toMerchantOrderDetailSlot()
 {
 
+}
+
+void MainWidget::toDishRegisterWindowSlot()
+{
+    if(mdr_win != nullptr)
+    {
+        return;//不允许同时打开多个窗口
+    }
+    mdr_win = new MerchantDishRegisterWindow;
+    //连接内部信号
+    connect(mdr_win->mrd,&MerchantDishRegisterWidget::dishRegisterSignal,this,&MainWidget::merchantDishRegisterSlot);
+    //连接窗口关闭信号
+    connect(mdr_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::mdrCloseSlot);
+
+    mdr_win->exec();
+}
+
+void MainWidget::mdrCloseSlot()
+{
+    qDebug()<<"close subwindow";
+    sender()->deleteLater();
+    mdr_win = nullptr;
+}
+
+void MainWidget::merchantDishRegisterSlot(MerchantDishRegisterWidget::Input input)
+{
+    qDebug()<<"merchantDishRegisterSlot";
 }
 
 
