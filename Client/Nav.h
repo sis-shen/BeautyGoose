@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QStyleOption>
 #include <QStyle>
+#include <QDebug>
 #include <QStyleFactory>
 class ConsumerNavWidget:public QWidget
 {
@@ -119,7 +120,7 @@ public:
 
     }
 public slots:
-    void toUserInfoSlot(){emit toUserInfoSlot();}
+    void toUserInfoSlot(){emit toUserInfoSignal();}
     void toDishListSlot(){emit toDishListSignal();}
     void toOrderListSlot(){emit toOrderListSignal();}
     void toDishRegisterWindowSlot(){emit toDishRegisterWindowSignal();}

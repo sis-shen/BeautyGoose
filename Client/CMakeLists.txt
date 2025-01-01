@@ -61,6 +61,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         adminorderlistwidget.cpp adminorderlistwidget.h
         thirdpaywindow.h
         consumervipwidget.cpp consumervipwidget.h
+        consumeruserinfowidget.cpp consumeruserinfowidget.h
+        merchantuserinfowidget.cpp merchantuserinfowidget.h
 
 
 

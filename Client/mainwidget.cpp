@@ -99,10 +99,41 @@ void MainWidget::loginPhoneSlot(LoginByPhoneWidget::Input input)
     toConsumerDishListSlot();
 }
 
-void MainWidget::toUserInfoSlot()
+void MainWidget::toConsumerUserInfoSlot()
+{
+    clearAll();
+    ConsumerUserInfoWidget* aui = new ConsumerUserInfoWidget;
+    this->layout()->addWidget(aui);
+    //导航栏
+    connect(aui->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
+    connect(aui->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
+    connect(aui->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
+    connect(aui->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
+    connect(aui->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
+    //其它
+    connect(aui,&ConsumerUserInfoWidget::changeNicknameSignal,this,&MainWidget::changeNicknameSlot);
+}
+
+void MainWidget::toMerchantUserInfoSlot()
+{
+    qDebug()<<"toMerchantUserInfoSlot";
+    clearAll();
+    MerchantUserInfoWidget* aui = new MerchantUserInfoWidget;
+    this->layout()->addWidget(aui);
+    qDebug()<<"start Connection";
+    //连导航栏
+    connect(aui->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
+    connect(aui->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
+    connect(aui->leftNavW,&MerchantNavWidget::toOrderListSignal,this,&MainWidget::toMerchantOrderListSlot);
+    connect(aui->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);
+}
+
+void MainWidget::changeNicknameSlot(QString nickname)
 {
 
 }
+
+
 
 void MainWidget::toConsumerDishListSlot()
 {
@@ -110,6 +141,7 @@ void MainWidget::toConsumerDishListSlot()
     ConsumerDishListWidget* cdl = new ConsumerDishListWidget;
     this->layout()->addWidget((cdl));
     //连导航栏
+    connect(cdl->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
     connect(cdl->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
     connect(cdl->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
     connect(cdl->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
@@ -168,6 +200,7 @@ void MainWidget::toCartListSlot()
     this->layout()->addWidget(ccl);
 
     //连导航栏
+    connect(ccl->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
     connect(ccl->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
     connect(ccl->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
     connect(ccl->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
@@ -195,6 +228,7 @@ void MainWidget::toConsumerOrderListSlot()
     ConsumerOrderListWidget* col = new ConsumerOrderListWidget;
     this->layout()->addWidget(col);
     //连导航栏
+    connect(col->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
     connect(col->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
     connect(col->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
     connect(col->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
@@ -230,7 +264,14 @@ void MainWidget::toVIPSlot()
     clearAll();
     ConsumerVIPWidget* vip = new ConsumerVIPWidget;
     this->layout()->addWidget(vip);
-
+    //导航栏
+    //连导航栏
+    connect(vip->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
+    connect(vip->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
+    connect(vip->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
+    connect(vip->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
+    connect(vip->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
+    //控件信号
     connect(vip,&ConsumerVIPWidget::accountUpgradeSignal,this,&MainWidget::accountUpgradeSlot);
 }
 
@@ -279,6 +320,7 @@ void MainWidget::toMerchantDishListSlot()
     this->layout()->addWidget(mdl);
 
     //连导航栏
+    connect(mdl->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
     connect(mdl->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
     connect(mdl->leftNavW,&MerchantNavWidget::toOrderListSignal,this,&MainWidget::toMerchantOrderListSlot);
     connect(mdl->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);
@@ -310,6 +352,7 @@ void MainWidget::toMerchantOrderListSlot()
     this->layout()->addWidget(mol);
 
     //连导航栏
+    connect(mol->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
     connect(mol->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
     connect(mol->leftNavW,&MerchantNavWidget::toOrderListSignal,this,&MainWidget::toMerchantOrderListSlot);
     connect(mol->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);

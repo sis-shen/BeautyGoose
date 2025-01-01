@@ -7,6 +7,8 @@
 #include "registerwidget.h"
 #include "loginbynamewidget.h"
 #include "loginbyphone.h"
+#include "consumeruserinfowidget.h"
+#include "merchantuserinfowidget.h"
 //消费者界面
 #include "consumerdishlistwidget.h"
 #include "consumercartlistwidget.h"
@@ -56,7 +58,9 @@ public slots:
     void registerSlot(RegisterWidget::Input input); //发起注册请求
     void loginNameSlot(LoginByNameWidget::Input input);//发起登录请求
     void loginPhoneSlot(LoginByPhoneWidget::Input input);//发起登录请求
-    void toUserInfoSlot();  //转到个人界面
+    void toConsumerUserInfoSlot();  //转到消费者个人界面
+    void toMerchantUserInfoSlot();  //转到商家个人界面
+    void changeNicknameSlot(QString nickname);      //修改昵称
 public:
 //消费者子系统
     ConsumerDishDetailWindow* cdd_win = nullptr;      //显示菜品详情的唯一窗口
