@@ -2,10 +2,12 @@
 
 DataCenter::DataCenter(const QString &host, int port) {}
 
-QString DataCenter::getAuthcode(const QString &phoneNumber)
+bool DataCenter::getAuthcode(const QString &phoneNumber)
 {
-    return "";
+
+    return true;
 }
+
 
 bool DataCenter::registerAccount()
 {

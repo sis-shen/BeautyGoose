@@ -24,6 +24,7 @@ struct Cart
 {
     using ptr= QSharedPointer<Cart>;
     QList<DishItem> list;
+    QString merchant_id;
 };
 
 struct CartList
@@ -33,13 +34,16 @@ struct CartList
 
 struct OrderItem
 {
-
-
+    using ptr = QSharedPointer<OrderItem>;
+    QList<DishItem> list;
+    double pay;     //总价格
+    double sum;//菜品总数
+    QString merchant_id;
 };
 
 struct OrderList
 {
-
+    QHash<QString,OrderItem::ptr> orderTabel;
 };
 }
 #endif // DATACENTERCOREDATA_H

@@ -15,9 +15,13 @@ class DataCenter:public QObject
 public:
     DataCenter(const QString& host = "127.0.0.1",int port = 80);
 public:
-    //账户子系统
-    data::Account account;
-    QString getAuthcode(const QString&phoneNumber);
+//////////////////////
+///账户子系统
+////////////////////////
+/// 核心数据缓存
+    data::Account* account = nullptr;
+    //接口
+    bool getAuthcode(const QString&phoneNumber);
     bool registerAccount();
     bool loginByName();
     bool loginByPhone();
