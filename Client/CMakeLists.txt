@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network WebSockets)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -64,6 +64,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         consumeruserinfowidget.cpp consumeruserinfowidget.h
         merchantuserinfowidget.cpp merchantuserinfowidget.h
 
+        ServerConfig.json
+        NetClient.h NetClient.cpp
+
 
 
 
@@ -86,7 +89,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(Client PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(Client PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt6::Network Qt6::WebSockets)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
@@ -100,6 +103,9 @@ set_target_properties(Client PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+    AUTOMOC TRUE
+    AUTOUIC TRUE
+    AUTORCC TRUE
 )
 
 include(GNUInstallDirs)

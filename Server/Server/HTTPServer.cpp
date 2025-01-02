@@ -240,7 +240,9 @@ void btyGoose::HTTPServer::initAccountAPI()
             else
             {
                 data::Account record_acc = db.searchAccountByName(acc.name);
-                if(record_acc.)
+                ///////////////////
+                // TODO
+                //if(record_acc.)
             }
         }
         catch (const HTTPException& e)
@@ -329,4 +331,9 @@ void btyGoose::HTTPServer::initMerchantAPI()
 
 void btyGoose::HTTPServer::initAdminAPI()
 {
+}
+
+bool btyGoose::HTTPServer::getPay(double pay)
+{
+    return false;
 }

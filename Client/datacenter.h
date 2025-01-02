@@ -6,14 +6,30 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonValue>
+
+//网络
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrl>
+
+#include <QFile>
 #include <QObject>
 #include <QIcon>
+#include <QPointer>
 using namespace btyGoose;
 class DataCenter:public QObject
 {
     Q_OBJECT;
 public:
     DataCenter(const QString& host = "127.0.0.1",int port = 80);
+
+     client;     //处理短链连接的http请求
+    QString configFileName = "ServerConfig.json";
+    QString host = "127.0.0.1";
+    int port = 80;
+    bool loadConfig();
+
 public:
 //////////////////////
 ///账户子系统
