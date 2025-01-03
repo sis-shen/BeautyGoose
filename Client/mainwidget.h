@@ -61,6 +61,8 @@ public slots:
     void toConsumerUserInfoSlot();  //转到消费者个人界面
     void toMerchantUserInfoSlot();  //转到商家个人界面
     void changeNicknameSlot(QString nickname);      //修改昵称
+
+    void initAccountResponseConnection();   //使用lambda表达式配合信号槽处理所有的响应
 public:
 //消费者子系统
     ConsumerDishDetailWindow* cdd_win = nullptr;      //显示菜品详情的唯一窗口
@@ -115,6 +117,5 @@ private:
     QString host = "127.0.0.1";
     int port = 80;
     Ui::MainWidget *ui;
-    DataCenter dc;
 };
 #endif // MAINWIDGET_H

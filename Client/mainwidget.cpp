@@ -72,17 +72,7 @@ void MainWidget::authCodeSlot()
 
 void MainWidget::registerSlot(RegisterWidget::Input input)
 {
-    if(true)
-    {
-        QMessageBox::information(this, "Info", "注册成功！");
-        toNameLoginSlot();
-    }
-    else
-    {
-        //TODO
-        //输出失败原因
-        QMessageBox::information(this, "Info", "注册失败！");
-    }
+
 }
 
 void MainWidget::loginNameSlot(LoginByNameWidget::Input input)
@@ -131,6 +121,81 @@ void MainWidget::toMerchantUserInfoSlot()
 void MainWidget::changeNicknameSlot(QString nickname)
 {
 
+}
+
+void MainWidget::initAccountResponseConnection()
+{
+///////////////////////////////////
+/// HTTP响应
+///////////////////////////////////
+    auto datacenter = DataCenter::getInstance();
+    connect(datacenter,&DataCenter::getRegisterDone,this,[=](bool ok,const QString&reason){
+        if(ok)
+        {
+            QMessageBox::information(this, "Info", "注册成功！");
+            toNameLoginSlot();  //转到登录页面
+        }
+        else{
+            QMessageBox::information(this, "Info", "注册失败！原因:" + reason);
+            toRegisterSlot();   //刷新界面
+        }
+    });
+
+    connect(datacenter,&DataCenter::getLoginByNameDone,this,[=](bool ok,const QString&reason){
+        if(ok)
+        {
+            if(datacenter->account->type == data::Account::Type::CONSUMER)
+            {
+                toConsumerDishListSlot();
+            }
+            else if(datacenter->account->type == data::Account::Type::MERCHANT)
+            {
+                toMerchantDishListSlot();
+            }
+            else if(datacenter->account->type == data::Account::Type::ADMIN)
+            {
+                toAdminOrderListSlot();
+            }
+            else
+            {
+                qDebug()<<"账户类型错误";
+                Q_ASSERT(false);
+            }
+        }
+        else
+        {
+            QMessageBox::information(this, "Info", "登录失败!原因:"+reason);
+            toNameLoginSlot();  //刷新界面
+        }
+    });
+
+    connect(datacenter,&DataCenter::getLoginByPhoneDone,this,[=](bool ok,const QString&reason){
+        if(ok)
+        {
+            if(datacenter->account->type == data::Account::Type::CONSUMER)
+            {
+                toConsumerDishListSlot();
+            }
+            else if(datacenter->account->type == data::Account::Type::MERCHANT)
+            {
+                toMerchantDishListSlot();
+            }
+            else if(datacenter->account->type == data::Account::Type::ADMIN)
+            {
+                toAdminOrderListSlot();
+            }
+            else
+            {
+                qDebug()<<"账户类型错误";
+                Q_ASSERT(false);
+            }
+        }
+        else
+        {
+            QMessageBox::information(this, "Info", "登录失败!原因:"+reason);
+            toPhoneLoginSlot();  //刷新界面
+        }
+    });
 }
 
 

@@ -26,7 +26,9 @@ public:
 	bool loadConfig();
 	void saveConfig();
 
+	void initTestAPI();
 	void initAccountAPI();
+	bool AuthenticateAuthCode(const QString& phone,const QString&auth_code);	//这里留着接入第三方API
 	void initConsumerAPI();
 	void initMerchantAPI();
 	void initAdminAPI();

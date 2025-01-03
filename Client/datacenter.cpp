@@ -1,13 +1,16 @@
 #include "datacenter.h"
 
-DataCenter::DataCenter(const QString &host, int port)
+DataCenter* DataCenter::datacenter = nullptr;
+
+DataCenter::DataCenter()
 {
     if(!loadConfig())
     {
         qDebug()<<configFileName<<"服务器地址配置错误";
         exit(1);
     }
-    client = QSharedPointer<httplib::Client>(new httplib::Client(host.toStdString(),port));
+
+    client = new network::NetClient(this,httpUrl,sockUrl);
 }
 
 bool DataCenter::loadConfig()
@@ -19,8 +22,8 @@ bool DataCenter::loadConfig()
 
         if (doc.isObject()) {
             QJsonObject jsonObject = doc.object();
-            host = jsonObject["host"].toString();
-            port = jsonObject["port"].toInt();
+            httpUrl = jsonObject["httpUrl"].toString();
+            sockUrl = jsonObject["sockUrl"].toString();
 
             return true;
         }
@@ -33,11 +36,15 @@ bool DataCenter::getAuthcode(const QString &phoneNumber)
     return true;
 }
 
-
-bool DataCenter::registerAccount()
+void DataCenter::accountRegisterAsync(const QString &name, const QString &password, const QString &phone, const QString &nickname, const QString auth_code, int type)
 {
-    return true;
+    //加密password
+    QByteArray hashPass = QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256);
+    //调用接口
+    client->accountRegister(name,hashPass,phone,nickname,auth_code,type);
 }
+
+
 
 bool DataCenter::loginByPhone()
 {

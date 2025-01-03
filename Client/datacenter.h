@@ -2,10 +2,14 @@
 #define DATACENTER_H
 #include "CoreData.h"
 #include "DataCenterCoreData.h"
+#include "NetClient.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonValue>
+
+#include <QCryptographicHash>
+
 
 //网络
 #include <QNetworkAccessManager>
@@ -22,12 +26,30 @@ class DataCenter:public QObject
 {
     Q_OBJECT;
 public:
-    DataCenter(const QString& host = "127.0.0.1",int port = 80);
+    //单例模式化
+    static DataCenter* getInstance()
+    {
+        if(datacenter == nullptr)
+        {
+            datacenter = new DataCenter;
+        }
 
-     client;     //处理短链连接的http请求
+        return datacenter;
+    }
+private:
+    DataCenter();
+    static DataCenter* datacenter;
+    DataCenter(const DataCenter&) = delete;
+    DataCenter operator=(const DataCenter&) =delete;
+private:
+    network::NetClient* client = nullptr;
+public:
+
+
+    //处理短链连接的http请求
     QString configFileName = "ServerConfig.json";
-    QString host = "127.0.0.1";
-    int port = 80;
+    QString httpUrl = "http://127.0.0.1:80";
+    QString sockUrl = "127.0.0.1:8001/websock";
     bool loadConfig();
 
 public:
@@ -38,7 +60,8 @@ public:
     data::Account* account = nullptr;
     //接口
     bool getAuthcode(const QString&phoneNumber);
-    bool registerAccount();
+    void accountRegisterAsync(const QString&name,const QString&password,const QString& phone,
+                        const QString&nickname,const QString auth_code ,int type);
     bool loginByName();
     bool loginByPhone();
     bool accountUpdate();
@@ -59,6 +82,15 @@ public:
     OrderList order_list;
     bool consumerOrderGenerate();
 
+signals:
+///////////////////////////////////
+///账户子系统
+//////////////////////////////////
+    void getAccountDone();
+    void getRegisterDone(bool ok,const QString& reason);
+    void getLoginByNameDone(bool ok,const QString& reason);
+    void getLoginByPhoneDone(bool ok,const QString& reason);
 };
+
 
 #endif // DATACENTER_H

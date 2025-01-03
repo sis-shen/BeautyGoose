@@ -3,6 +3,7 @@
 btyGoose::HTTPServer::HTTPServer()
 {
     loadConfig();
+    initTestAPI();
     initAccountAPI();
     svr.listen(host.toStdString(), port);
 }
@@ -83,6 +84,15 @@ void btyGoose::HTTPServer::saveConfig()
 
     });
 */
+
+void btyGoose::HTTPServer::initTestAPI()
+{
+    svr.Get("/ping", [=](const httplib::Request& req, httplib::Response& res) {
+        qDebug() << "/ping";
+        res.body = "pong";
+        res.set_header("Content-Type", "application/text;charset=UTF-8");
+        });
+}
 
 void btyGoose::HTTPServer::initAccountAPI()
 {
@@ -197,6 +207,7 @@ void btyGoose::HTTPServer::initAccountAPI()
 
         });
 
+    //账户注册
     svr.Post("/account/register", [this](const httplib::Request& req, httplib::Response& res) {
         qDebug() << "/account/register get a post!";
         std::string jsonStr = req.body;
@@ -224,6 +235,16 @@ void btyGoose::HTTPServer::initAccountAPI()
             acc.loadFromJson(req.body);//加载acc
 
             data::Account record_acc = db.searchAccountByID(acc.uuid);
+
+            if (!AuthenticateAuthCode(acc.phone, jsonObj["auth_code"].toString()))
+            {
+                res.status = 200;
+                resJson["message"] = "验证码错误!";
+                resJson["success"] = false;
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+                return;
+            }
 
             if (record_acc.name.isEmpty())
             {
@@ -319,6 +340,23 @@ void btyGoose::HTTPServer::initAccountAPI()
 
         });
 }
+
+bool btyGoose::HTTPServer::AuthenticateAuthCode(const QString& phone, const QString& auth_code)
+{
+    ///////////////////////////
+    // TODO
+    // ///////////////////
+    //这里就不具体实现了
+    if (auth_code == "8888")
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 
 void btyGoose::HTTPServer::initConsumerAPI()
 {

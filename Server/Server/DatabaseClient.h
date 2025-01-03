@@ -2,7 +2,7 @@
 
 #include <QtCore/QCoreApplication>
 #include <qsqldatabase.h>
-
+#include <qsqlquery.h>
 #include <QTextStream>
 #include <QList>
 #include <QDebug>
