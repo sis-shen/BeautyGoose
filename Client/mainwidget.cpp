@@ -72,7 +72,12 @@ void MainWidget::authCodeSlot()
 
 void MainWidget::registerSlot(RegisterWidget::Input input)
 {
-
+    auto datacenter = DataCenter::getInstance();
+    int type = 0;
+    if(input.type == "CONSUMER")type = (int)data::Account::Type::CONSUMER;
+    else if(input.type == "MERCHANT")type = (int)data::Account::Type::MERCHANT;
+    else if(input.type == "ADMIN")type = (int)data::Account::Type::ADMIN;
+    datacenter->accountRegisterAsync(input.name,input.password,input.phone,input.nickname,input.auth_code,type);
 }
 
 void MainWidget::loginNameSlot(LoginByNameWidget::Input input)

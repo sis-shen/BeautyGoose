@@ -232,10 +232,23 @@ void btyGoose::HTTPServer::initAccountAPI()
             }
 
             data::Account acc;
-            acc.loadFromJson(req.body);//加载acc
+            acc.name = jsonObj["name"].toString();
+            acc.password = jsonObj["password"].toString();  // 直接使用传入的已加密密码
+            acc.phone = jsonObj["phone"].toString();
+            acc.nickname = jsonObj["nickname"].toString();
+            acc.type = (data::Account::Type)jsonObj["type"].toInt();
+            acc.level = data::Account::Level::MEMBER;
+            acc.uuid = util::makeId("A");
 
-            data::Account record_acc = db.searchAccountByID(acc.uuid);
-
+            if (acc.uuid.isEmpty())
+            {
+                res.status = 200;
+                resJson["message"] = "uuid生成错误!";
+                resJson["success"] = false;
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+                return;
+            }
             if (!AuthenticateAuthCode(acc.phone, jsonObj["auth_code"].toString()))
             {
                 res.status = 200;
@@ -245,8 +258,30 @@ void btyGoose::HTTPServer::initAccountAPI()
                 res.body = doc.toJson().toStdString();
                 return;
             }
+            qDebug() << "开始查重用户名" << acc.name;
+            if (!db.searchAccountByName(acc.name).name.isEmpty())
+            {
+                //账户名重复
+                res.status = 200;
+                resJson["message"] = "账户名已存在!";
+                resJson["success"] = false;
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+                return;
+            }
 
-            if (record_acc.name.isEmpty())
+            if (!db.searchAccountByPhone(acc.phone).name.isEmpty())
+            {
+                //电话重复
+                res.status = 200;
+                resJson["message"] = "手机号已被占用!";
+                resJson["success"] = false;
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+                return;
+            }
+
+            if (db.searchAccountByID(acc.uuid).name.isEmpty())
             {
                 if (!db.addAccount(acc))
                 {
@@ -254,16 +289,18 @@ void btyGoose::HTTPServer::initAccountAPI()
                 }
                 resJson["success"] = true;
                 resJson["message"] = "账号创建成功";
-                resJson["account"] = acc.toJson();
                 QJsonDocument doc(resJson);
                 res.body = doc.toJson().toStdString();
             }
             else
             {
-                data::Account record_acc = db.searchAccountByName(acc.name);
-                ///////////////////
-                // TODO
-                //if(record_acc.)
+                //uuid生成错误
+                res.status = 200;
+                resJson["message"] = "uuid生成错误!";
+                resJson["success"] = false;
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+                return;
             }
         }
         catch (const HTTPException& e)
@@ -347,7 +384,7 @@ bool btyGoose::HTTPServer::AuthenticateAuthCode(const QString& phone, const QStr
     // TODO
     // ///////////////////
     //这里就不具体实现了
-    if (auth_code == "8888")
+    if (auth_code == "888888")
     {
         return true;
     }

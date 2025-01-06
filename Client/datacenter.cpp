@@ -27,6 +27,14 @@ bool DataCenter::loadConfig()
 
             return true;
         }
+        else
+        {
+            qDebug()<<"无法打开为json";
+        }
+    }
+    else
+    {
+        qDebug()<<"文件打开错误";
     }
     return false;
 }

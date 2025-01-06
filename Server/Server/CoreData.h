@@ -15,9 +15,31 @@
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QFile>
+#include <QIcon>
+#include <qpixmap.h>
 namespace btyGoose
 {
+	namespace util
+	{
+		//获取秒级时间戳
+		static inline int64_t getSecTime()
+		{
+			return QDateTime::currentSecsSinceEpoch();
+		}
 
+		//把QByteArray转换成QIcon
+		static inline QIcon makeIcon(const QByteArray& byteArray)
+		{
+			QPixmap pixmap;
+			pixmap.loadFromData(byteArray);
+			QIcon icon(pixmap);
+			return icon;
+		}
+
+		static QString makeId(const QString& pre) {
+			return pre + QUuid::createUuid().toString().sliced(25, 12);//截取一部分来提高可读性
+		}
+	}
 
 	/// <summary>
 	/// 定义核心数据结构
@@ -64,8 +86,8 @@ namespace btyGoose
 				jsonObj["phone"] = phone;
 
 				// 填充类型字段，转换枚举类型为字符串
-				jsonObj["type"] = (type == CONSUMER) ? "CONSUMER" : (type == MERCHANT) ? "MERCHANT" : "ADMIN";
-				jsonObj["level"] = (level == MEMBER) ? "MEMBER" : (level == VIP) ? "VIP" : "SUVIP";
+				jsonObj["type"] = (int)type;
+				jsonObj["level"] = (int)level;
 
 				// 转换为 JSON 字符串并返回
 				QJsonDocument doc(jsonObj);
@@ -102,17 +124,8 @@ namespace btyGoose
 						icon = QByteArray::fromBase64(jsonObj["icon"].toString().toUtf8());
 					}
 
-					if (jsonObj.contains("type") && jsonObj["type"].isString()) {
-						QString typeStr = jsonObj["type"].toString();
-						if (typeStr == "CONSUMER") {
-							type = CONSUMER;
-						}
-						else if (typeStr == "MERCHANT") {
-							type = MERCHANT;
-						}
-						else if (typeStr == "ADMIN") {
-							type = ADMIN;
-						}
+					if (jsonObj.contains("type") && jsonObj["type"].isDouble()) {
+						type = (Type)jsonObj["type"].toInt();
 					}
 
 					if (jsonObj.contains("balance") && jsonObj["balance"].isDouble()) {
@@ -123,17 +136,8 @@ namespace btyGoose
 						phone = jsonObj["phone"].toString();
 					}
 
-					if (jsonObj.contains("level") && jsonObj["level"].isString()) {
-						QString levelStr = jsonObj["level"].toString();
-						if (levelStr == "MEMBER") {
-							level = MEMBER;
-						}
-						else if (levelStr == "VIP") {
-							level = VIP;
-						}
-						else if (levelStr == "SUVIP") {
-							level = SUVIP;
-						}
+					if (jsonObj.contains("level") && jsonObj["level"].isDouble()) {
+						level = (Level)jsonObj["level"].toInt();
 					}
 
 
@@ -145,6 +149,8 @@ namespace btyGoose
 					return false;
 				}
 			}
+
+
 		};
 
 		class Dish
@@ -156,6 +162,7 @@ namespace btyGoose
 			QString description = "";	//菜品的描述
 			double base_price = 0;		//基础价格
 			double price_factor = 1;	//价格影响因素
+			bool is_delete = false;		//是否被删除
 
 			QString toJson()
 			{
@@ -169,6 +176,7 @@ namespace btyGoose
 				jsonObj["description"] = description;
 				jsonObj["base_price"] = base_price;
 				jsonObj["price_factor"] = price_factor;
+				jsonObj["is_delete"] = is_delete;
 
 				// 将 QJsonObject 转换为 JSON 字符串
 				QJsonDocument doc(jsonObj);
@@ -213,6 +221,10 @@ namespace btyGoose
 						price_factor = jsonObj["price_factor"].toDouble();
 					}
 
+
+					if (jsonObj.contains("is_delete") && jsonObj["is_delete"].isBool()) {
+						is_delete = jsonObj["is_delete"].toBool();
+					}
 					return true;
 
 				}
@@ -264,16 +276,10 @@ namespace btyGoose
 				jsonObj["sum"] = sum;
 
 				// 转换枚举类型为字符串
-				jsonObj["status"] = (status == UNPAYED) ? "UNPAYED" :
-					(status == WAITING) ? "WAITING" :
-					(status == OVER_TIME) ? "OVER_TIME" :
-					(status == REJECTED) ? "REJECTED" :
-					(status == SUCCESS) ? "SUCCESS" :
-					(status == ERR) ? "ERR" : "FATAL";
+				jsonObj["status"] = (int)status;
 
 				// 转换 Account::Level 枚举为字符串
-				jsonObj["level"] = (level == Account::MEMBER) ? "MEMBER" :
-					(level == Account::VIP) ? "VIP" : "SUVIP";
+				jsonObj["level"] = (int)level;
 
 				// 将 QJsonObject 转换为 JSON 字符串
 				QJsonDocument doc(jsonObj);
@@ -310,17 +316,8 @@ namespace btyGoose
 						time = jsonObj["time"].toString();
 					}
 
-					if (jsonObj.contains("level") && jsonObj["level"].isString()) {
-						QString levelStr = jsonObj["level"].toString();
-						if (levelStr == "MEMBER") {
-							level = Account::MEMBER;
-						}
-						else if (levelStr == "VIP") {
-							level = Account::VIP;
-						}
-						else if (levelStr == "SUVIP") {
-							level = Account::SUVIP;
-						}
+					if (jsonObj.contains("level") && jsonObj["level"].isDouble()) {
+						level = (Account::Level)jsonObj["level"].toInt();
 					}
 
 					if (jsonObj.contains("pay") && jsonObj["pay"].isDouble()) {
@@ -332,28 +329,7 @@ namespace btyGoose
 					}
 
 					if (jsonObj.contains("status") && jsonObj["status"].isString()) {
-						QString statusStr = jsonObj["status"].toString();
-						if (statusStr == "UNPAYED") {
-							status = UNPAYED;
-						}
-						else if (statusStr == "WAITING") {
-							status = WAITING;
-						}
-						else if (statusStr == "OVER_TIME") {
-							status = OVER_TIME;
-						}
-						else if (statusStr == "REJECTED") {
-							status = REJECTED;
-						}
-						else if (statusStr == "SUCCESS") {
-							status = SUCCESS;
-						}
-						else if (statusStr == "ERR") {
-							status = ERR;
-						}
-						else if (statusStr == "FATAL") {
-							status = FATAL;
-						}
+						status = (Status)jsonObj["status"].toInt();
 					}
 
 					if (jsonObj.contains("sum") && jsonObj["sum"].isDouble()) {

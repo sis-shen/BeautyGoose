@@ -2,18 +2,19 @@
 
 btyGoose::DatabaseClient::DatabaseClient()
 {
-    if (loadConfig() == false)
+    if (!loadConfig())
     {
-        //qDebug() << "配置文件加载出错";
-        qDebug() << "fail to load";
-        QCoreApplication::quit();
+        saveConfig();
+        exit(1);
     }
-    db = QSqlDatabase::addDatabase("QMYSQL");
-    db.setDatabaseName(database);
-    db.setHostName(host);
-    db.setUserName(user);
-    db.setPassword(password);
+    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
+    std::string hostName = "tcp://";
+    hostName += host.toStdString();
+    hostName += ":";
+    hostName += port.toStdString();
+    con = driver->connect(hostName, user.toStdString(), password.toStdString());
 
+    qDebug() << "数据库初始连接状态:" << !con->isClosed();
 }
 
 bool btyGoose::DatabaseClient::loadConfig()
@@ -62,59 +63,30 @@ void btyGoose::DatabaseClient::saveConfig()
     }
 }
 
+
+
 bool btyGoose::DatabaseClient::addAccount(const data::Account& account)
 {
-    // 创建数据库连接并验证
-    if (!db.isOpen() && !db.open()) {
-        qDebug() << "Database connection failed!";
-        return false;
-    }
-
-    // 构建插入 SQL 语句
-    QSqlQuery query;
-    query.prepare("INSERT INTO accounts (uuid, name, password, nickname, icon_data, type, balance, phone, level) "
-        "VALUES (:uuid, :name, :password, :nickname, :icon, :type, :balance, :phone, :level)");
-
-    // 绑定参数
-    query.bindValue(":uuid", account.uuid);
-    query.bindValue(":name", account.name);
-    query.bindValue(":password", account.password);
-    query.bindValue(":nickname", account.nickname);
-    query.bindValue(":icon", account.icon);
-    query.bindValue(":type", static_cast<int>(account.type));  // 将枚举转为 int 存储
-    query.bindValue(":balance", account.balance);
-    query.bindValue(":phone", account.phone);
-    query.bindValue(":level", static_cast<int>(account.level));  // 将枚举转为 int 存储
-
-    // 执行查询
-    if (!query.exec()) {
-        qDebug() << "Failed to insert account: " << query.lastError().text();
-        return false;
-    }
-
-    qDebug() << "Account added successfully!";
     return true;
-    
 }
 
 bool btyGoose::DatabaseClient::updataAccount(const data::Account&)
 {
     return false;
 }
-
 btyGoose::data::Account btyGoose::DatabaseClient::searchAccountByID(const QString& id)
 {
-    return data::Account();
+    return btyGoose::data::Account();
 }
 
 btyGoose::data::Account btyGoose::DatabaseClient::searchAccountByName(const QString& name)
 {
-    return data::Account();
+    return btyGoose::data::Account();
 }
 
 btyGoose::data::Account btyGoose::DatabaseClient::searchAccountByPhone(const QString& phone)
 {
-    return data::Account();
+    return btyGoose::data::Account();
 }
 
 bool btyGoose::DatabaseClient::delAccountByID(const QString& id)

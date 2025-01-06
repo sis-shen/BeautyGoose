@@ -1,13 +1,19 @@
 #pragma once
 
 #include <QtCore/QCoreApplication>
-#include <qsqldatabase.h>
-#include <qsqlquery.h>
 #include <QTextStream>
 #include <QList>
 #include <QDebug>
+#include <QThread>
 #include "CoreData.h"
 
+#include <jdbc/cppconn/statement.h>
+#include <jdbc/cppconn/resultset.h>
+#include <jdbc/cppconn/exception.h>
+#include "jdbc/mysql_driver.h"
+
+#include <mutex>
+#include <thread>
 namespace btyGoose
 {
 
@@ -15,7 +21,19 @@ class DatabaseClient
 {
 public:
 	DatabaseClient();
+private:
+	//QSqlDatabase db;
+	QString user = "";
+	QString password = "";
+	QString host = "127.0.0.1";
+	QString port = "3306";
+	QString database = "";
 
+	sql::Connection* con;
+	sql::Statement* stmt;
+
+	std::mutex mtx;
+public:
 
 	bool loadConfig();
 	void saveConfig();
@@ -50,13 +68,7 @@ public:
 	bool clearOverTimeHistory();
 	QList<data::Order> getAllHistory();
 
-private:
-	QSqlDatabase db;
-	QString user;
-	QString password;
-	QString host = "127.0.0.1";
-	QString port = "3306";
-	QString database;
+
 };
 }
 
