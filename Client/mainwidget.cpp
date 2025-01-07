@@ -356,7 +356,8 @@ void MainWidget::orderGenerateSlot(QString merchant_id)
 void MainWidget::toConsumerOrderListSlot()
 {
     clearAll();
-    ConsumerOrderListWidget* col = new ConsumerOrderListWidget;
+    DataCenter* datacenter = DataCenter::getInstance();
+    ConsumerOrderListWidget* col = new ConsumerOrderListWidget(datacenter->consumer_order_list->orderTable);
     this->layout()->addWidget(col);
     //连导航栏
     connect(col->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
@@ -374,6 +375,8 @@ void MainWidget::consumerOrderInfoSlot(QString order_id)
     //TODO
     //没做传入id的接口
     clearAll();
+    DataCenter* datacenter = DataCenter::getInstance();
+//TODO//////////////////////////////////////////
     ConsumerOrderDetailWidget* cod = new ConsumerOrderDetailWidget;
     this->layout()->addWidget(cod);
 

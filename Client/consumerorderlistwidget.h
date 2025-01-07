@@ -8,6 +8,8 @@
 #include <QList>
 #include <QString>
 #include "Nav.h"
+#include "CoreData.h"
+#include "DataCenterCoreData.h"
 namespace consumer
 {
 namespace orderList
@@ -18,7 +20,8 @@ struct OrderItem:public QWidget
 public:
     using ptr = QSharedPointer<OrderItem>;
     QString order_id = "order_id";
-    OrderItem()
+    OrderItem(btyGoose::ConsumerOrderItem::ptr order_item)
+        :order_id(order_item->order->uuid)
     {
         this->setFixedSize(1000,200);
         this->setStyleSheet("QWidget{border: 2px solid black;}");
@@ -37,10 +40,11 @@ public:
         layout->setAlignment(rightW,Qt::AlignRight);
 
         //初始化左边
-        QLabel* nickname = new QLabel("商家:苟布里包子店");
-        QLabel* time = new QLabel("2024/12/31 12:00");
-        QLabel* sum = new QLabel("菜品总数:99");
-        QLabel* pay = new QLabel("订单价格:99元");
+        QLabel* nickname = new QLabel(order_item->order->merchant_name);
+        qint64 timestamp = (order_item->order->time).toLongLong();
+        QLabel* time = new QLabel(btyGoose::util::formatTime(timestamp));
+        QLabel* sum = new QLabel("菜品总数:" + QString::number(order_item->order->sum));
+        QLabel* pay = new QLabel("订单价格:"+QString::number(order_item->order->pay)+"元");
 
         QGridLayout* lLayout = new QGridLayout;
         lLayout->addWidget(nickname,0,0);
@@ -52,7 +56,24 @@ public:
 
         //初始化右边
         rightW->setFixedWidth(250);
-        QPushButton* statBtn = new QPushButton("状态：已完成");
+        QString stat;
+        auto order = order_item->order;
+        if(order->status == btyGoose::data::Order::Status::UNPAYED)
+            stat = "待支付";
+        else if(order->status == btyGoose::data::Order::Status::WAITING)
+            stat = "等待商家";
+        else if(order->status == btyGoose::data::Order::Status::ERR)
+            stat = "错误";
+        else if(order->status == btyGoose::data::Order::Status::FATAL)
+            stat = "失败";
+        else if(order->status == btyGoose::data::Order::Status::OVER_TIME)
+            stat = "超时";
+        else if(order->status == btyGoose::data::Order::Status::SUCCESS)
+            stat = "成功完成";
+        else if(order->status == btyGoose::data::Order::Status::REJECTED)
+            stat = "被拒单";
+        else Q_ASSERT(false);
+        QPushButton* statBtn = new QPushButton(stat);
         QPushButton* infoBtn = new QPushButton("查看");
         statBtn->setFixedSize(100,50);
         infoBtn->setFixedSize(100,50);
@@ -76,7 +97,7 @@ class ConsumerOrderListWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ConsumerOrderListWidget(QWidget *parent = nullptr);
+    explicit ConsumerOrderListWidget(const QHash<QString,btyGoose::ConsumerOrderItem::ptr>* order_table);
 
     ConsumerNavWidget* leftNavW;
     QWidget* rightW;

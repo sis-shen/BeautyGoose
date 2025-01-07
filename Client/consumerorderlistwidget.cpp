@@ -2,8 +2,7 @@
 #include <QScrollArea>
 #include <QScrollBar>
 using namespace consumer::orderList;
-ConsumerOrderListWidget::ConsumerOrderListWidget(QWidget *parent)
-    : QWidget{parent}
+ConsumerOrderListWidget::ConsumerOrderListWidget(const QHash<QString,btyGoose::ConsumerOrderItem::ptr>* order_table)
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -12,11 +11,15 @@ ConsumerOrderListWidget::ConsumerOrderListWidget(QWidget *parent)
     layout->addWidget(leftNavW,0,0);
     layout->addWidget(rightW,0,1);
 
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
+    for(auto it = order_table->begin();it!=order_table->end();++it)
+    {
+        list.push_back(OrderItem::ptr(new OrderItem(it.value())));
+    }
+
+    // list.push_back(OrderItem::ptr(new OrderItem));
+    // list.push_back(OrderItem::ptr(new OrderItem));
+    // list.push_back(OrderItem::ptr(new OrderItem));
+    // list.push_back(OrderItem::ptr(new OrderItem));
     initRight();
 }
 

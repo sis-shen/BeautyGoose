@@ -34,7 +34,7 @@ static inline QString formatTime(int64_t timestamp)
     //传入的是秒级时间戳
     QDateTime dateTime = QDateTime::fromSecsSinceEpoch(timestamp);
     //把QDateTime对象转换成格式化时间
-    return dateTime.toString("MM-dd HH:mm::ss");
+    return dateTime.toString("yyyy-MM-dd HH:mm::ss");
 }
 
 //获取秒级时间戳

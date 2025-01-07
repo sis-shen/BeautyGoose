@@ -4,6 +4,7 @@
 #include <QList>
 #include <QHash>
 #include <QPointer>
+#include "CoreData.h"
 namespace btyGoose
 {
 struct CartDishItem
@@ -35,17 +36,13 @@ struct CartList
 struct ConsumerOrderItem
 {
     using ptr = QSharedPointer<ConsumerOrderItem>;
-    QList<CartDishItem>* list = nullptr;
-    double pay;     //总价格
-    double sum;//菜品总数
-    QString merchant_id;
-    QString merchant_name;
-    QString conumser_id;
+    QSharedPointer<QList<CartDishItem>> list = nullptr;
+    QSharedPointer<data::Order> order = nullptr;
 };
 
 struct ConsumerOrderList
 {
-    QHash<QString,ConsumerOrderItem::ptr>* orderTable;
+    QHash<QString,ConsumerOrderItem::ptr>* orderTable;//订单id->订单
 };
 }
 #endif // DATACENTERCOREDATA_H
