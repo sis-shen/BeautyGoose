@@ -13,6 +13,9 @@
 #include <QScrollArea>
 #include "Nav.h"
 
+#include "CoreData.h"
+#include "DataCenterCoreData.h"
+
 namespace cartList
 {
 struct DishItem:public QWidget
@@ -26,14 +29,14 @@ public:
     QLabel* count;
     QLabel* pay;
 
-    DishItem()
+    DishItem(btyGoose::CartDishItem::ptr dish)
     {
         QGridLayout* layout = new QGridLayout;
         this->setLayout(layout);
-        dish_name = new QPushButton("菜品n名称");
-        single_price = new QLabel("单价:xx元");
-        count= new QLabel("菜品数量:00");
-        pay = new QLabel("菜品总价:000");
+        dish_name = new QPushButton(dish->dish_name);
+        single_price = new QLabel("单价:"+QString::number(dish->dish_price)+"元");
+        count= new QLabel("菜品数量:" + QString::number(dish->cnt));
+        pay = new QLabel("菜品总价:" + QString::number(dish->pay));
         dish_name->setFixedWidth(100);
         single_price->setFixedWidth(100);
         count->setFixedWidth(100);
@@ -70,21 +73,25 @@ public:
     QPushButton* clearCartBtn;
 
     QList<DishItem::ptr> list;
-    CartItem()
+    CartItem(btyGoose::Cart::ptr cart)
     {
-        merchant_id = "商家uuid";
-        merchant_name = new QLabel("商家1名称");
-        pay = new QLabel("预付00元");
+        merchant_id = cart->merchant_id;
+        merchant_name = new QLabel(cart->merchant_name);
+        pay = new QLabel("预付:"+QString::number(cart->pay)+"元");
         OrderGenerateBtn = new QPushButton("生成订单");
         clearCartBtn = new QPushButton("清空购物车");
 
         connect(OrderGenerateBtn,&QPushButton::clicked,this,&CartItem::OrderGenerateSlot);
         connect(clearCartBtn,&QPushButton::clicked,this,&CartItem::CartClearSlot);
 
+        for(auto it = cart->dish_table->begin();it!=cart->dish_table->end();++it)
+        {
+            list.push_back(DishItem::ptr(new DishItem(it.value())));
+        }
         //默认加三个
-        list.push_back(DishItem::ptr(new DishItem));
-        list.push_back(DishItem::ptr(new DishItem));
-        list.push_back(DishItem::ptr(new DishItem));
+        // list.push_back(DishItem::ptr(new DishItem));
+        // list.push_back(DishItem::ptr(new DishItem));
+        // list.push_back(DishItem::ptr(new DishItem));
 
         QGridLayout* layout = new QGridLayout;
         this->setLayout(layout);
@@ -126,7 +133,7 @@ class ConsumerCartListWidget : public QWidget
     Q_OBJECT
 public:
 
-    explicit ConsumerCartListWidget(QWidget *parent = nullptr);
+    explicit ConsumerCartListWidget(QHash<QString,btyGoose::Cart::ptr>* cart_table);
     ConsumerNavWidget* leftNavW;
     QWidget* rightW;
     void initRightW();

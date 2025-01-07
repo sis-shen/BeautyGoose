@@ -175,10 +175,11 @@ namespace btyGoose
 
 		};
 
-		class Dish
+		struct Dish
 		{
 			QString uuid = "";			//菜品id
 			QString merchant_id = "";	//商家uuid
+			QString merchant_name = "";	//商家uuid
 			QString name = "";			//菜品名称
 			QString icon_path = "";		//网络图片的url
 			QString description = "";	//菜品的描述
@@ -193,6 +194,7 @@ namespace btyGoose
 				// 填充基本字段
 				jsonObj["uuid"] = uuid;
 				jsonObj["merchant_id"] = merchant_id;
+				jsonObj["merchant_name"] = merchant_id;
 				jsonObj["name"] = name;
 				jsonObj["icon_path"] = icon_path;
 				jsonObj["description"] = description;
@@ -221,6 +223,10 @@ namespace btyGoose
 
 					if (jsonObj.contains("merchant_id") && jsonObj["merchant_id"].isString()) {
 						merchant_id = jsonObj["merchant_id"].toString();
+
+					}
+					if (jsonObj.contains("merchant_name") && jsonObj["merchant_name"].isString()) {
+						merchant_id = jsonObj["merchant_name"].toString();
 					}
 
 					if (jsonObj.contains("name") && jsonObj["name"].isString()) {

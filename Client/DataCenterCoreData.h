@@ -6,8 +6,9 @@
 #include <QPointer>
 namespace btyGoose
 {
-struct DishItem
+struct CartDishItem
 {
+    using ptr = QSharedPointer<CartDishItem>;
     QString dish_id;
     QString dish_name;
     double dish_price;  //单价
@@ -15,30 +16,30 @@ struct DishItem
     int cnt;            //数量
 };
 
-struct DishList
-{
-    QList<DishItem>* list = nullptr;
-};
 
 struct Cart
 {
     using ptr= QSharedPointer<Cart>;
-    QList<DishItem>* list;
+    QHash<QString,CartDishItem::ptr>* dish_table;
     QString merchant_id;
+    QString merchant_name;
+    double pay;
+    int cnt;
 };
 
 struct CartList
 {
-    QHash<QString,Cart::ptr>* CartTable = nullptr;
+    QHash<QString,Cart::ptr>* cart_table = nullptr;
 };
 
 struct ConsumerOrderItem
 {
     using ptr = QSharedPointer<ConsumerOrderItem>;
-    QList<DishItem>* list = nullptr;
+    QList<CartDishItem>* list = nullptr;
     double pay;     //总价格
     double sum;//菜品总数
     QString merchant_id;
+    QString merchant_name;
     QString conumser_id;
 };
 

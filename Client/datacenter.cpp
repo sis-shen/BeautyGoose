@@ -11,6 +11,12 @@ DataCenter::DataCenter()
     }
 
     client = new network::NetClient(this,httpUrl,sockUrl);
+
+    dish_list_table = new DishListTable;
+    cart_list = new CartList;
+    cart_list->cart_table = new QHash<QString,Cart::ptr>;
+    consumer_order_list = new ConsumerOrderList;
+    consumer_order_list->orderTable = new QHash<QString,ConsumerOrderItem::ptr>;
 }
 
 bool DataCenter::loadConfig()
@@ -52,14 +58,23 @@ void DataCenter::accountRegisterAsync(const QString &name, const QString &passwo
     client->accountRegister(name,hashPass,phone,nickname,auth_code,type);
 }
 
-bool DataCenter::loginByName(const QString &name, const QString &password)
+void DataCenter::consumerGetDishListAsync()
 {
-    return true;
+
+}
+
+void DataCenter::consumerGetDishInfoAsync(const QString &dihs_id)
+{
+
+}
+
+void DataCenter::consumerOrderGenerate(const QString &merchant_id)
+{
+    auto it = cart_list->cart_table->find(merchant_id);
+    if(it == cart_list->cart_table->end()) return;//购物车不存在
+
 }
 
 
 
-bool DataCenter::loginByPhone()
-{
-    return true;
-}
+

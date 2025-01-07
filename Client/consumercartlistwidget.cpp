@@ -2,8 +2,7 @@
 #include <QStyle>
 #include <QBoxLayout>
 using namespace cartList;
-ConsumerCartListWidget::ConsumerCartListWidget(QWidget *parent)
-    : QWidget{parent}
+ConsumerCartListWidget::ConsumerCartListWidget(QHash<QString,btyGoose::Cart::ptr>*cart_table)
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -11,9 +10,15 @@ ConsumerCartListWidget::ConsumerCartListWidget(QWidget *parent)
     rightW = new QWidget;
     layout->addWidget(leftNavW,0,0);
     layout->addWidget(rightW,0,1);
+
+    for(auto it = cart_table->begin();it != cart_table->end();++it)
+    {
+        cartTable.insert(it.key(),CartItem::ptr(new CartItem(it.value())));
+    }
+
     //DEBUG //TODO
-    cartTable["商家id"] = CartItem::ptr(new CartItem);
-    cartTable["商家2id"] = CartItem::ptr(new CartItem);
+    // cartTable["商家id"] = CartItem::ptr(new CartItem);
+    // cartTable["商家2id"] = CartItem::ptr(new CartItem);
 
     initRightW();
 

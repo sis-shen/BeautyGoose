@@ -11,6 +11,7 @@ MainWidget::MainWidget(QWidget *parent)
     this->setLayout(layout);
     //初始化信号连接
     initAccountResponseConnection();
+    initConsumerResponeConnection();
     // toRegisterSlot();
     toNameLoginSlot();
 }
@@ -210,18 +211,8 @@ void MainWidget::initAccountResponseConnection()
 
 void MainWidget::toConsumerDishListSlot()
 {
-    clearAll();
-    ConsumerDishListWidget* cdl = new ConsumerDishListWidget;
-    this->layout()->addWidget((cdl));
-    //连导航栏
-    connect(cdl->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
-    connect(cdl->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
-    connect(cdl->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
-    connect(cdl->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
-    connect(cdl->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
-
-    //连其它信号
-    connect(cdl,&ConsumerDishListWidget::dishInfoSignal,this,&MainWidget::consumerDishInfoSlot);
+    DataCenter* datacenter = DataCenter::getInstance();
+    datacenter->consumerGetDishListAsync();//它最后会发送完成信号getDishListDone
 }
 
 void MainWidget::cddCloseSlot()
@@ -238,38 +229,99 @@ void MainWidget::consumerDishInfoSlot(QString dish_id)
         //已经有窗口打开了，所以不开新的窗口
         return;
     }
-    //若不存在，则创建窗口并显示
-    cdd_win =new ConsumerDishDetailWindow;
-    //连接窗口信号
-    connect(cdd_win,&ConsumerDishDetailWindow::finished,this,&MainWidget::cddCloseSlot);
-    //连接控件信号
-    connect(cdd_win->cdd,
-            &ConsumerDishDetailWidget::cartDishAddSignal,
-            this,
-            &MainWidget::cartDsihAddSlot);
-    connect(cdd_win->cdd,
-            &ConsumerDishDetailWidget::cartDishAddSignal,
-            this,
-            &MainWidget::cartDsihPopSlot);
 
-    cdd_win->exec();
+    DataCenter* datacenter = DataCenter::getInstance();
+    datacenter->consumerGetDishInfoAsync(dish_id);
 }
 
 void MainWidget::cartDsihAddSlot(QString merchant_id, QString dish_id)
 {
+    DataCenter* datacenter = DataCenter::getInstance();
+    auto table = datacenter->cart_list->cart_table;
+    if(table->find(merchant_id) == table->end())
+    {
+        table->insert(merchant_id,Cart::ptr(new Cart));
 
+        Cart::ptr cart = table->value(merchant_id);
+        cart->dish_table = new QHash<QString,CartDishItem::ptr>;
+        cart->merchant_id =merchant_id;
+        cart->merchant_name =datacenter->dish->merchant_name;
+        cart->pay = 0;
+        cart->cnt =0;
+    }
+
+    auto dish_table = (table->find(merchant_id)).value()->dish_table;
+    if(dish_table->find(dish_id) != dish_table->end())
+    {
+        Cart::ptr cart = table->value(merchant_id);
+        auto dish_item = dish_table->value(dish_id);
+        cart->cnt++;
+        cart->pay+=dish_item->dish_price;
+        dish_item->cnt++;
+        dish_item->pay += dish_item->dish_price;
+        if(cdd_win != nullptr)
+        {
+            cdd_win->cdd->setCnt(dish_item->cnt);//更新数量
+        }
+    }
+    else
+    {
+        Cart::ptr cart = table->value(merchant_id);
+        CartDishItem::ptr dish_item = CartDishItem::ptr(new CartDishItem);
+        dish_item->dish_id = dish_id;
+        dish_item->dish_name = datacenter->dish->name;
+        dish_item->dish_price = datacenter->dish->base_price * datacenter->dish->price_factor;
+        dish_item->cnt = 1;
+        dish_item->pay = dish_item->dish_price;
+        dish_table->insert(dish_id,dish_item);
+
+        cart->cnt++;
+        cart->pay +=dish_item->dish_price;
+    }
 }
 
 void MainWidget::cartDsihPopSlot(QString merchant_id, QString dish_id)
 {
+    DataCenter* datacenter = DataCenter::getInstance();
+    auto table = datacenter->cart_list->cart_table;
+    if(table->find(merchant_id) == table->end())
+    {
+        //找不到就直接退出
+        return;
+    }
 
+    auto dish_table = (table->find(merchant_id)).value()->dish_table;
+    if(dish_table->find(dish_id) != dish_table->end())
+    {
+        auto dish_item = dish_table->value(dish_id);
+        if(dish_item->cnt < 1)
+        {
+            //数量不足以继续减少
+            return;
+        }
+        dish_item->cnt--;
+        dish_item->pay -= dish_item->dish_price;
+        Cart::ptr cart = table->value(merchant_id);
+        cart->cnt--;
+        cart->pay-=dish_item->dish_price;
+        if(cdd_win != nullptr)
+        {
+            cdd_win->cdd->setCnt(dish_item->cnt);//更新数量
+        }
+    }
+    else
+    {
+        //菜品不存在也退出
+        return;
+    }
 }
 
 
 void MainWidget::toCartListSlot()
 {
     clearAll();
-    ConsumerCartListWidget* ccl = new ConsumerCartListWidget;
+    DataCenter* datacenter = DataCenter::getInstance();
+    ConsumerCartListWidget* ccl = new ConsumerCartListWidget(datacenter->cart_list->cart_table);
     this->layout()->addWidget(ccl);
 
     //连导航栏
@@ -287,12 +339,18 @@ void MainWidget::toCartListSlot()
 
 void MainWidget::cartClearSlot(QString merchant_id)
 {
-
+    DataCenter* datacenter = DataCenter::getInstance();
+    auto table = datacenter->cart_list->cart_table;
+    Q_ASSERT(table);
+    if(table->find(merchant_id) == table->end() )return;//判空
+    table->erase(table->find(merchant_id));
+    toCartListSlot();//刷新界面
 }
 
 void MainWidget::orderGenerateSlot(QString merchant_id)
 {
-
+    DataCenter* datacenter = DataCenter::getInstance();
+    datacenter->consumerOrderGenerate(merchant_id);
 }
 
 void MainWidget::toConsumerOrderListSlot()
@@ -384,6 +442,48 @@ void MainWidget::tpwCloseSlot()
 void MainWidget::orderCancelSlot(QString order_id)
 {
 
+}
+
+void MainWidget::initConsumerResponeConnection()
+{
+    DataCenter* datacenter = DataCenter::getInstance();
+
+    //获取菜品列表
+    connect(datacenter,&DataCenter::consumerGetDishListDone,this,[=](){
+
+        //构建ConsumerDishList界面
+        ConsumerDishListWidget* cdl = new ConsumerDishListWidget(datacenter->dish_list_table);
+        clearAll();
+        this->layout()->addWidget((cdl));
+        //连导航栏
+        connect(cdl->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
+        connect(cdl->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
+        connect(cdl->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
+        connect(cdl->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
+        connect(cdl->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
+
+        //连其它信号
+        connect(cdl,&ConsumerDishListWidget::dishInfoSignal,this,&MainWidget::consumerDishInfoSlot);
+    });
+
+    //菜品详情
+    connect(datacenter,&DataCenter::consumergetDishInfoDone,this,[=](){
+        //若不存在，则创建窗口并显示
+        cdd_win =new ConsumerDishDetailWindow(datacenter->dish);
+        //连接窗口信号
+        connect(cdd_win,&ConsumerDishDetailWindow::finished,this,&MainWidget::cddCloseSlot);
+        //连接控件信号
+        connect(cdd_win->cdd,
+                &ConsumerDishDetailWidget::cartDishAddSignal,
+                this,
+                &MainWidget::cartDsihAddSlot);
+        connect(cdd_win->cdd,
+                &ConsumerDishDetailWidget::cartDishAddSignal,
+                this,
+                &MainWidget::cartDsihPopSlot);
+
+        cdd_win->exec();
+    });
 }
 
 void MainWidget::toMerchantDishListSlot()

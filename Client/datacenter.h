@@ -75,17 +75,17 @@ public:
 public:
     //消费者子系统
 //缓存数据
-    DishList* dish_list = nullptr;
+    using DishListTable =QHash<QString,QList<data::Dish>>;
+    DishListTable* dish_list_table = nullptr;
     data::Dish* dish = nullptr;
     CartList* cart_list = nullptr;
     ConsumerOrderList* consumer_order_list =nullptr;
+    ConsumerOrderItem* consumer_order_item = nullptr;
     data::Order* data_order = nullptr;
 //接口
     void consumerGetDishListAsync();    //用户数据在本对象的account里
     void consumerGetDishInfoAsync(const QString&dihs_id);
-    bool consumerCartAdd(const QString merchant_id,const QString dish_id);
-    bool consumerCartPop(const QString merchant_id,const QString& dish_id);
-    bool consumerOrderGenerate();
+    void consumerOrderGenerate(const QString&merchant_id);//得知道生成的是谁的
 
 signals:
 ///////////////////////////////////
@@ -100,7 +100,8 @@ signals:
 ///消费者子系统
 //////////////////////////////////
 
-    void getDishListDone();
+    void consumerGetDishListDone();
+    void consumergetDishInfoDone();
 };
 
 

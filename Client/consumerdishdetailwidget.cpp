@@ -1,8 +1,11 @@
 #include "consumerdishdetailwidget.h"
 
-ConsumerDishDetailWidget::ConsumerDishDetailWidget(QWidget *parent)
-    : QWidget{parent}
+ConsumerDishDetailWidget::ConsumerDishDetailWidget(const btyGoose::data::Dish* dish)
+    :_dish(dish)
 {
+    dish_id = _dish->uuid;
+    merchant_id = _dish->merchant_id;
+
     this->setFixedSize(1080,600);
     QWidget* MW = new QWidget;
     QGridLayout* mwl = new QGridLayout;
@@ -44,7 +47,7 @@ void ConsumerDishDetailWidget::initUp()
     iconTMP = new QLabel("图片");
     iconTMP->setFixedSize(200,200);
 
-    QLabel* price = new QLabel("价格：00元");
+    QLabel* price = new QLabel("价格：" + QString::number(_dish->base_price*_dish->price_factor)+"元");
     price->setFixedSize(100,50);
 
     lLayout->addWidget(iconTMP,0,0);
@@ -53,9 +56,10 @@ void ConsumerDishDetailWidget::initUp()
     //右上角初始化
     QGridLayout* rLayout = new QGridLayout;
     urW->setLayout(rLayout);
-    QLabel* name = new QLabel("群英荟萃之萝卜开会");
+    QLabel* name = new QLabel(_dish->name);
     name->setFixedHeight(40);
-    QLabel* profile = new QLabel("这是一个多行文本\n这是一个多行文本\n这是一个多行文本\n这是一个多行文本\n");
+    // QLabel* profile = new QLabel("这是一个多行文本\n这是一个多行文本\n这是一个多行文本\n这是一个多行文本\n");
+    QLabel* profile = new QLabel(_dish->description);
     profile->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     profile->setWordWrap(true);
     profile->setFixedWidth(600);

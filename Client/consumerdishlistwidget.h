@@ -13,6 +13,9 @@
 #include <QScrollArea>
 #include "Nav.h"
 
+#include "CoreData.h"
+#include "DataCenterCoreData.h"
+
 namespace dishList
 {
 struct DishItem:public QWidget
@@ -26,13 +29,16 @@ public:
     QLabel* single_price;
 
 
-    DishItem()
+    DishItem(const btyGoose::data::Dish& dish)
     {
         QGridLayout* layout = new QGridLayout;
         this->setLayout(layout);
         single_picture = new QLabel("图片");
-        dish_name = new QPushButton("菜品n名称");
-        single_price = new QLabel("单价:xx元");
+        dish_name = new QPushButton(dish.name);
+        QString price = "单价:";
+        price += QString::number(dish.price_factor*dish.base_price);
+        price += "元";
+        single_price = new QLabel(price);
 
         single_picture->setFixedWidth(100);
         dish_name->setFixedWidth(100);
@@ -68,17 +74,16 @@ public:
 
 
     QList<DishItem::ptr> list;
-    MerchantItem()
+    MerchantItem(const QList<btyGoose::data::Dish>& lst)
     {
-
-        merchant_name = new QLabel("商家1名称");
-
-
-
+        merchant_name = new QLabel(lst[0].merchant_name);
+        merchant_id = lst[0].merchant_id;
         //默认加三个
-        list.push_back(DishItem::ptr(new DishItem));
-        list.push_back(DishItem::ptr(new DishItem));
-        list.push_back(DishItem::ptr(new DishItem));
+
+        for(auto dish:lst)
+        {
+            list.push_back(DishItem::ptr(new DishItem(dish)));
+        }
 
         QGridLayout* layout = new QGridLayout;
         this->setLayout(layout);
@@ -109,7 +114,7 @@ class ConsumerDishListWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ConsumerDishListWidget(QWidget *parent = nullptr);
+    explicit ConsumerDishListWidget(QHash<QString,QList<btyGoose::data::Dish>>* dish_list_table);
     ConsumerNavWidget* leftNavW;
     QWidget* rightW;
     void initRightW();

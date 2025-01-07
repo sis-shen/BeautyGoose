@@ -3,17 +3,18 @@
 #include <QDialog>
 #include <QVBoxLayout>
 #include "consumerdishdetailwidget.h"
+#include "CoreData.h"
 class ConsumerDishDetailWindow : public QDialog {
     Q_OBJECT
 public:
-    ConsumerDishDetailWindow(QWidget *parent = nullptr) : QDialog(parent) {
+    ConsumerDishDetailWindow(const btyGoose::data::Dish* dish) {
         // 设置窗口的基本属性
         setWindowTitle("Custom Sub Window");
         setFixedSize(1080, 600);
         // 创建控件
         QWidget *centralWidget = new QWidget(this);
         QVBoxLayout *layout = new QVBoxLayout(centralWidget);
-        cdd = new ConsumerDishDetailWidget;
+        cdd = new ConsumerDishDetailWidget(dish);
         layout->addWidget(cdd);
         centralWidget->setLayout(layout);
     }

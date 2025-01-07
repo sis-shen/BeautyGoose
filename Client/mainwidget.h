@@ -87,6 +87,7 @@ public slots:
     void tpwCloseSlot();
     void orderCancelSlot(QString order_id);//取消某个订单
 
+    void initConsumerResponeConnection();
 public:
     //商家子系统
     MerchantDishRegisterWindow* mdr_win = nullptr;    //商家注册菜品窗口

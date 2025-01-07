@@ -2,8 +2,7 @@
 #include <QStyle>
 #include <QBoxLayout>
 using namespace dishList;
-ConsumerDishListWidget::ConsumerDishListWidget(QWidget *parent)
-    : QWidget{parent}
+ConsumerDishListWidget::ConsumerDishListWidget(QHash<QString,QList<btyGoose::data::Dish>>* dish_list_table)
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -12,8 +11,10 @@ ConsumerDishListWidget::ConsumerDishListWidget(QWidget *parent)
     layout->addWidget(leftNavW,0,0);
     layout->addWidget(rightW,0,1);
     //DEBUG //TODO
-    merchantTable["商家id"] = MerchantItem::ptr(new MerchantItem);
-    merchantTable["商家2id"] = MerchantItem::ptr(new MerchantItem);
+    for(auto it = dish_list_table->begin();it!= dish_list_table->end();++it)
+    {
+        merchantTable.insert(it.key(),MerchantItem::ptr(new MerchantItem(it.value())));
+    }
 
     initRightW();
 
