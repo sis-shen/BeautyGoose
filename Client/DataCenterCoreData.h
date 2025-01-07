@@ -17,33 +17,34 @@ struct DishItem
 
 struct DishList
 {
-    QList<DishItem> list;
+    QList<DishItem>* list = nullptr;
 };
 
 struct Cart
 {
     using ptr= QSharedPointer<Cart>;
-    QList<DishItem> list;
+    QList<DishItem>* list;
     QString merchant_id;
 };
 
 struct CartList
 {
-    QHash<QString,Cart::ptr> CartTable;
+    QHash<QString,Cart::ptr>* CartTable = nullptr;
 };
 
-struct OrderItem
+struct ConsumerOrderItem
 {
-    using ptr = QSharedPointer<OrderItem>;
-    QList<DishItem> list;
+    using ptr = QSharedPointer<ConsumerOrderItem>;
+    QList<DishItem>* list = nullptr;
     double pay;     //总价格
     double sum;//菜品总数
     QString merchant_id;
+    QString conumser_id;
 };
 
-struct OrderList
+struct ConsumerOrderList
 {
-    QHash<QString,OrderItem::ptr> orderTabel;
+    QHash<QString,ConsumerOrderItem::ptr>* orderTable;
 };
 }
 #endif // DATACENTERCOREDATA_H

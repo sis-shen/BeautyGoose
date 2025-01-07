@@ -21,11 +21,33 @@ namespace btyGoose
 {
 	namespace util
 	{
+		static inline QString getFileName(const QString& path)
+		{
+			QFileInfo fileInfo(path);
+			return fileInfo.fileName();
+		}
+
+		//防止函数重复定义,static 或者 inline 必有一个
+//秒级时间戳转换格式化时间
+		static inline QString formatTime(int64_t timestamp)
+		{
+			//传入的是秒级时间戳
+			QDateTime dateTime = QDateTime::fromSecsSinceEpoch(timestamp);
+			//把QDateTime对象转换成格式化时间
+			return dateTime.toString("MM-dd HH:mm::ss");
+		}
+
 		//获取秒级时间戳
 		static inline int64_t getSecTime()
 		{
 			return QDateTime::currentSecsSinceEpoch();
 		}
+
+		//封装一个"宏"作为打印日志的方式
+#define TAG (QString("[%1 :%2][%3]").arg(btyGoose::util::getFileName(__FILE__),QString::number(__LINE__),btyGoose::util::formatTime(btyGoose::util::getSecTime())))
+#define LOG() qDebug().noquote() << TAG
+
+
 
 		//把QByteArray转换成QIcon
 		static inline QIcon makeIcon(const QByteArray& byteArray)

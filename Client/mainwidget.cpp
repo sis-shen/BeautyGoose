@@ -9,7 +9,8 @@ MainWidget::MainWidget(QWidget *parent)
     this->setFixedSize(1600,900);
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
-
+    //初始化信号连接
+    initAccountResponseConnection();
     // toRegisterSlot();
     toNameLoginSlot();
 }
@@ -138,10 +139,12 @@ void MainWidget::initAccountResponseConnection()
         if(ok)
         {
             QMessageBox::information(this, "Info", "注册成功！");
+            qDebug()<<"注册成功";
             toNameLoginSlot();  //转到登录页面
         }
         else{
             QMessageBox::information(this, "Info", "注册失败！原因:" + reason);
+            qDebug()<<"注册失败";
             toRegisterSlot();   //刷新界面
         }
     });

@@ -210,6 +210,7 @@ void btyGoose::HTTPServer::initAccountAPI()
     //账户注册
     svr.Post("/account/register", [this](const httplib::Request& req, httplib::Response& res) {
         qDebug() << "/account/register get a post!";
+        LOG() << "开始注册";
         std::string jsonStr = req.body;
         QString qJsonString = QString::fromStdString(jsonStr);
         QJsonObject jsonObj;
@@ -258,10 +259,10 @@ void btyGoose::HTTPServer::initAccountAPI()
                 res.body = doc.toJson().toStdString();
                 return;
             }
-            qDebug() << "开始查重用户名" << acc.name;
             if (!db.searchAccountByName(acc.name).name.isEmpty())
             {
                 //账户名重复
+                LOG() << "用户名已存在:" << acc.name;
                 res.status = 200;
                 resJson["message"] = "账户名已存在!";
                 resJson["success"] = false;
@@ -269,17 +270,19 @@ void btyGoose::HTTPServer::initAccountAPI()
                 res.body = doc.toJson().toStdString();
                 return;
             }
-
+            LOG() << "用户名查重通过";
             if (!db.searchAccountByPhone(acc.phone).name.isEmpty())
             {
                 //电话重复
                 res.status = 200;
+                LOG() << "电话查重失败";
                 resJson["message"] = "手机号已被占用!";
                 resJson["success"] = false;
                 QJsonDocument doc(resJson);
                 res.body = doc.toJson().toStdString();
                 return;
             }
+            LOG() << "电话查重通过";
 
             if (db.searchAccountByID(acc.uuid).name.isEmpty())
             {
@@ -287,6 +290,7 @@ void btyGoose::HTTPServer::initAccountAPI()
                 {
                     throw HTTPException("databse add account failed");
                 }
+                LOG() << "成功向数据库插入新账号";
                 resJson["success"] = true;
                 resJson["message"] = "账号创建成功";
                 QJsonDocument doc(resJson);

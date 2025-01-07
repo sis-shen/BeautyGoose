@@ -7,13 +7,16 @@
 #include <QThread>
 #include "CoreData.h"
 
+#include <jdbc/cppconn/prepared_statement.h>
 #include <jdbc/cppconn/statement.h>
 #include <jdbc/cppconn/resultset.h>
 #include <jdbc/cppconn/exception.h>
+#include <jdbc/cppconn/metadata.h>
 #include "jdbc/mysql_driver.h"
+#include <jdbc/mysql_connection.h>
+#include <sstream>
 
-#include <mutex>
-#include <thread>
+#include <QMutex>
 namespace btyGoose
 {
 
@@ -32,7 +35,7 @@ private:
 	sql::Connection* con;
 	sql::Statement* stmt;
 
-	std::mutex mtx;
+	QMutex mtx;
 public:
 
 	bool loadConfig();

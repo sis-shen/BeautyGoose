@@ -52,6 +52,11 @@ void DataCenter::accountRegisterAsync(const QString &name, const QString &passwo
     client->accountRegister(name,hashPass,phone,nickname,auth_code,type);
 }
 
+bool DataCenter::loginByName(const QString &name, const QString &password)
+{
+    return true;
+}
+
 
 
 bool DataCenter::loginByPhone()

@@ -21,6 +21,7 @@
 #include <QObject>
 #include <QIcon>
 #include <QPointer>
+
 using namespace btyGoose;
 class DataCenter:public QObject
 {
@@ -62,9 +63,9 @@ public:
     bool getAuthcode(const QString&phoneNumber);
     void accountRegisterAsync(const QString&name,const QString&password,const QString& phone,
                         const QString&nickname,const QString auth_code ,int type);
-    bool loginByName();
-    bool loginByPhone();
-    bool accountUpdate();
+    bool loginByNameAsync(const QString&name,const QString&password);
+    bool loginByPhoneAsync();
+    bool accountUpdateAsync();
 public:
     QIcon QRCode;
     //第三方支付子系统
@@ -73,13 +74,17 @@ public:
     void PayFailSignal();
 public:
     //消费者子系统
-    DishList dish_list;
-    const DishList& getConsumerDishList();
-    data::Dish getDish();
-    CartList cart_list;
-    bool consumerCartAdd();
-    bool consumerCartPop();
-    OrderList order_list;
+//缓存数据
+    DishList* dish_list = nullptr;
+    data::Dish* dish = nullptr;
+    CartList* cart_list = nullptr;
+    ConsumerOrderList* consumer_order_list =nullptr;
+    data::Order* data_order = nullptr;
+//接口
+    void consumerGetDishListAsync();    //用户数据在本对象的account里
+    void consumerGetDishInfoAsync(const QString&dihs_id);
+    bool consumerCartAdd(const QString merchant_id,const QString dish_id);
+    bool consumerCartPop(const QString merchant_id,const QString& dish_id);
     bool consumerOrderGenerate();
 
 signals:
@@ -90,6 +95,12 @@ signals:
     void getRegisterDone(bool ok,const QString& reason);
     void getLoginByNameDone(bool ok,const QString& reason);
     void getLoginByPhoneDone(bool ok,const QString& reason);
+
+///////////////////////////////////
+///消费者子系统
+//////////////////////////////////
+
+    void getDishListDone();
 };
 
 
