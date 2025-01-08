@@ -36,7 +36,8 @@ public:
 
 	bool getPay(double pay);
 	//工具函数
-	QString toJsonArray(const QList<data::Dish>& dishList);
+	QString DishListToJsonArray(const QList<data::Dish>& dishList);
+	QList<data::Dish> DishListFromJsonArray(const QString& jsonString);
 private:
 	httplib::Server svr;
 	DatabaseClient db;

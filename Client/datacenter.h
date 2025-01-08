@@ -45,8 +45,10 @@ private:
 private:
     network::NetClient* client = nullptr;
 public:
+    //工具函数
 
-
+    QList<data::Dish> DishListFromJsonArray(const QString& jsonString);
+    QString DishListToJsonArray(const QList<data::Dish>& dishList);
     //处理短链连接的http请求
     QString configFileName = "ServerConfig.json";
     QString httpUrl = "http://127.0.0.1:80";
@@ -76,8 +78,7 @@ public:
 public:
     //消费者子系统
 //缓存数据
-    using DishListTable =QHash<QString,QList<data::Dish>>;
-    DishListTable* dish_list_table = nullptr;
+    QHash<QString,QList<data::Dish>>* dish_list_table = nullptr;
     data::Dish* dish = nullptr;
     CartList* cart_list = nullptr;
     ConsumerOrderList* consumer_order_list =nullptr;
@@ -87,6 +88,7 @@ public:
     void consumerGetDishInfoAsync(const QString&dihs_id);
     void consumerOrderGenerateAsync(const QString&merchant_id);//得知道生成的是谁的
     void consumerGetOrderInfoAsync(const QString&order_id);
+    int getCartDishNum(const QString&merchant_id,const QString&dish_id);
 
 signals:
 ///////////////////////////////////

@@ -1,7 +1,7 @@
 #include "consumerdishdetailwidget.h"
 
-ConsumerDishDetailWidget::ConsumerDishDetailWidget(const btyGoose::data::Dish* dish)
-    :_dish(dish)
+ConsumerDishDetailWidget::ConsumerDishDetailWidget(const btyGoose::data::Dish* dish,int num)
+    :_dish(dish),num(num)
 {
     dish_id = _dish->uuid;
     merchant_id = _dish->merchant_id;
@@ -78,7 +78,7 @@ void ConsumerDishDetailWidget::initDown()
     QPushButton* addBtn = new QPushButton("添加到购物车");
     QPushButton* popBtn = new QPushButton("从购物车移除");
     cnt = new QLabel;
-    setCnt(99);
+    setCnt(num);
 
     addBtn->setFixedHeight(50);
     popBtn->setFixedHeight(50);

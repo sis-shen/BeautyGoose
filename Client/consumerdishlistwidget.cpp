@@ -3,6 +3,7 @@
 #include <QBoxLayout>
 using namespace dishList;
 ConsumerDishListWidget::ConsumerDishListWidget(QHash<QString,QList<btyGoose::data::Dish>>* dish_list_table)
+: QWidget{nullptr}
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -11,11 +12,13 @@ ConsumerDishListWidget::ConsumerDishListWidget(QHash<QString,QList<btyGoose::dat
     layout->addWidget(leftNavW,0,0);
     layout->addWidget(rightW,0,1);
     //DEBUG //TODO
+    // qDebug()<<"开始往缓冲区插入菜品列表";
     for(auto it = dish_list_table->begin();it!= dish_list_table->end();++it)
     {
+        // qDebug()<<"第一个列表"<<it.value().size();
         merchantTable.insert(it.key(),MerchantItem::ptr(new MerchantItem(it.value())));
     }
-
+    // qDebug()<<"插入完成";
     initRightW();
 
 }

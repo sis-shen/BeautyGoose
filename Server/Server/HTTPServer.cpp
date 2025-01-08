@@ -5,6 +5,9 @@ btyGoose::HTTPServer::HTTPServer()
     loadConfig();
     initTestAPI();
     initAccountAPI();
+    initConsumerAPI();
+    initMerchantAPI();
+    initAdminAPI();
     svr.listen(host.toStdString(), port);
 }
 
@@ -356,9 +359,7 @@ void btyGoose::HTTPServer::initAccountAPI()
                 if (level == "VIP") acc.level = data::Account::Level::VIP;
                 else if (level == "SUVIP") acc.level = data::Account::Level::SUVIP;
                 else throw HTTPException("未知Level等级" + level);
-                
-
-
+         
             }
             else
             {
@@ -406,6 +407,55 @@ void btyGoose::HTTPServer::initConsumerAPI()
     svr.Post("/consumer/dish/list", [this](const httplib::Request& req, httplib::Response& res) {
         LOG() << "/consumer/dish/list get a post!";
         QList<data::Dish> dishList = db.getAllDishList();
+        QString dishListJson = DishListToJsonArray(dishList);
+        QJsonObject resJson;
+        resJson["dish_list"] = dishListJson;
+        QJsonDocument doc(resJson);
+        res.body = doc.toJson().toStdString();
+        res.set_header("Content-Type", "application/json;charset=UTF-8");
+        });
+
+    svr.Post("/consumer/dish/dishInfo", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/consumer/dish/dishInfo get a post!";
+        qDebug() << req.body;
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+            QString dish_id = jsonObj["dish_id"].toString();
+            data::Dish dish = db.searchDishByID(dish_id);
+            qDebug()<<dish_id <<"  | " << dish.uuid;
+            resJson["dish"] = dish.toJson();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
 
         });
 }
@@ -423,7 +473,7 @@ bool btyGoose::HTTPServer::getPay(double pay)
     return false;
 }
 
-QString btyGoose::HTTPServer::toJsonArray(const QList<data::Dish>& dishList)
+QString btyGoose::HTTPServer::DishListToJsonArray(const QList<data::Dish>& dishList)
 {
     QJsonArray jsonArray;
 
@@ -437,4 +487,30 @@ QString btyGoose::HTTPServer::toJsonArray(const QList<data::Dish>& dishList)
     // 将 QJsonArray 转换为 JSON 字符串
     QJsonDocument doc(jsonArray);
     return QString(doc.toJson(QJsonDocument::Compact));
+}
+
+QList<btyGoose::data::Dish> btyGoose::HTTPServer::DishListFromJsonArray(const QString& jsonString)
+{
+    QList<data::Dish> dishList;
+
+    // 解析 JSON 字符串为 QJsonDocument
+    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
+
+    // 如果文档有效且是一个 JSON 数组
+    if (doc.isArray()) {
+        QJsonArray jsonArray = doc.array();
+
+        // 遍历数组中的每个元素
+        for (const QJsonValue& value : jsonArray) {
+            if (value.isObject()) {
+                // 通过 Dish 类的 fromJson 方法将 QJsonObject 转换为 Dish 对象
+                QJsonDocument doc(value.toObject());
+                data::Dish dish;
+                dish.loadFromJson(QString(doc.toJson()).toStdString());
+                dishList.append(dish);
+            }
+        }
+    }
+
+    return dishList;
 }

@@ -194,7 +194,7 @@ namespace btyGoose
 				// 填充基本字段
 				jsonObj["uuid"] = uuid;
 				jsonObj["merchant_id"] = merchant_id;
-				jsonObj["merchant_name"] = merchant_id;
+				jsonObj["merchant_name"] = merchant_name;
 				jsonObj["name"] = name;
 				jsonObj["icon_path"] = icon_path;
 				jsonObj["description"] = description;

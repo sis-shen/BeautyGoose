@@ -94,7 +94,7 @@ struct Account
     QString phone = "";		//电话号码
     Level level = MEMBER;		//优惠等级
 
-    QString toJson()
+    QString toJson() const
     {
         QJsonObject jsonObj;
 
@@ -187,14 +187,14 @@ struct Dish
     double price_factor = 1;	//价格影响因素
     bool is_delete = false;		//是否被删除
 
-    QString toJson()
+    QString toJson() const
     {
         QJsonObject jsonObj;
 
         // 填充基本字段
         jsonObj["uuid"] = uuid;
         jsonObj["merchant_id"] = merchant_id;
-        jsonObj["merchant_name"] = merchant_id;
+        jsonObj["merchant_name"] = merchant_name;
         jsonObj["name"] = name;
         jsonObj["icon_path"] = icon_path;
         jsonObj["description"] = description;
@@ -226,7 +226,7 @@ struct Dish
 
             }
             if (jsonObj.contains("merchant_name") && jsonObj["merchant_name"].isString()) {
-                merchant_id = jsonObj["merchant_name"].toString();
+                merchant_name = jsonObj["merchant_name"].toString();
             }
 
             if (jsonObj.contains("name") && jsonObj["name"].isString()) {
@@ -289,7 +289,7 @@ struct Order
     Status status;				//订单状态
     int sum = 0;				//订单内总菜品数
 
-    QString toJson()
+    QString toJson() const
     {
         QJsonObject jsonObj;
 

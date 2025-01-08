@@ -12,11 +12,56 @@ DataCenter::DataCenter()
 
     client = new network::NetClient(this,httpUrl,sockUrl);
 
-    dish_list_table = new DishListTable;
+    dish_list_table = new QHash<QString,QList<data::Dish>>;
     cart_list = new CartList;
     cart_list->cart_table = new QHash<QString,Cart::ptr>;
     consumer_order_list = new ConsumerOrderList;
     consumer_order_list->orderTable = new QHash<QString,ConsumerOrderItem::ptr>;
+}
+
+QList<data::Dish> DataCenter::DishListFromJsonArray(const QString &jsonString)
+{
+    // qDebug()<<jsonString;
+    QList<data::Dish> dishList;
+
+    // 解析 JSON 字符串为 QJsonDocument
+    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
+
+    // 如果文档有效且是一个 JSON 数组
+    if (doc.isArray()) {
+        QJsonArray jsonArray = doc.array();
+
+        // 遍历数组中的每个元素
+        for (const QJsonValue& value : jsonArray) {
+            if (value.isObject()) {
+                // 通过 Dish 类的 fromJson 方法将 QJsonObject 转换为 Dish 对象
+                QJsonDocument doc(value.toObject());
+                data::Dish dish;
+                // qDebug()<<QString(doc.toJson()).toStdString();
+                dish.loadFromJson(QString(doc.toJson()).toStdString());
+                // qDebug()<<dish.merchant_name;
+                dishList.append(dish);
+            }
+        }
+    }
+
+    return dishList;
+}
+
+QString DataCenter::DishListToJsonArray(const QList<data::Dish> &dishList)
+{
+    QJsonArray jsonArray;
+
+    // 遍历 dishList，将每个 Dish 对象的 JSON 添加到 jsonArray 中
+    for (const auto& dish : dishList)
+    {
+        // 将每个 Dish 对象转换为 JSON 字符串并加入到 JSON 数组中
+        jsonArray.append(QJsonDocument::fromJson(dish.toJson().toUtf8()).object());
+    }
+
+    // 将 QJsonArray 转换为 JSON 字符串
+    QJsonDocument doc(jsonArray);
+    return QString(doc.toJson(QJsonDocument::Compact));
 }
 
 bool DataCenter::loadConfig()
@@ -86,9 +131,9 @@ void DataCenter::consumerGetDishListAsync()
     qDebug()<<"转到消费者界面";
 }
 
-void DataCenter::consumerGetDishInfoAsync(const QString &dihs_id)
+void DataCenter::consumerGetDishInfoAsync(const QString &dish_id)
 {
-
+    client->consumerGetDishInfo(dish_id);
 }
 
 void DataCenter::consumerOrderGenerateAsync(const QString &merchant_id)
@@ -102,6 +147,22 @@ void DataCenter::consumerOrderGenerateAsync(const QString &merchant_id)
 void DataCenter::consumerGetOrderInfoAsync(const QString &order_id)
 {
     datacenter->consumer_order_item;
+}
+
+int DataCenter::getCartDishNum(const QString &merchant_id, const QString &dish_id)
+{
+    // return cart_list->cart_table->value(merchant_id)->dish_table->value(dish_id)->cnt;
+    auto cart_table = cart_list->cart_table;
+    if(cart_table->find(merchant_id) == cart_table->end())
+    {
+        return 0;//尚未加入购物车
+    }
+    auto dish_table = cart_table->value(merchant_id)->dish_table;
+    if(dish_table->find(dish_id) == dish_table->end())
+    {
+        return 0;//尚未加入购物车
+    }
+    return dish_table->value(dish_id)->cnt;
 }
 
 

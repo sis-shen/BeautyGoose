@@ -128,6 +128,7 @@ signals:
     void CartClearSignal(QString merchant_id);
 };
 }
+
 class ConsumerCartListWidget : public QWidget
 {
     Q_OBJECT

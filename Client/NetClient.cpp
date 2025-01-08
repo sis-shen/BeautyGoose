@@ -151,11 +151,68 @@ void NetClient::consumerGetDishList()
             // 处理服务器返回的数据
             QByteArray responseData = reply->readAll();
             QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            QJsonObject responseObj = doc.object();
+            // qDebug()<<responseData;
+            auto list  = datacenter->DishListFromJsonArray(responseObj["dish_list"].toString());
+            // qDebug()<<"获取到的菜品数量:"<<list.size();
+            auto table = datacenter->dish_list_table;
+            if(!table->empty())
+            {
+                table->clear();
+            }
+            for(const auto&dish:list)
+            {
+
+                if(table->find(dish.merchant_id) == table->end())
+                {
+                    // qDebug()<<"新增了一个商家";
+                    table->insert(dish.merchant_id,QList<data::Dish>());
+                }
+                auto it = table->find(dish.merchant_id);
+                (*it).append(dish);
+                // qDebug()<<dish.merchant_name;
+                // qDebug()<<dish.merchant_id<<"菜品数量"<<table->value(dish.merchant_id).size();
+            }
+            emit datacenter->consumerGetDishListDone();
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
+void NetClient::consumerGetDishInfo(const QString &dish_id)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["dish_id"] = dish_id;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/consumer/dish/dishInfo");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
             if (!doc.isNull()) {
                 QJsonObject responseObj = doc.object();
-
-
-                emit datacenter->consumerGetDishListDone();
+                data::Dish* dish = new data::Dish;
+                dish->loadFromJson(responseObj["dish"].toString().toStdString());
+                datacenter->dish = dish;    //导入缓冲区
+                emit datacenter->consumergetDishInfoDone();
             } else {
                 qDebug() << "Invalid JSON response!";
             }

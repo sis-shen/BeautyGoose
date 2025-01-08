@@ -252,8 +252,10 @@ void MainWidget::cartDsihAddSlot(QString merchant_id, QString dish_id)
 {
     DataCenter* datacenter = DataCenter::getInstance();
     auto table = datacenter->cart_list->cart_table;
+    //找不到到商家
     if(table->find(merchant_id) == table->end())
     {
+        qDebug()<<"新增商家"<<merchant_id;
         table->insert(merchant_id,Cart::ptr(new Cart));
 
         Cart::ptr cart = table->value(merchant_id);
@@ -263,15 +265,18 @@ void MainWidget::cartDsihAddSlot(QString merchant_id, QString dish_id)
         cart->pay = 0;
         cart->cnt =0;
     }
-
-    auto dish_table = (table->find(merchant_id)).value()->dish_table;
+    //找到商家对应的菜品表
+    auto dish_table = (*(table->find(merchant_id)))->dish_table;
+    Cart::ptr cart = *(table->find(merchant_id));
     if(dish_table->find(dish_id) != dish_table->end())
     {
-        Cart::ptr cart = table->value(merchant_id);
-        auto dish_item = dish_table->value(dish_id);
+        auto dish_item = *(dish_table->find(dish_id));
         cart->cnt++;
         cart->pay+=dish_item->dish_price;
+        // qDebug()<<dish_item;
+        // qDebug()<<"0"<<dish_item->dish_name<<":"<<dish_item->cnt;
         dish_item->cnt++;
+        // qDebug()<<"1"<<dish_item->dish_name<<":"<<dish_item->cnt;
         dish_item->pay += dish_item->dish_price;
         if(cdd_win != nullptr)
         {
@@ -280,8 +285,9 @@ void MainWidget::cartDsihAddSlot(QString merchant_id, QString dish_id)
     }
     else
     {
-        Cart::ptr cart = table->value(merchant_id);
+        //新表
         CartDishItem::ptr dish_item = CartDishItem::ptr(new CartDishItem);
+        dish_table->insert(dish_id,dish_item);
         dish_item->dish_id = dish_id;
         dish_item->dish_name = datacenter->dish->name;
         dish_item->dish_price = datacenter->dish->base_price * datacenter->dish->price_factor;
@@ -291,6 +297,11 @@ void MainWidget::cartDsihAddSlot(QString merchant_id, QString dish_id)
 
         cart->cnt++;
         cart->pay +=dish_item->dish_price;
+        if(cdd_win != nullptr)
+        {
+            qDebug()<<"new"<<dish_item->dish_name<<":"<<dish_item->cnt;
+            cdd_win->cdd->setCnt(dish_item->cnt);//更新数量
+        }
     }
 }
 
@@ -451,10 +462,14 @@ void MainWidget::initConsumerResponeConnection()
     DataCenter* datacenter = DataCenter::getInstance();
 
     //获取菜品列表
-    connect(datacenter,&DataCenter::consumerGetDishListDone,this,[&](){
+    connect(datacenter,&DataCenter::consumerGetDishListDone,this,[=](){
 
         //构建ConsumerDishList界面
+        // qDebug()<<"开始构建ConsumerDishList界面";
+        // qDebug()<<(datacenter->dish_list_table->size());
+        // qDebug()<<"访问成功";
         ConsumerDishListWidget* cdl = new ConsumerDishListWidget(datacenter->dish_list_table);
+        // qDebug()<<"构建成功";
         clearAll();
         this->layout()->addWidget((cdl));
         //连导航栏
@@ -469,9 +484,11 @@ void MainWidget::initConsumerResponeConnection()
     });
 
     //菜品详情
-    connect(datacenter,&DataCenter::consumergetDishInfoDone,this,[&](){
+    connect(datacenter,&DataCenter::consumergetDishInfoDone,this,[=](){
         //若不存在，则创建窗口并显示
-        cdd_win =new ConsumerDishDetailWindow(datacenter->dish);
+        qDebug()<<"开始构建详情窗口";
+        auto dish = datacenter->dish;
+        cdd_win =new ConsumerDishDetailWindow(dish,datacenter->getCartDishNum(dish->merchant_id,dish->uuid));
         //连接窗口信号
         connect(cdd_win,&ConsumerDishDetailWindow::finished,this,&MainWidget::cddCloseSlot);
         //连接控件信号
@@ -480,19 +497,19 @@ void MainWidget::initConsumerResponeConnection()
                 this,
                 &MainWidget::cartDsihAddSlot);
         connect(cdd_win->cdd,
-                &ConsumerDishDetailWidget::cartDishAddSignal,
+                &ConsumerDishDetailWidget::cartDishPopSignal,
                 this,
                 &MainWidget::cartDsihPopSlot);
 
         cdd_win->exec();
     });
     //订单生成
-    connect(datacenter,&DataCenter::consumerOrderGenerateDone,this,[&](){
+    connect(datacenter,&DataCenter::consumerOrderGenerateDone,this,[=](){
         toConsumerOrderListSlot();
     });
 
     //订单详情
-    connect(datacenter,&DataCenter::consumerGetOrderInfoDone,this,[&](){
+    connect(datacenter,&DataCenter::consumerGetOrderInfoDone,this,[=](){
         ConsumerOrderDetailWidget* cod = new ConsumerOrderDetailWidget(datacenter->consumer_order_item);
         this->layout()->addWidget(cod);
 

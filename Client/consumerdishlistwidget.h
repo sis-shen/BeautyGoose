@@ -11,6 +11,7 @@
 #include <QList>
 #include <QPointer>
 #include <QScrollArea>
+#include <QHash>
 #include "Nav.h"
 
 #include "CoreData.h"
@@ -30,6 +31,7 @@ public:
 
 
     DishItem(const btyGoose::data::Dish& dish)
+        :dish_id(dish.uuid)
     {
         QGridLayout* layout = new QGridLayout;
         this->setLayout(layout);
@@ -79,11 +81,12 @@ public:
         merchant_name = new QLabel(lst[0].merchant_name);
         merchant_id = lst[0].merchant_id;
         //默认加三个
-
+        // qDebug()<<"开始往缓冲区插入菜品";
         for(auto dish:lst)
         {
             list.push_back(DishItem::ptr(new DishItem(dish)));
         }
+        // qDebug()<<"插入完成";
 
         QGridLayout* layout = new QGridLayout;
         this->setLayout(layout);

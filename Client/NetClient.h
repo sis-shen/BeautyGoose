@@ -33,6 +33,8 @@ public:
     //socket客户端
     QWebSocket websocktClient;
 
+
+
 //网络接口
     void ping();
 
@@ -48,6 +50,7 @@ public:
 /// Consumer子系统
 /////////////////////////////////////////
     void consumerGetDishList();
+    void consumerGetDishInfo(const QString& dish_id);
 signals:
 };
 }

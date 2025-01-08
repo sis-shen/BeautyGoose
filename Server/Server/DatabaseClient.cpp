@@ -307,7 +307,7 @@ bool btyGoose::DatabaseClient::addDish(const data::Dish&dish)
     QMutexLocker locker(&mtx);
     try {
         sql::PreparedStatement* pstmt = con->prepareStatement(
-            "INSERT INTO dishes (uuid, merchant_id, name, icon_path, description, base_price, price_factor, is_delete) "
+            "INSERT INTO dishes (uuid, merchant_id, name, icon_path, description, base_price, price_factor, is_delete,merchant_name) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
         pstmt->setString(1, dish.uuid.toStdString());
@@ -318,6 +318,7 @@ bool btyGoose::DatabaseClient::addDish(const data::Dish&dish)
         pstmt->setDouble(6, dish.base_price);
         pstmt->setDouble(7, dish.price_factor);
         pstmt->setBoolean(8, dish.is_delete);
+        pstmt->setString(9, dish.merchant_name.toStdString());
         pstmt->executeUpdate();
         delete pstmt;
         return true;
@@ -333,7 +334,7 @@ bool btyGoose::DatabaseClient::updateDish(const data::Dish&dish)
     QMutexLocker locker(&mtx);
     try {
         sql::PreparedStatement* pstmt = con->prepareStatement(
-            "UPDATE dishes SET name = ?, icon_path = ?, description = ?, base_price = ?, price_factor = ?, is_delete = ? "
+            "UPDATE dishes SET name = ?, icon_path = ?, description = ?, base_price = ?, price_factor = ?, is_delete = ?,merchant_name = ? "
             "WHERE uuid = ?"
         );
         pstmt->setString(1, dish.name.toStdString());
@@ -342,7 +343,8 @@ bool btyGoose::DatabaseClient::updateDish(const data::Dish&dish)
         pstmt->setDouble(4, dish.base_price);
         pstmt->setDouble(5, dish.price_factor);
         pstmt->setBoolean(6, dish.is_delete);
-        pstmt->setString(7, dish.uuid.toStdString());
+        pstmt->setString(7, dish.merchant_name.toStdString());
+        pstmt->setString(8, dish.uuid.toStdString());
         pstmt->executeUpdate();
         delete pstmt;
         return true;
@@ -366,6 +368,7 @@ btyGoose::data::Dish btyGoose::DatabaseClient::searchDishByID(const QString& id)
         if (res->next()) {
             dish.uuid = QString::fromStdString(res->getString("uuid"));
             dish.merchant_id = QString::fromStdString(res->getString("merchant_id"));
+            dish.merchant_name = QString::fromStdString(res->getString("merchant_name"));
             dish.name = QString::fromStdString(res->getString("name"));
             dish.icon_path = QString::fromStdString(res->getString("icon_path"));
             dish.description = QString::fromStdString(res->getString("description"));
@@ -394,6 +397,8 @@ QList<btyGoose::data::Dish> btyGoose::DatabaseClient::getAllDishList()
             data::Dish dish;
             dish.uuid = QString::fromStdString(res->getString("uuid"));
             dish.merchant_id = QString::fromStdString(res->getString("merchant_id"));
+            dish.merchant_name = QString::fromStdString(res->getString("merchant_name"));
+            qDebug() << "name" << dish.merchant_name;
             dish.name = QString::fromStdString(res->getString("name"));
             dish.icon_path = QString::fromStdString(res->getString("icon_path"));
             dish.description = QString::fromStdString(res->getString("description"));
@@ -427,6 +432,7 @@ QList<btyGoose::data::Dish> btyGoose::DatabaseClient::getDishListByMerchant(cons
             data::Dish dish;
             dish.uuid = QString::fromStdString(res->getString("uuid"));
             dish.merchant_id = QString::fromStdString(res->getString("merchant_id"));
+            dish.merchant_name = QString::fromStdString(res->getString("merchant_name"));
             dish.name = QString::fromStdString(res->getString("name"));
             dish.icon_path = QString::fromStdString(res->getString("icon_path"));
             dish.description = QString::fromStdString(res->getString("description"));

@@ -11,10 +11,11 @@ class ConsumerDishDetailWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ConsumerDishDetailWidget(const btyGoose::data::Dish* dish);
+    explicit ConsumerDishDetailWidget(const btyGoose::data::Dish* dish,int num);
 
     QString merchant_id="merchant_id";
     QString dish_id = "order_id";
+    int num;//购物车中初识数量
     const btyGoose::data::Dish* _dish;
 
     // QIcon* icon;//TODO
