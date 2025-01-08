@@ -58,9 +58,32 @@ void DataCenter::accountRegisterAsync(const QString &name, const QString &passwo
     client->accountRegister(name,hashPass,phone,nickname,auth_code,type);
 }
 
-void DataCenter::consumerGetDishListAsync()
+void DataCenter::loginByNameAsync(const QString &name, const QString &password)
+{
+    //加密password
+    QByteArray hashPass = QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256);
+    client->accountLoginByName(name,hashPass);
+}
+
+void DataCenter::loginByPhoneAsync(const QString &phone, const QString &password)
 {
 
+}
+
+void DataCenter::accountUpdateAsync()
+{
+
+}
+
+void DataCenter::accountChangeNicknameAsync(const QString &nickname)
+{
+
+}
+
+void DataCenter::consumerGetDishListAsync()
+{
+    client->consumerGetDishList();
+    qDebug()<<"转到消费者界面";
 }
 
 void DataCenter::consumerGetDishInfoAsync(const QString &dihs_id)
@@ -68,11 +91,17 @@ void DataCenter::consumerGetDishInfoAsync(const QString &dihs_id)
 
 }
 
-void DataCenter::consumerOrderGenerate(const QString &merchant_id)
+void DataCenter::consumerOrderGenerateAsync(const QString &merchant_id)
 {
     auto it = cart_list->cart_table->find(merchant_id);
     if(it == cart_list->cart_table->end()) return;//购物车不存在
 
+    datacenter->consumer_order_list;
+}
+
+void DataCenter::consumerGetOrderInfoAsync(const QString &order_id)
+{
+    datacenter->consumer_order_item;
 }
 
 

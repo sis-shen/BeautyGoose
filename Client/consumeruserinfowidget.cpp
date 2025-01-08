@@ -1,7 +1,7 @@
 #include "consumeruserinfowidget.h"
 
-ConsumerUserInfoWidget::ConsumerUserInfoWidget(QWidget *parent)
-    : QWidget{parent}
+ConsumerUserInfoWidget::ConsumerUserInfoWidget(const btyGoose::data::Account*account)
+    :_account(account)
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -16,9 +16,9 @@ ConsumerUserInfoWidget::ConsumerUserInfoWidget(QWidget *parent)
 
 void ConsumerUserInfoWidget::initRightW()
 {
-    nameLB=new QLabel("法外狂徒张三");
-    nicknameLB =new QLineEdit("你的甜心小三三");
-    phoneLB = new QLabel("8888-8888-666");
+    nameLB=new QLabel(_account->name);
+    nicknameLB =new QLineEdit(_account->nickname);
+    phoneLB = new QLabel(_account->phone);
 
     int h = 50,w = 400;
 

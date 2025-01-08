@@ -35,6 +35,8 @@ public:
 	void initAdminAPI();
 
 	bool getPay(double pay);
+	//工具函数
+	QString toJsonArray(const QList<data::Dish>& dishList);
 private:
 	httplib::Server svr;
 	DatabaseClient db;

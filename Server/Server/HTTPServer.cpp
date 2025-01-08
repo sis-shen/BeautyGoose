@@ -98,7 +98,7 @@ void btyGoose::HTTPServer::initAccountAPI()
 {
     //用户名登录
     svr.Post("/account/login/username", [this](const httplib::Request& req, httplib::Response& res) {
-        qDebug() << "/account/login/username get a post!";
+        LOG() << "/account/login/username get a post!";
         std::string jsonStr = req.body;
         QString qJsonString = QString::fromStdString(jsonStr);
         QJsonObject jsonObj;
@@ -150,6 +150,8 @@ void btyGoose::HTTPServer::initAccountAPI()
             res.set_header("Content-Type", "application/json");
             qDebug() << e.what();
         }
+
+        LOG() << "login by name done";
     });
 
     svr.Post("/account/login/phone", [this](const httplib::Request& req, httplib::Response& res) {
@@ -401,7 +403,11 @@ bool btyGoose::HTTPServer::AuthenticateAuthCode(const QString& phone, const QStr
 
 void btyGoose::HTTPServer::initConsumerAPI()
 {
+    svr.Post("/consumer/dish/list", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/consumer/dish/list get a post!";
+        QList<data::Dish> dishList = db.getAllDishList();
 
+        });
 }
 
 void btyGoose::HTTPServer::initMerchantAPI()
@@ -415,4 +421,20 @@ void btyGoose::HTTPServer::initAdminAPI()
 bool btyGoose::HTTPServer::getPay(double pay)
 {
     return false;
+}
+
+QString btyGoose::HTTPServer::toJsonArray(const QList<data::Dish>& dishList)
+{
+    QJsonArray jsonArray;
+
+    // 遍历 dishList，将每个 Dish 对象的 JSON 添加到 jsonArray 中
+    for (const auto& dish : dishList)
+    {
+        // 将每个 Dish 对象转换为 JSON 字符串并加入到 JSON 数组中
+        jsonArray.append(QJsonDocument::fromJson(dish.toJson().toUtf8()).object());
+    }
+
+    // 将 QJsonArray 转换为 JSON 字符串
+    QJsonDocument doc(jsonArray);
+    return QString(doc.toJson(QJsonDocument::Compact));
 }

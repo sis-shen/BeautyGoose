@@ -12,12 +12,12 @@
 #include <QPointer>
 #include <QLineEdit>
 #include "Nav.h"
-
+#include "CoreData.h"
 class MerchantUserInfoWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MerchantUserInfoWidget(QWidget *parent = nullptr);
+    explicit MerchantUserInfoWidget(const btyGoose::data::Account*account);
     MerchantNavWidget* leftNavW;
     QWidget* rightW;
     QLabel* icon;
@@ -25,6 +25,8 @@ public:
     QLineEdit* nicknameLB;
     QLabel* phoneLB;
     void initRightW();
+
+    const btyGoose::data::Account* _account;
 public slots:
     void changeNicknameSlot();
 signals:

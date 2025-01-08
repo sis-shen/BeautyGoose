@@ -63,9 +63,10 @@ public:
     bool getAuthcode(const QString&phoneNumber);
     void accountRegisterAsync(const QString&name,const QString&password,const QString& phone,
                         const QString&nickname,const QString auth_code ,int type);
-    bool loginByNameAsync(const QString&name,const QString&password);
-    bool loginByPhoneAsync();
-    bool accountUpdateAsync();
+    void loginByNameAsync(const QString&name,const QString&password);
+    void loginByPhoneAsync(const QString&phone,const QString&password);
+    void accountUpdateAsync();
+    void accountChangeNicknameAsync(const QString&nickname);
 public:
     QIcon QRCode;
     //第三方支付子系统
@@ -81,11 +82,11 @@ public:
     CartList* cart_list = nullptr;
     ConsumerOrderList* consumer_order_list =nullptr;
     ConsumerOrderItem* consumer_order_item = nullptr;
-    data::Order* data_order = nullptr;
 //接口
     void consumerGetDishListAsync();    //用户数据在本对象的account里
     void consumerGetDishInfoAsync(const QString&dihs_id);
-    void consumerOrderGenerate(const QString&merchant_id);//得知道生成的是谁的
+    void consumerOrderGenerateAsync(const QString&merchant_id);//得知道生成的是谁的
+    void consumerGetOrderInfoAsync(const QString&order_id);
 
 signals:
 ///////////////////////////////////
@@ -95,6 +96,7 @@ signals:
     void getRegisterDone(bool ok,const QString& reason);
     void getLoginByNameDone(bool ok,const QString& reason);
     void getLoginByPhoneDone(bool ok,const QString& reason);
+    void accountChangeNicknameAsyncDone();
 
 ///////////////////////////////////
 ///消费者子系统
@@ -102,6 +104,8 @@ signals:
 
     void consumerGetDishListDone();
     void consumergetDishInfoDone();
+    void consumerOrderGenerateDone();
+    void consumerGetOrderInfoDone();
 };
 
 

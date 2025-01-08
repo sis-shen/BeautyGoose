@@ -64,7 +64,6 @@ void NetClient::accountRegister(const QString &name, const QString &password, co
                 QString Message = responseObj["message"].toString();
                 if (success) {
                     qDebug() << "Account registration successful!";
-
                 } else {
                     QString errorMessage = responseObj["message"].toString();
                     qDebug() << "Account registration failed: " << errorMessage;
@@ -95,7 +94,7 @@ void NetClient::accountLoginByName(const QString &name, const QString &password)
     QByteArray jsonData = doc.toJson();
 
     // 2. 创建 HTTP 请求并设置 URL 和请求头
-    QUrl url(httpUrl + "/account/register");  // 注册接口是 /account/register
+    QUrl url(httpUrl + "/account/login/username");  //
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
 
@@ -113,14 +112,50 @@ void NetClient::accountLoginByName(const QString &name, const QString &password)
                 bool success = responseObj["success"].toBool();  // 假设响应中包含 success 字段
                 QString Message = responseObj["message"].toString();
                 if (success) {
-                    qDebug() << "Account registration successful!";
-
+                    qDebug() << "Account login by name successful!";
+                    QString accJson = responseObj["account"].toString();
+                    data::Account* acc = new data::Account;
+                    acc->loadFromJson(accJson.toStdString());
+                    datacenter->account = acc;//向数据中心存入账户信息
                 } else {
                     QString errorMessage = responseObj["message"].toString();
-                    qDebug() << "Account registration failed: " << errorMessage;
+                    qDebug() << "Account login by name failed: " << errorMessage;
                     // 处理失败的情况
                 }
                 emit datacenter->getLoginByNameDone(success,Message);
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
+void NetClient::consumerGetDishList()
+{
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/consumer/dish/list");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request,"");//没有报文
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                QJsonObject responseObj = doc.object();
+
+
+                emit datacenter->consumerGetDishListDone();
             } else {
                 qDebug() << "Invalid JSON response!";
             }

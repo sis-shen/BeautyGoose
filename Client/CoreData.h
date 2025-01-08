@@ -34,7 +34,7 @@ static inline QString formatTime(int64_t timestamp)
     //传入的是秒级时间戳
     QDateTime dateTime = QDateTime::fromSecsSinceEpoch(timestamp);
     //把QDateTime对象转换成格式化时间
-    return dateTime.toString("yyyy-MM-dd HH:mm::ss");
+    return dateTime.toString("MM-dd HH:mm::ss");
 }
 
 //获取秒级时间戳
@@ -381,8 +381,7 @@ struct OrderDish
     QString dish_id = "";		//菜品id
     QString merchant_id = "";	//商家id
     QString name = "";			//菜品id
-    double base_price = 0;		//当时的基础价格
-    double price_factor = 0;	//当时的价格影响因素
+    double dish_price = 0;		//当时的基础价格
     int count = 0;				//菜品数量
 
     // 将结构体转换为JSON字符串
@@ -395,8 +394,7 @@ struct OrderDish
         jsonObj["dish_id"] = dish_id;
         jsonObj["merchant_id"] = merchant_id;
         jsonObj["name"] = name;
-        jsonObj["base_price"] = base_price;
-        jsonObj["price_factor"] = price_factor;
+        jsonObj["dish_price"] = dish_price;
         jsonObj["count"] = count;
 
         // 使用QJsonDocument将QJsonObject转为JSON字符串
@@ -440,13 +438,10 @@ struct OrderDish
             name = jsonObj["name"].toString();
         }
 
-        if (jsonObj.contains("base_price") && jsonObj["base_price"].isDouble()) {
-            base_price = jsonObj["base_price"].toDouble();
+        if (jsonObj.contains("dish_price") && jsonObj["dish_price"].isDouble()) {
+            dish_price = jsonObj["dish_price"].toDouble();
         }
 
-        if (jsonObj.contains("price_factor") && jsonObj["price_factor"].isDouble()) {
-            price_factor = jsonObj["price_factor"].toDouble();
-        }
 
         if (jsonObj.contains("count") && jsonObj["count"].isDouble()) {
             count = jsonObj["count"].toInt();  // 由于JSON可能存储为double类型，使用toInt()转换

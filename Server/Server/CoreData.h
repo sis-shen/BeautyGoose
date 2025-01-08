@@ -94,7 +94,7 @@ namespace btyGoose
 			QString phone = "";		//电话号码
 			Level level = MEMBER;		//优惠等级
 
-			QString toJson()
+			QString toJson() const
 			{
 				QJsonObject jsonObj;
 
@@ -187,7 +187,7 @@ namespace btyGoose
 			double price_factor = 1;	//价格影响因素
 			bool is_delete = false;		//是否被删除
 
-			QString toJson()
+			QString toJson() const
 			{
 				QJsonObject jsonObj;
 
@@ -289,7 +289,7 @@ namespace btyGoose
 			Status status;				//订单状态
 			int sum = 0;				//订单内总菜品数
 
-			QString toJson()
+			QString toJson() const
 			{
 				QJsonObject jsonObj;
 
@@ -381,8 +381,7 @@ namespace btyGoose
 			QString dish_id = "";		//菜品id
 			QString merchant_id = "";	//商家id
 			QString name = "";			//菜品id
-			double base_price = 0;		//当时的基础价格
-			double price_factor = 0;	//当时的价格影响因素
+			double dish_price = 0;		//当时的基础价格
 			int count = 0;				//菜品数量
 
 			// 将结构体转换为JSON字符串
@@ -395,8 +394,7 @@ namespace btyGoose
 				jsonObj["dish_id"] = dish_id;
 				jsonObj["merchant_id"] = merchant_id;
 				jsonObj["name"] = name;
-				jsonObj["base_price"] = base_price;
-				jsonObj["price_factor"] = price_factor;
+				jsonObj["dish_price"] = dish_price;
 				jsonObj["count"] = count;
 
 				// 使用QJsonDocument将QJsonObject转为JSON字符串
@@ -440,13 +438,10 @@ namespace btyGoose
 					name = jsonObj["name"].toString();
 				}
 
-				if (jsonObj.contains("base_price") && jsonObj["base_price"].isDouble()) {
-					base_price = jsonObj["base_price"].toDouble();
+				if (jsonObj.contains("dish_price") && jsonObj["dish_price"].isDouble()) {
+					dish_price = jsonObj["dish_price"].toDouble();
 				}
 
-				if (jsonObj.contains("price_factor") && jsonObj["price_factor"].isDouble()) {
-					price_factor = jsonObj["price_factor"].toDouble();
-				}
 
 				if (jsonObj.contains("count") && jsonObj["count"].isDouble()) {
 					count = jsonObj["count"].toInt();  // 由于JSON可能存储为double类型，使用toInt()转换

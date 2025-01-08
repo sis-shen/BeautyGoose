@@ -84,10 +84,8 @@ void MainWidget::registerSlot(RegisterWidget::Input input)
 
 void MainWidget::loginNameSlot(LoginByNameWidget::Input input)
 {
-    //TODO
-    if(input.type == "CONSUMER")toConsumerDishListSlot();
-    else if (input.type == "MERCHANT")toMerchantDishListSlot();
-    else toAdminOrderListSlot();
+    DataCenter* datacenter = DataCenter::getInstance();
+    datacenter->loginByNameAsync(input.name,input.password);
 }
 
 void MainWidget::loginPhoneSlot(LoginByPhoneWidget::Input input)
@@ -98,8 +96,9 @@ void MainWidget::loginPhoneSlot(LoginByPhoneWidget::Input input)
 
 void MainWidget::toConsumerUserInfoSlot()
 {
+    DataCenter* datacenter = DataCenter::getInstance();
     clearAll();
-    ConsumerUserInfoWidget* aui = new ConsumerUserInfoWidget;
+    ConsumerUserInfoWidget* aui = new ConsumerUserInfoWidget(datacenter->account);
     this->layout()->addWidget(aui);
     //导航栏
     connect(aui->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
@@ -114,8 +113,9 @@ void MainWidget::toConsumerUserInfoSlot()
 void MainWidget::toMerchantUserInfoSlot()
 {
     qDebug()<<"toMerchantUserInfoSlot";
+    DataCenter* datacenter = DataCenter::getInstance();
     clearAll();
-    MerchantUserInfoWidget* aui = new MerchantUserInfoWidget;
+    MerchantUserInfoWidget* aui = new MerchantUserInfoWidget(datacenter->account);
     this->layout()->addWidget(aui);
     qDebug()<<"start Connection";
     //连导航栏
@@ -127,7 +127,8 @@ void MainWidget::toMerchantUserInfoSlot()
 
 void MainWidget::changeNicknameSlot(QString nickname)
 {
-
+    DataCenter* datacenter = DataCenter::getInstance();
+    datacenter->accountChangeNicknameAsync(nickname);
 }
 
 void MainWidget::initAccountResponseConnection()
@@ -151,6 +152,7 @@ void MainWidget::initAccountResponseConnection()
     });
 
     connect(datacenter,&DataCenter::getLoginByNameDone,this,[=](bool ok,const QString&reason){
+        qDebug()<<"登录成功";
         if(ok)
         {
             if(datacenter->account->type == data::Account::Type::CONSUMER)
@@ -203,6 +205,18 @@ void MainWidget::initAccountResponseConnection()
         {
             QMessageBox::information(this, "Info", "登录失败!原因:"+reason);
             toPhoneLoginSlot();  //刷新界面
+        }
+    });
+
+    connect(datacenter,&DataCenter::accountChangeNicknameAsyncDone,this,[&](){
+        //刷新页面
+        if(datacenter->account->type == data::Account::CONSUMER)
+            {
+            toConsumerUserInfoSlot();
+        }
+        else
+            {
+            toMerchantUserInfoSlot();
         }
     });
 }
@@ -350,7 +364,7 @@ void MainWidget::cartClearSlot(QString merchant_id)
 void MainWidget::orderGenerateSlot(QString merchant_id)
 {
     DataCenter* datacenter = DataCenter::getInstance();
-    datacenter->consumerOrderGenerate(merchant_id);
+    datacenter->consumerOrderGenerateAsync(merchant_id);
 }
 
 void MainWidget::toConsumerOrderListSlot()
@@ -372,24 +386,9 @@ void MainWidget::toConsumerOrderListSlot()
 
 void MainWidget::consumerOrderInfoSlot(QString order_id)
 {
-    //TODO
-    //没做传入id的接口
     clearAll();
     DataCenter* datacenter = DataCenter::getInstance();
-//TODO//////////////////////////////////////////
-    ConsumerOrderDetailWidget* cod = new ConsumerOrderDetailWidget;
-    this->layout()->addWidget(cod);
-
-    //连导航栏
-    connect(cod->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
-    connect(cod->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
-    connect(cod->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
-    connect(cod->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
-
-    //连其它信号
-    connect(cod,&ConsumerOrderDetailWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
-    connect(cod,&ConsumerOrderDetailWidget::payOrderSignal,this,&MainWidget::payOrderSlot);
-    connect(cod,&ConsumerOrderDetailWidget::cancelSignal,this,&MainWidget::orderCancelSlot);
+    datacenter->consumerGetOrderInfoAsync(order_id);
 }
 
 
@@ -452,7 +451,7 @@ void MainWidget::initConsumerResponeConnection()
     DataCenter* datacenter = DataCenter::getInstance();
 
     //获取菜品列表
-    connect(datacenter,&DataCenter::consumerGetDishListDone,this,[=](){
+    connect(datacenter,&DataCenter::consumerGetDishListDone,this,[&](){
 
         //构建ConsumerDishList界面
         ConsumerDishListWidget* cdl = new ConsumerDishListWidget(datacenter->dish_list_table);
@@ -470,7 +469,7 @@ void MainWidget::initConsumerResponeConnection()
     });
 
     //菜品详情
-    connect(datacenter,&DataCenter::consumergetDishInfoDone,this,[=](){
+    connect(datacenter,&DataCenter::consumergetDishInfoDone,this,[&](){
         //若不存在，则创建窗口并显示
         cdd_win =new ConsumerDishDetailWindow(datacenter->dish);
         //连接窗口信号
@@ -486,6 +485,27 @@ void MainWidget::initConsumerResponeConnection()
                 &MainWidget::cartDsihPopSlot);
 
         cdd_win->exec();
+    });
+    //订单生成
+    connect(datacenter,&DataCenter::consumerOrderGenerateDone,this,[&](){
+        toConsumerOrderListSlot();
+    });
+
+    //订单详情
+    connect(datacenter,&DataCenter::consumerGetOrderInfoDone,this,[&](){
+        ConsumerOrderDetailWidget* cod = new ConsumerOrderDetailWidget(datacenter->consumer_order_item);
+        this->layout()->addWidget(cod);
+
+        //连导航栏
+        connect(cod->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
+        connect(cod->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
+        connect(cod->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
+        connect(cod->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
+
+        //连其它信号
+        connect(cod,&ConsumerOrderDetailWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
+        connect(cod,&ConsumerOrderDetailWidget::payOrderSignal,this,&MainWidget::payOrderSlot);
+        connect(cod,&ConsumerOrderDetailWidget::cancelSignal,this,&MainWidget::orderCancelSlot);
     });
 }
 

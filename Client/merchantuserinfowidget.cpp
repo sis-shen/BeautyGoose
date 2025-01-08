@@ -1,7 +1,7 @@
 #include "merchantuserinfowidget.h"
 
-MerchantUserInfoWidget::MerchantUserInfoWidget(QWidget *parent)
-    : QWidget{parent}
+MerchantUserInfoWidget::MerchantUserInfoWidget(const btyGoose::data::Account*account)
+    :_account(account)
 {
     qDebug()<<"MerchantUserInfoWidget";
     QGridLayout* layout = new QGridLayout;
@@ -17,9 +17,9 @@ MerchantUserInfoWidget::MerchantUserInfoWidget(QWidget *parent)
 
 void MerchantUserInfoWidget::initRightW()
 {
-    nameLB=new QLabel("法外狂徒张三");
-    nicknameLB =new QLineEdit("你的甜心小三三");
-    phoneLB = new QLabel("8888-8888-666");
+    nameLB=new QLabel(_account->name);
+    nicknameLB =new QLineEdit(_account->nickname);
+    phoneLB = new QLabel(_account->phone);
 
     int h = 50,w = 400;
 

@@ -54,24 +54,32 @@ public:
 	bool addDish(const data::Dish&);
 	bool updateDish(const data::Dish&);
 	data::Dish searchDishByID(const QString& id);
+	QList<data::Dish> getAllDishList();
 	QList<data::Dish> getDishListByMerchant(const QString& id);
 	bool delDishByID(const QString& id);
 
 	//Order CURD
-	bool addOrder(const data::Order&);
-	bool updateOrder(const data::Order&);
-	bool updateOrder(const data::Order::Status);
-	data::Order searchOrderByID(const QString& id);
-	QList<data::Order> getOrderListByMerchant(const QString& id);
-	bool delOrderByID(const QString& id);
+	bool addOrder(const data::Order&order);
+	bool updateOrder(const data::Order&order);
+	bool updateOrder(const QString&id ,const data::Order::Status stat);
+	data::Order searchOrderByID(const QString& order_id);
+	QList<data::Order> getOrderListByMerchant(const QString& merchant_id);
+	QList<data::Order> getOrderListByConsumer(const QString& consumer_id);
+	bool delOrderByID(const QString& order_id);
 	int clearOverTimeOrder();
 
-	//history CURD
-	bool addHistory(const data::Order&);
-	bool clearOverTimeHistory();
-	QList<data::Order> getAllHistory();
+	//OrderDish CURD
+	bool addOrderDishesByID(const QString& order_id, const QList<data::OrderDish>& list);
+	bool delOrderDishesByID(const QString& order_id);
+	QList<data::OrderDish> getOrderDishesByID(const QString& order_id);
+	
+	//History CURD
+	bool addHistory(const data::Order& order);
+	QList<data::Order> getAllHistoryList();
 
-
+	//HistoryDish CURD
+	bool addHistoryDishesByID(const QString& order_id, const QList<data::OrderDish>& list);
+	QList<data::OrderDish> getHistoryDishesByID(const QString& order_id);
 };
 }
 

@@ -3,8 +3,8 @@
 #include <QBoxLayout>
 #include <QScrollBar>
 using namespace consumer::orderDetail;
-ConsumerOrderDetailWidget::ConsumerOrderDetailWidget(QWidget *parent)
-    : QWidget{parent},order_id("order_id")
+ConsumerOrderDetailWidget::ConsumerOrderDetailWidget(const btyGoose::ConsumerOrderItem* order_item)
+    : order_id(order_item->order->uuid)
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -12,12 +12,16 @@ ConsumerOrderDetailWidget::ConsumerOrderDetailWidget(QWidget *parent)
     rightW = new QWidget;
     layout->addWidget(leftNavW,0,0);
     layout->addWidget(rightW,0,1);
+    for(btyGoose::CartDishItem& dish : *(order_item->list))
+    {
+        list.push_back(OrderDishItem::ptr(new OrderDishItem(dish)));
+    }
     //DEBUG //TODO
-    list.push_back(OrderDishItem::ptr(new OrderDishItem));
-    list.push_back(OrderDishItem::ptr(new OrderDishItem));
-    list.push_back(OrderDishItem::ptr(new OrderDishItem));
-    list.push_back(OrderDishItem::ptr(new OrderDishItem));
-    list.push_back(OrderDishItem::ptr(new OrderDishItem));
+    // list.push_back(OrderDishItem::ptr(new OrderDishItem));
+    // list.push_back(OrderDishItem::ptr(new OrderDishItem));
+    // list.push_back(OrderDishItem::ptr(new OrderDishItem));
+    // list.push_back(OrderDishItem::ptr(new OrderDishItem));
+    // list.push_back(OrderDishItem::ptr(new OrderDishItem));
 
     initRight();
 }
