@@ -40,9 +40,9 @@ struct ConsumerOrderItem
     QSharedPointer<data::Order> order = nullptr;
 };
 
-struct ConsumerOrderList
-{
-    QHash<QString,ConsumerOrderItem::ptr>* orderTable;//订单id->订单
-};
+// struct ConsumerOrderList
+// {
+//     QHash<QString,ConsumerOrderItem::ptr>* orderTable;//订单id->订单
+// };
 }
 #endif // DATACENTERCOREDATA_H

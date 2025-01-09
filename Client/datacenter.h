@@ -81,8 +81,9 @@ public:
     QHash<QString,QList<data::Dish>>* dish_list_table = nullptr;
     data::Dish* dish = nullptr;
     CartList* cart_list = nullptr;
-    ConsumerOrderList* consumer_order_list =nullptr;
+    // ConsumerOrderList* consumer_order_list =nullptr;
     ConsumerOrderItem* consumer_order_item = nullptr;
+    QHash<QString,data::Order>* order_table = nullptr;//order_id -> order
 //接口
     void consumerGetDishListAsync();    //用户数据在本对象的account里
     void consumerGetDishInfoAsync(const QString&dihs_id);

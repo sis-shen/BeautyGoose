@@ -225,4 +225,80 @@ void NetClient::consumerGetDishInfo(const QString &dish_id)
     });
 }
 
+void NetClient::consumerOrderGenerate(const QString &merchant_id)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+
+    if(datacenter->cart_list->cart_table->find(merchant_id) == datacenter->cart_list->cart_table->end())
+    {
+        qDebug()<<"商家不存在";
+        return;
+    }
+    Cart::ptr cart = *(datacenter->cart_list->cart_table->find(merchant_id));
+    jsonObj["merchant_id"] =cart->merchant_id;
+    jsonObj["merchant_name"] = cart->merchant_name;
+    jsonObj["consumer_id"] = datacenter->account->uuid;
+    jsonObj["consumer_name"] = datacenter->account->name;
+    jsonObj["level"] = static_cast<int>(datacenter->account->level);
+    jsonObj["pay"] = cart->pay;
+    jsonObj["count"] = cart->cnt;
+
+    QJsonArray jsonArr;
+
+    for(auto it = cart->dish_table->begin();it!=cart->dish_table->end();++it)
+    {
+        QJsonObject obj;
+        obj["dish_id"] = it.value()->dish_id;
+        obj["merchant_id"] = cart->merchant_id;
+        obj["dish_name"] = it.value()->dish_name;
+        obj["dish_price"] = it.value()->dish_price;
+        obj["count"] = it.value()->cnt;
+        jsonArr.append(obj);
+    }
+
+    jsonObj["dish_arr"] = jsonArr;
+
+    //清空购物车
+    datacenter->cart_list->cart_table->erase(datacenter->cart_list->cart_table->find(merchant_id));
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/consumer/order/generate");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                // qDebug()<<doc.toJson();
+                QJsonObject responseObj = doc.object();
+                data::Order order;
+                // qDebug()<<order.status;
+                // qDebug()<<responseObj["order"].toString();
+                order.loadFromJson(responseObj["order"].toString().toStdString());
+                datacenter->order_table->insert(order.uuid,order);    //导入订单列表
+                // qDebug()<<"NetClient order stat"<<order.status;
+                emit datacenter->consumerOrderGenerateDone();
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
 }

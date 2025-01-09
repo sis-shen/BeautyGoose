@@ -356,7 +356,7 @@ namespace btyGoose
 						uuid = jsonObj["uuid"].toString();
 					}
 
-					if (jsonObj.contains("status") && jsonObj["status"].isString()) {
+					if (jsonObj.contains("status") && jsonObj["status"].isDouble()) {
 						status = (Status)jsonObj["status"].toInt();
 					}
 

@@ -2,7 +2,7 @@
 #include <QScrollArea>
 #include <QScrollBar>
 using namespace consumer::orderList;
-ConsumerOrderListWidget::ConsumerOrderListWidget(const QHash<QString,btyGoose::ConsumerOrderItem::ptr>* order_table)
+ConsumerOrderListWidget::ConsumerOrderListWidget(const QHash<QString,btyGoose::data::Order>* order_table)
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);

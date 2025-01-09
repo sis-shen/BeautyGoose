@@ -376,13 +376,14 @@ void MainWidget::orderGenerateSlot(QString merchant_id)
 {
     DataCenter* datacenter = DataCenter::getInstance();
     datacenter->consumerOrderGenerateAsync(merchant_id);
+    toConsumerOrderListSlot();
 }
 
 void MainWidget::toConsumerOrderListSlot()
 {
     clearAll();
     DataCenter* datacenter = DataCenter::getInstance();
-    ConsumerOrderListWidget* col = new ConsumerOrderListWidget(datacenter->consumer_order_list->orderTable);
+    ConsumerOrderListWidget* col = new ConsumerOrderListWidget(datacenter->order_table);
     this->layout()->addWidget(col);
     //连导航栏
     connect(col->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);

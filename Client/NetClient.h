@@ -12,6 +12,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonValue>
+#include "DataCenterCoreData.h"
 
 //提前声明
 class DataCenter;
@@ -51,6 +52,7 @@ public:
 /////////////////////////////////////////
     void consumerGetDishList();
     void consumerGetDishInfo(const QString& dish_id);
+    void consumerOrderGenerate(const QString& merchant_id);
 signals:
 };
 }

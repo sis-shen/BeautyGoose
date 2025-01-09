@@ -15,8 +15,9 @@ DataCenter::DataCenter()
     dish_list_table = new QHash<QString,QList<data::Dish>>;
     cart_list = new CartList;
     cart_list->cart_table = new QHash<QString,Cart::ptr>;
-    consumer_order_list = new ConsumerOrderList;
-    consumer_order_list->orderTable = new QHash<QString,ConsumerOrderItem::ptr>;
+    // consumer_order_list = new ConsumerOrderList;
+    // consumer_order_list->orderTable = new QHash<QString,ConsumerOrderItem::ptr>;
+    order_table =  new QHash<QString,data::Order>;
 }
 
 QList<data::Dish> DataCenter::DishListFromJsonArray(const QString &jsonString)
@@ -141,7 +142,7 @@ void DataCenter::consumerOrderGenerateAsync(const QString &merchant_id)
     auto it = cart_list->cart_table->find(merchant_id);
     if(it == cart_list->cart_table->end()) return;//购物车不存在
 
-    datacenter->consumer_order_list;
+    client->consumerOrderGenerate(merchant_id);
 }
 
 void DataCenter::consumerGetOrderInfoAsync(const QString &order_id)

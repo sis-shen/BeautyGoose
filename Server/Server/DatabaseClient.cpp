@@ -398,7 +398,6 @@ QList<btyGoose::data::Dish> btyGoose::DatabaseClient::getAllDishList()
             dish.uuid = QString::fromStdString(res->getString("uuid"));
             dish.merchant_id = QString::fromStdString(res->getString("merchant_id"));
             dish.merchant_name = QString::fromStdString(res->getString("merchant_name"));
-            qDebug() << "name" << dish.merchant_name;
             dish.name = QString::fromStdString(res->getString("name"));
             dish.icon_path = QString::fromStdString(res->getString("icon_path"));
             dish.description = QString::fromStdString(res->getString("description"));
@@ -477,7 +476,7 @@ bool DatabaseClient::addOrder(const data::Order& order) {
     QMutexLocker locker(&mtx);
     try {
         sql::PreparedStatement* pstmt = con->prepareStatement(
-            "INSERT INTO orders (uuid, merchant_id, merchant_name, consumer_id, consumer_name, time, level, pay, status) "
+            "INSERT INTO orders (uuid, merchant_id, merchant_name, consumer_id, consumer_name, time, level, pay, status,sum) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         pstmt->setString(1, order.uuid.toStdString());
@@ -489,6 +488,7 @@ bool DatabaseClient::addOrder(const data::Order& order) {
         pstmt->setInt(7, order.level);
         pstmt->setDouble(8, order.pay);
         pstmt->setInt(9, static_cast<int>(order.status));  // Status 转换为 int
+        pstmt->setInt(10, order.sum);  // Status 转换为 int
         pstmt->executeUpdate();
         delete pstmt;
         return true;
@@ -597,6 +597,7 @@ QList<data::Order> DatabaseClient::getOrderListByMerchant(const QString& merchan
             order.level = static_cast<data::Account::Level>(res->getInt("level"));
             order.pay = res->getDouble("pay");
             order.status = static_cast<data::Order::Status>(res->getInt("status"));
+            order.sum = res->getInt("sum");
             orderList.append(order);
         }
         delete res;
@@ -629,6 +630,7 @@ QList<data::Order> btyGoose::DatabaseClient::getOrderListByConsumer(const QStrin
             order.level = static_cast<data::Account::Level>(res->getInt("level"));
             order.pay = res->getDouble("pay");
             order.status = static_cast<data::Order::Status>(res->getInt("status"));
+            order.sum = res->getInt("sum");
             orderList.append(order);
         }
         delete res;
@@ -747,7 +749,7 @@ bool btyGoose::DatabaseClient::addHistory(const data::Order& order)
     try {
         // 插入 SQL 语句
         std::string query = "INSERT INTO history (time, uuid, merchant_id, merchant_name, "
-            "consumer_id, consumer_name, level, pay, status) "
+            "consumer_id, consumer_name, level, pay, status,sum) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         // 创建准备语句
@@ -763,6 +765,7 @@ bool btyGoose::DatabaseClient::addHistory(const data::Order& order)
         pstmt->setInt(7, static_cast<int>(order.level));
         pstmt->setDouble(8, order.pay);
         pstmt->setInt(9, static_cast<int>(order.status));
+        pstmt->setInt(10, order.sum);
 
         // 执行插入操作
         pstmt->executeUpdate();
@@ -795,6 +798,7 @@ QList<data::Order> btyGoose::DatabaseClient::getAllHistoryList()
             order.level = static_cast<data::Account::Level>(res->getInt("level"));
             order.pay = res->getDouble("pay");
             order.status = static_cast<data::Order::Status>(res->getInt("status"));
+            order.sum = res->getInt("sum");
 
             orderList.append(order);  // 添加到结果列表
         }

@@ -356,8 +356,8 @@ struct Order
                 uuid = jsonObj["uuid"].toString();
             }
 
-            if (jsonObj.contains("status") && jsonObj["status"].isString()) {
-                status = (Status)jsonObj["status"].toInt();
+            if (jsonObj.contains("status") && jsonObj["status"].isDouble()) {
+                status = static_cast<Status>(jsonObj["status"].toInt());
             }
 
             if (jsonObj.contains("sum") && jsonObj["sum"].isDouble()) {

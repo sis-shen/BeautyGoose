@@ -417,7 +417,6 @@ void btyGoose::HTTPServer::initConsumerAPI()
 
     svr.Post("/consumer/dish/dishInfo", [this](const httplib::Request& req, httplib::Response& res) {
         LOG() << "/consumer/dish/dishInfo get a post!";
-        qDebug() << req.body;
         std::string jsonStr = req.body;
         QString qJsonString = QString::fromStdString(jsonStr);
         QJsonObject jsonObj;
@@ -440,8 +439,84 @@ void btyGoose::HTTPServer::initConsumerAPI()
 
             QString dish_id = jsonObj["dish_id"].toString();
             data::Dish dish = db.searchDishByID(dish_id);
-            qDebug()<<dish_id <<"  | " << dish.uuid;
             resJson["dish"] = dish.toJson();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
+
+    //订单生成
+    svr.Post("/consumer/order/generate", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/consumer/order/generate get a post!";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+            data::Order order;
+            order.uuid = util::makeId("O");
+            order.merchant_id = jsonObj["merchant_id"].toString();
+            order.merchant_name = jsonObj["merchant_name"].toString();
+            order.consumer_id = jsonObj["consumer_id"].toString();
+            order.consumer_name = jsonObj["consumer_name"].toString();
+            order.level = static_cast<data::Account::Level>(jsonObj["level"].toInt());
+            order.pay = jsonObj["pay"].toDouble();
+            order.sum = jsonObj["count"].toInt();
+            order.time = QString::number(util::getSecTime());
+            order.status = data::Order::Status::UNPAYED;
+
+            LOG() << "生成一个order,merchant id:" << order.merchant_id;
+
+            bool ok = db.addOrder(order);
+            Q_ASSERT(ok);
+            QList<data::OrderDish> dish_list;
+            QJsonArray jsonArr = jsonObj["dish_arr"].toArray();
+            for (const QJsonValue& value : jsonArr)
+            {
+                LOG() << "生成一个OrderDish";
+                QJsonObject obj = value.toObject();
+                data::OrderDish dish;
+                dish.order_id = order.uuid;
+                dish.merchant_id = order.merchant_id;
+                dish.name = obj["dish_name"].toString();
+                dish.dish_price = obj["dish_price"].toDouble();
+                dish.count = obj["count"].toInt();
+                dish.dish_id = obj["dish_id"].toString();
+                dish_list.append(dish);
+            }
+            ok = db.addOrderDishesByID(order.uuid, dish_list);
+            Q_ASSERT(ok);
+
+            //构建返回报文
+            resJson["order"] = order.toJson();
+
             QJsonDocument doc(resJson);
             res.body = doc.toJson().toStdString();
             res.set_header("Content-Type", "application/json;charset=UTF-8");
