@@ -439,7 +439,8 @@ void MainWidget::payOrderSlot(QString order_id)
 
 void MainWidget::payConfirmlySlot(QString order_id)
 {
-
+    tpw_win->close();
+    DataCenter::getInstance()->consumerOderPayConfirmAsync(order_id);
 }
 
 void MainWidget::tpwCloseSlot()
@@ -537,6 +538,10 @@ void MainWidget::initConsumerResponeConnection()
 
         //连其它信号
         connect(col,&ConsumerOrderListWidget::toOrderInfoSignal,this,&MainWidget::consumerOrderInfoSlot);
+    });
+
+    connect(datacenter,&DataCenter::consumerOrderPayConfirmDone,this,[=](){
+        toConsumerOrderListSlot();
     });
 }
 

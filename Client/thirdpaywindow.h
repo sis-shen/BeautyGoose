@@ -22,6 +22,8 @@ public:
         layout->addWidget(code_icon);
         layout->addWidget(payNum);
         layout->addWidget(payBtn);
+
+        connect(payBtn,&QPushButton::clicked,this,&ThirdPayWindow::payConfirmlySlot);
     }
     QString order_id = "order_id";
     QPushButton* payBtn;

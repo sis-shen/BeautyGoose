@@ -98,7 +98,7 @@ public:
     void consumerGetOrderListAsync();//获取订单列表
     void consumerGetOrderDishListAsync(const QString&order_id);//订单菜品列表
     int getCartDishNum(const QString&merchant_id,const QString&dish_id);
-
+    void consumerOderPayConfirmAsync(const QString&order_id);
 public:
 //////////////////////
 ///商家子系统
@@ -152,6 +152,7 @@ signals:
     void consumerOrderGenerateDone();
     void consumerGetOrderListDone();
     void consumerGetOrderDishListDone(const QString&order_id);
+    void consumerOrderPayConfirmDone();
 ///////////////////////////////////
 ///商家者子系统
 //////////////////////////////////

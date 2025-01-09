@@ -404,7 +404,7 @@ void NetClient::consumerGetOrdrerDishList(const QString &order_id)
     QByteArray jsonData = doc.toJson();
 
     // 2. 创建 HTTP 请求并设置 URL 和请求头
-    QUrl url(httpUrl + "/merchant/dish/info");  //
+    QUrl url(httpUrl + "/consumer/order/detail/dishlist");  //
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
 
@@ -430,6 +430,46 @@ void NetClient::consumerGetOrdrerDishList(const QString &order_id)
                 }
                 datacenter->consumer_order_dish_list = new QList<data::OrderDish>(list);
                 emit datacenter->consumerGetOrderDishListDone(order_id);
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
+void NetClient::consumerOrderPayConfirm(const QString &order_id)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["order_id"] = order_id;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/consumer/order/pay/confirm");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply,order_id]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                QJsonObject responseObj = doc.object();
+
+                emit datacenter->consumerOrderPayConfirmDone();
             } else {
                 qDebug() << "Invalid JSON response!";
             }

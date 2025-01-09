@@ -176,6 +176,11 @@ int DataCenter::getCartDishNum(const QString &merchant_id, const QString &dish_i
     return dish_table->value(dish_id)->cnt;
 }
 
+void DataCenter::consumerOderPayConfirmAsync(const QString &order_id)
+{
+    client->consumerOrderPayConfirm(order_id);
+}
+
 void DataCenter::merchantGetDishListAysnc()
 {
     client->merchantGetDishList(account->uuid);
