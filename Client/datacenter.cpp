@@ -18,6 +18,8 @@ DataCenter::DataCenter()
     // consumer_order_list = new ConsumerOrderList;
     // consumer_order_list->orderTable = new QHash<QString,ConsumerOrderItem::ptr>;
     order_table =  new QHash<QString,data::Order>;
+
+    merchant_dish_table = new QHash<QString,data::Dish>;
 }
 
 QList<data::Dish> DataCenter::DishListFromJsonArray(const QString &jsonString)
@@ -164,6 +166,11 @@ int DataCenter::getCartDishNum(const QString &merchant_id, const QString &dish_i
         return 0;//尚未加入购物车
     }
     return dish_table->value(dish_id)->cnt;
+}
+
+void DataCenter::merchantGetDishListAysnc()
+{
+    client->merchantGetDishList(account->uuid);
 }
 
 

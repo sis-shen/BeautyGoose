@@ -76,7 +76,9 @@ public:
     void PaySuccessSignal();
     void PayFailSignal();
 public:
-    //消费者子系统
+//////////////////////
+///消费者子系统
+////////////////////////
 //缓存数据
     QHash<QString,QList<data::Dish>>* dish_list_table = nullptr;
     data::Dish* dish = nullptr;
@@ -91,6 +93,15 @@ public:
     void consumerGetOrderInfoAsync(const QString&order_id);
     int getCartDishNum(const QString&merchant_id,const QString&dish_id);
 
+public:
+//////////////////////
+///商家子系统
+////////////////////////
+/// 数据缓存
+    QHash<QString,data::Dish>* merchant_dish_table;
+
+//接口
+    void merchantGetDishListAysnc();
 signals:
 ///////////////////////////////////
 ///账户子系统
@@ -109,6 +120,10 @@ signals:
     void consumergetDishInfoDone();
     void consumerOrderGenerateDone();
     void consumerGetOrderInfoDone();
+///////////////////////////////////
+///商家者子系统
+//////////////////////////////////
+    void merchantGetDishListDone();
 };
 
 
