@@ -6,13 +6,14 @@
 #include <QLabel>
 #include <QIcon>
 #include <QPushButton>
+#include "CoreData.h"
 class MerchantDishDetailWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MerchantDishDetailWidget(QWidget *parent = nullptr);
+    explicit MerchantDishDetailWidget(const btyGoose::data::Dish*dish);
     QString dish_id = "order_id";
-
+    const btyGoose::data::Dish* dish;
     // QIcon* icon;//TODO
     QLabel* iconTMP;
 

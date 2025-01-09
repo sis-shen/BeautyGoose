@@ -9,18 +9,19 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QPlainTextEdit>
-
+#include "CoreData.h"
 class MerchantDishEditWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MerchantDishEditWidget(QWidget *parent = nullptr);
+    explicit MerchantDishEditWidget(const btyGoose::data::Dish* dish);
     struct Input{
-        QString dish_id;
-        QString link;
-        QString name;
-        double price;
-        QString introduction;
+        QString dish_id = "";
+        QString link = "";
+        QString name = "";
+        double price = 0;
+        double price_factor = 1.0;
+        QString introduction = "";
     };
     QString dish_id;
 private:

@@ -17,10 +17,11 @@ public:
     explicit MerchantDishRegisterWidget(QWidget *parent = nullptr);
 
     struct Input{
-        QString link;
-        QString name;
-        double price;
-        QString introduction;
+        QString link = "";
+        QString name = "";
+        double price = 0;
+        double price_factor = 1.0;
+        QString introduction = "";
     };
 
 private:

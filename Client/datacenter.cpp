@@ -173,6 +173,26 @@ void DataCenter::merchantGetDishListAysnc()
     client->merchantGetDishList(account->uuid);
 }
 
+void DataCenter::merchantDishRegisterAsync(const QString &name, const QString &link, double price,double price_factor , const QString &introduction)
+{
+    client->merchantDishRegister(name,link,price,price_factor,introduction);
+}
+
+void DataCenter::merchantDishEditSaveAsync(const QString &dish_id, const QString &name, const QString &link, double price, double price_factor, const QString &introduction)
+{
+    client->merchantDishEditSave(dish_id,name,link,price,price_factor,introduction);
+}
+
+void DataCenter::merchantGetDishInfoAsync(const QString &dish_id)
+{
+    client->merchantGetDishInfo(dish_id);
+}
+
+void DataCenter::merchantDishEditDelAsync(const QString &dish_id)
+{
+    client->merchantDishEditDel(dish_id);
+}
+
 
 
 

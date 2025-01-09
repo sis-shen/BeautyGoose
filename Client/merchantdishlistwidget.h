@@ -10,6 +10,8 @@
 #include <QPointer>
 #include <QPushButton>
 #include <QList>
+
+#include "CoreData.h"
 namespace merchant
 {
 namespace dishList
@@ -20,7 +22,8 @@ struct DishItem:public QWidget
 public:
     using ptr = QSharedPointer<DishItem>;
     QString dish_id = "dish_id";
-    DishItem()
+    DishItem(const btyGoose::data::Dish& dish)
+        :dish_id(dish.uuid)
     {
         QWidget* mainW = new QWidget;
         QGridLayout*mLaout = new QGridLayout;
@@ -34,9 +37,9 @@ public:
 
         QLabel* icon = new QLabel("图标");
         icon->setFixedSize(50,50);
-        QPushButton* dishName = new QPushButton("这是一道菜");
+        QPushButton* dishName = new QPushButton(dish.name);
         dishName->setFixedHeight(50);
-        QLabel* dishPrice = new QLabel("价格：00");
+        QLabel* dishPrice = new QLabel("价格：" + QString::number(dish.base_price*dish.price_factor));
 
         layout->addWidget(icon,0,0);
         layout->addWidget(dishName,0,1);
@@ -56,7 +59,7 @@ class MerchantDishListWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MerchantDishListWidget(QWidget *parent = nullptr);
+    explicit MerchantDishListWidget(const QHash<QString,btyGoose::data::Dish>*dish_table);
     MerchantNavWidget* leftNavW;
     QWidget* rightW;
 

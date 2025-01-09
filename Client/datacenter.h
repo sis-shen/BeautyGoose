@@ -102,6 +102,15 @@ public:
 
 //接口
     void merchantGetDishListAysnc();
+    void merchantDishRegisterAsync(const QString& name,const QString&link,
+                                   double price,double price_factor = 1,
+                                   const QString& introduction = "");
+    //编辑菜品保存
+    void merchantDishEditSaveAsync(const QString&dish_id,const QString& name,const QString&link,
+                                   double price,double price_factor = 1,
+                                   const QString& introduction = "");
+    void merchantGetDishInfoAsync(const QString&dish_id);
+    void merchantDishEditDelAsync(const QString&dish_id);
 signals:
 ///////////////////////////////////
 ///账户子系统
@@ -124,6 +133,10 @@ signals:
 ///商家者子系统
 //////////////////////////////////
     void merchantGetDishListDone();
+    void merchantDishRegisterDone(bool ok,const QString&reason);
+    void merchantGetDishInfoDone();
+    void merchantDishEditSaveDone(bool ok,const QString&reason);
+    void merchantDishEditDelDone();
 };
 
 

@@ -57,6 +57,14 @@ public:
 /// Merchant子系统
 /////////////////////////////////////////
     void merchantGetDishList(const QString&merchant_id);
+    void merchantDishRegister(const QString& name,const QString&link,
+                                   double price,double price_factor = 1,
+                              const QString& introduction = "");
+    void merchantDishEditSave(const QString&dish_id,const QString& name,const QString&link,
+                              double price,double price_factor = 1,
+                              const QString& introduction = "");
+    void merchantGetDishInfo(const QString& dish_id);
+    void merchantDishEditDel(const QString&dish_id);
 signals:
 };
 }

@@ -2,8 +2,8 @@
 #include <QScrollArea>
 #include <QScrollBar>
 using namespace merchant::dishList;
-MerchantDishListWidget::MerchantDishListWidget(QWidget *parent)
-    : QWidget{parent}
+MerchantDishListWidget::MerchantDishListWidget(const QHash<QString,btyGoose::data::Dish>*dish_table)
+    : QWidget{nullptr}
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -11,20 +11,13 @@ MerchantDishListWidget::MerchantDishListWidget(QWidget *parent)
     rightW = new QWidget;
     layout->addWidget(leftNavW,0,0);
     layout->addWidget(rightW,0,1);
+
+    for(auto it = dish_table->begin();it!=dish_table->end();++it)
+    {
+        list.push_back(DishItem::ptr(new DishItem(it.value())));
+    }
     //DEBUG BEGIN
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
-    list.push_back(DishItem::ptr(new DishItem));
+    // list.push_back(DishItem::ptr(new DishItem));
     //DEBUG END
     initRight();
 }

@@ -211,6 +211,11 @@ void NetClient::consumerGetDishInfo(const QString &dish_id)
                 QJsonObject responseObj = doc.object();
                 data::Dish* dish = new data::Dish;
                 dish->loadFromJson(responseObj["dish"].toString().toStdString());
+                if(datacenter->dish)
+                {
+                    delete datacenter->dish;
+                    datacenter->dish = nullptr;
+                }
                 datacenter->dish = dish;    //导入缓冲区
                 emit datacenter->consumergetDishInfoDone();
             } else {
@@ -328,12 +333,14 @@ void NetClient::merchantGetDishList(const QString &merchant_id)
             QJsonObject responseObj = doc.object();
             // qDebug()<<responseData;
             auto list  = datacenter->DishListFromJsonArray(responseObj["dish_list"].toString());
-
+            //先清空旧数据
+            datacenter->merchant_dish_table->clear();
             for(const data::Dish&dish:list)
             {
+                qDebug()<<dish.name;
                 datacenter->merchant_dish_table->insert(dish.uuid,dish);
             }
-            emit
+            emit datacenter->merchantGetDishListDone();
 
         } else {
             qDebug() << "Request failed: " << reply->errorString();
@@ -343,5 +350,200 @@ void NetClient::merchantGetDishList(const QString &merchant_id)
         reply->deleteLater();
     });
 }
+
+void NetClient::merchantDishRegister(const QString &name, const QString &link, double price,double price_factor, const QString &introduction)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["name"] = name;
+    jsonObj["icon_path"] = link;  // 直接使用传入的已加密密码
+    jsonObj["price"] = price;
+    jsonObj["price_factor"] = price_factor;
+    jsonObj["introduction"] = introduction;
+    jsonObj["merchant_id"] = datacenter->account->uuid;
+    jsonObj["merchant_name"] = datacenter->account->nickname;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/merchant/dish/register");  // 注册接口是 /account/register
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                QJsonObject responseObj = doc.object();
+                bool success = responseObj["success"].toBool();  // 假设响应中包含 success 字段
+                QString Message = responseObj["message"].toString();
+                if (success) {
+                    qDebug() << "Register registration successful!";
+                } else {
+                    QString errorMessage = responseObj["message"].toString();
+                    qDebug() << "Register registration failed: " << errorMessage;
+                    // 处理失败的情况
+                }
+                emit datacenter->merchantDishRegisterDone(success,Message);
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
+void NetClient::merchantDishEditSave(const QString &dish_id, const QString &name, const QString &link, double price, double price_factor, const QString &introduction)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["dish_id"] = dish_id;
+    jsonObj["name"] = name;
+    jsonObj["icon_path"] = link;  // 直接使用传入的已加密密码
+    jsonObj["price"] = price;
+    jsonObj["price_factor"] = price_factor;
+    jsonObj["introduction"] = introduction;
+    jsonObj["merchant_id"] = datacenter->account->uuid;
+    jsonObj["merchant_name"] = datacenter->account->nickname;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/merchant/dish/update");  // 注册接口是 /account/register
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                QJsonObject responseObj = doc.object();
+                bool success = responseObj["success"].toBool();  // 假设响应中包含 success 字段
+                QString Message = responseObj["message"].toString();
+                if (success) {
+                    qDebug() << "Register registration successful!";
+                } else {
+                    QString errorMessage = responseObj["message"].toString();
+                    qDebug() << "Register registration failed: " << errorMessage;
+                    // 处理失败的情况
+                }
+                emit datacenter->merchantDishEditSaveDone(success,Message);
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
+void NetClient::merchantGetDishInfo(const QString &dish_id)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["dish_id"] = dish_id;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/merchant/dish/info");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                QJsonObject responseObj = doc.object();
+                data::Dish* dish = new data::Dish;
+                dish->loadFromJson(responseObj["dish"].toString().toStdString());
+                if(datacenter->dish)
+                {
+                    delete datacenter->dish;
+                    datacenter->dish = nullptr;
+                }
+                datacenter->dish = dish;    //导入缓冲区
+                emit datacenter->merchantGetDishInfoDone();
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
+void NetClient::merchantDishEditDel(const QString &dish_id)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["dish_id"] = dish_id;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/merchant/dish/del");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                emit datacenter->merchantDishEditDelDone();
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
 
 }

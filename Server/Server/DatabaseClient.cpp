@@ -308,7 +308,7 @@ bool btyGoose::DatabaseClient::addDish(const data::Dish&dish)
     try {
         sql::PreparedStatement* pstmt = con->prepareStatement(
             "INSERT INTO dishes (uuid, merchant_id, name, icon_path, description, base_price, price_factor, is_delete,merchant_name) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)"
         );
         pstmt->setString(1, dish.uuid.toStdString());
         pstmt->setString(2, dish.merchant_id.toStdString());
@@ -337,6 +337,7 @@ bool btyGoose::DatabaseClient::updateDish(const data::Dish&dish)
             "UPDATE dishes SET name = ?, icon_path = ?, description = ?, base_price = ?, price_factor = ?, is_delete = ?,merchant_name = ? "
             "WHERE uuid = ?"
         );
+        //qDebug() << dish.name;
         pstmt->setString(1, dish.name.toStdString());
         pstmt->setString(2, dish.icon_path.toStdString());
         pstmt->setString(3, dish.description.toStdString());
@@ -404,7 +405,8 @@ QList<btyGoose::data::Dish> btyGoose::DatabaseClient::getAllDishList()
             dish.base_price = res->getDouble("base_price");
             dish.price_factor = res->getDouble("price_factor");
             dish.is_delete = res->getBoolean("is_delete");
-            dishList.append(dish);
+            if(dish.is_delete == false)
+                dishList.append(dish);
         }
         delete res;
         delete stmt;
@@ -438,7 +440,8 @@ QList<btyGoose::data::Dish> btyGoose::DatabaseClient::getDishListByMerchant(cons
             dish.base_price = res->getDouble("base_price");
             dish.price_factor = res->getDouble("price_factor");
             dish.is_delete = res->getBoolean("is_delete");
-            dishList.append(dish);
+            if(dish.is_delete == false)
+                dishList.append(dish);
         }
         delete res;
         delete pstmt;

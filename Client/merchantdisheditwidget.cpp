@@ -1,7 +1,7 @@
 #include "merchantdisheditwidget.h"
 
-MerchantDishEditWidget::MerchantDishEditWidget(QWidget *parent)
-    : QWidget{parent}
+MerchantDishEditWidget::MerchantDishEditWidget(const btyGoose::data::Dish* dish)
+    : QWidget{nullptr},dish_id(dish->uuid)
 {
     this->setFixedSize(1080,600);
     QGridLayout* layout = new QGridLayout;
@@ -16,6 +16,7 @@ MerchantDishEditWidget::MerchantDishEditWidget(QWidget *parent)
 
     dishPictureLinkInput=new QLineEdit;
     dishPictureLinkInput->setFixedHeight(50);
+    dishPictureLinkInput->setText(dish->icon_path);
     layout->addWidget(dishPictureLinkInput,0,1,1,6);
 
     label=new QLabel;
@@ -24,6 +25,7 @@ MerchantDishEditWidget::MerchantDishEditWidget(QWidget *parent)
 
     dishNameInput=new QLineEdit;
     dishNameInput->setFixedHeight(50);
+    dishNameInput->setText(dish->name);
     layout->addWidget(dishNameInput,1,1,1,6);
 
     label=new QLabel;
@@ -32,6 +34,7 @@ MerchantDishEditWidget::MerchantDishEditWidget(QWidget *parent)
 
     dishPriceInput=new QLineEdit;
     dishPriceInput->setFixedHeight(50);
+    dishPriceInput->setText(QString::number(dish->base_price));
     layout->addWidget(dishPriceInput,2,1,1,6);
 
     label=new QLabel;
@@ -41,6 +44,7 @@ MerchantDishEditWidget::MerchantDishEditWidget(QWidget *parent)
 
     dishIntroductionInput=new QPlainTextEdit;
     dishIntroductionInput->setFixedHeight(150);
+    dishIntroductionInput->setPlainText(dish->description);
     layout->addWidget(dishIntroductionInput,3,1,1,6);
 
     dishDeleteBtn=new QPushButton("删除菜品");

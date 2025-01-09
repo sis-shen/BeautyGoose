@@ -12,6 +12,7 @@ MainWidget::MainWidget(QWidget *parent)
     //初始化信号连接
     initAccountResponseConnection();
     initConsumerResponeConnection();
+    initMerchantResponseConnection();
     // toRegisterSlot();
     toNameLoginSlot();
 }
@@ -529,18 +530,9 @@ void MainWidget::initConsumerResponeConnection()
 
 void MainWidget::toMerchantDishListSlot()
 {
-    clearAll();
-    MerchantDishListWidget* mdl = new MerchantDishListWidget;
-    this->layout()->addWidget(mdl);
+    DataCenter* datacenter = DataCenter::getInstance();
+    datacenter->merchantGetDishListAysnc();
 
-    //连导航栏
-    connect(mdl->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
-    connect(mdl->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
-    connect(mdl->leftNavW,&MerchantNavWidget::toOrderListSignal,this,&MainWidget::toMerchantOrderListSlot);
-    connect(mdl->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);
-
-    //连其它信号
-    connect(mdl,&MerchantDishListWidget::merchantDishInfoSignal,this,&MainWidget::toMerchantDishInfoWindowSlot);
 }
 
 void MainWidget::toMerchantDishInfoWindowSlot(QString dish_id)
@@ -549,13 +541,8 @@ void MainWidget::toMerchantDishInfoWindowSlot(QString dish_id)
     {
         return;//不允许同时打开多个窗口
     }
-    mdd_win = new MerchantDishDetailWindow;
-    //连接内部信号
-    connect(mdd_win->mdd,&MerchantDishDetailWidget::dishEditSignal,this,&MainWidget::merchantDishEditSlot);
-    //连接窗口关闭信号
-    connect(mdd_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::mddCloseSlot);
-
-    mdd_win->exec();
+    DataCenter* datacenter = DataCenter::getInstance();
+    datacenter->merchantGetDishInfoAsync(dish_id);
 }
 
 
@@ -614,7 +601,12 @@ void MainWidget::mdrCloseSlot()
 
 void MainWidget::merchantDishRegisterSlot(MerchantDishRegisterWidget::Input input)
 {
-    qDebug()<<"merchantDishRegisterSlot";
+    DataCenter* datacenter = DataCenter::getInstance();
+    datacenter->merchantDishRegisterAsync(input.name,
+                                          input.link,
+                                          input.price,
+                                          input.price_factor,
+                                          input.introduction);
 }
 
 void MainWidget::modCloseSlot()
@@ -648,7 +640,7 @@ void MainWidget::merchantDishEditSlot(QString dish_id)
         return;//不允许同时打开多个窗口
     }
     mdd_win->close();//编辑菜品时关闭详情页
-    mde_win = new MerchantDishEditWindow;
+    mde_win = new MerchantDishEditWindow(DataCenter::getInstance()->dish);
     //连接内部信号
     connect(mde_win->mde,&MerchantDishEditWidget::merchantDishSaveSignal,this,&MainWidget::merchantDishEditSaveSlot);
     connect(mde_win->mde,&MerchantDishEditWidget::merchantDishDelSignal,this,&MainWidget::merchantDishDelSlot);
@@ -668,12 +660,81 @@ void MainWidget::mdeCloseSlot()
 
 void MainWidget::merchantDishEditSaveSlot(MerchantDishEditWidget::Input input)
 {
-
+    DataCenter* datacenter = DataCenter::getInstance();
+    // qDebug()<<input.name;
+    datacenter->merchantDishEditSaveAsync(input.dish_id,input.name,input.link,input.price,input.price_factor,input.introduction);
 }
 
 void MainWidget::merchantDishDelSlot(QString dish_id)
 {
+    DataCenter::getInstance()->merchantDishEditDelAsync(dish_id);
+}
 
+void MainWidget::initMerchantResponseConnection()
+{
+    DataCenter* datacenter = DataCenter::getInstance();
+    connect(datacenter,&DataCenter::merchantGetDishListDone,this,[=](){
+        clearAll();
+        MerchantDishListWidget* mdl = new MerchantDishListWidget(datacenter->merchant_dish_table);
+        this->layout()->addWidget(mdl);
+
+        //连导航栏
+        connect(mdl->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
+        connect(mdl->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
+        connect(mdl->leftNavW,&MerchantNavWidget::toOrderListSignal,this,&MainWidget::toMerchantOrderListSlot);
+        connect(mdl->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);
+
+        //连其它信号
+        connect(mdl,&MerchantDishListWidget::merchantDishInfoSignal,this,&MainWidget::toMerchantDishInfoWindowSlot);
+    });
+
+    connect(datacenter,&DataCenter::merchantDishRegisterDone,this,[=](bool ok,const QString&reason){
+        if(ok){
+            QMessageBox::information(this, "Info", "菜品注册成功！");
+            qDebug()<<"菜品注册成功";
+            if(mdr_win)
+            {
+                mdr_win->close();
+            }
+        }
+        else{
+            QMessageBox::information(this, "Info", "菜品注册失败！" + reason);
+        }
+    });
+
+    connect(datacenter,&DataCenter::merchantDishEditSaveDone,this,[=](bool ok,const QString&reason){
+        if(ok){
+            QMessageBox::information(this, "Info", "菜品更新成功！");
+            qDebug()<<"菜品更新成功";
+            if(mde_win)
+            {
+                mde_win->close();
+            }
+        }
+        else{
+            QMessageBox::information(this, "Info", "菜品更新失败！" + reason);
+        }
+    });
+
+    connect(datacenter,&DataCenter::merchantGetDishInfoDone,this,[=](){
+        mdd_win = new MerchantDishDetailWindow(datacenter->dish);
+        //连接内部信号
+        connect(mdd_win->mdd,&MerchantDishDetailWidget::dishEditSignal,this,&MainWidget::merchantDishEditSlot);
+        //连接窗口关闭信号
+        connect(mdd_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::mddCloseSlot);
+
+        mdd_win->exec();
+    });
+
+    connect(datacenter,&DataCenter::merchantDishEditDelDone,this,[=](){
+        QMessageBox::information(this, "Info", "菜品删除成功！");
+        qDebug()<<"菜品删除成功";
+        if(mde_win)
+        {
+            mde_win->close();
+        }
+        toMerchantDishListSlot();
+    });
 }
 
 void MainWidget::toAdminOrderListSlot()

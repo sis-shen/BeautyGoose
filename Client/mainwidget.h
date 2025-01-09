@@ -111,6 +111,7 @@ public slots:
     void merchantDishEditSaveSlot(MerchantDishEditWidget::Input input);
     void merchantDishDelSlot(QString dish_id);
 
+    void initMerchantResponseConnection();
 public:
     //管理员子系统
     void toAdminOrderListSlot();    //打开管理员界面

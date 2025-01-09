@@ -537,6 +537,294 @@ void btyGoose::HTTPServer::initConsumerAPI()
 
 void btyGoose::HTTPServer::initMerchantAPI()
 {
+    svr.Post("/merchant/dish/list", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/merchant/dish/list get a post!";
+
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+
+            QList<data::Dish> dishList = db.getDishListByMerchant(jsonObj["merchant_id"].toString());
+            LOG() << "merchant:" << jsonObj["merchant_id"].toString() << "find dishes" << dishList.size();
+            QString dishListJson = DishListToJsonArray(dishList);
+            QJsonObject resJson;
+            resJson["dish_list"] = dishListJson;
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
+
+    //菜品注册
+    svr.Post("/merchant/dish/register", [this](const httplib::Request& req, httplib::Response& res) {
+        qDebug() << "/merchant/dish/register get a post!";
+        LOG() << "菜品开始注册";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        res.set_header("Content-Type", "application/json;charset=UTF-8");
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+            data::Dish dish;
+            dish.uuid = util::makeId("D");
+            dish.name = jsonObj["name"].toString();
+            dish.merchant_id = jsonObj["merchant_id"].toString();
+            dish.merchant_name = jsonObj["merchant_name"].toString();
+            dish.icon_path = jsonObj["icon_path"].toString();
+            dish.description = jsonObj["introduction"].toString();
+            dish.base_price = jsonObj["price"].toDouble();
+            dish.price_factor = jsonObj["price_factor"].toDouble();
+            dish.is_delete = false;
+
+            if (dish.uuid.isEmpty())
+            {
+                res.status = 200;
+                resJson["message"] = "uuid生成错误!";
+                resJson["success"] = false;
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+                return;
+            }
+
+            if (db.searchDishByID(dish.uuid).name.isEmpty())
+            {
+                if (!db.addDish(dish))
+                {
+                    throw HTTPException("databse add dish failed");
+                }
+                LOG() << "成功向数据库插入新菜品"<<dish.name;
+                resJson["success"] = true;
+                resJson["message"] = "菜品创建成功";
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+            }
+            else
+            {
+                //uuid生成错误
+                res.status = 200;
+                resJson["message"] = "uuid生成错误!";
+                resJson["success"] = false;
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+                return;
+            }
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
+
+    svr.Post("/merchant/dish/info", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/merchant/dish/info get a post!";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+            QString dish_id = jsonObj["dish_id"].toString();
+            data::Dish dish = db.searchDishByID(dish_id);
+            resJson["dish"] = dish.toJson();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
+
+
+
+    //菜品注册
+    svr.Post("/merchant/dish/update", [this](const httplib::Request& req, httplib::Response& res) {
+        qDebug() << "/merchant/dish/update get a post!";
+        LOG() << "菜品开始更新";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        res.set_header("Content-Type", "application/json;charset=UTF-8");
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+            //qDebug() << jsonObj["dish_id"].toString();
+            data::Dish dish = db.searchDishByID(jsonObj["dish_id"].toString());
+            qDebug() << dish.uuid;
+            dish.name = jsonObj["name"].toString();
+            dish.merchant_id = jsonObj["merchant_id"].toString();
+            dish.merchant_name = jsonObj["merchant_name"].toString();
+            dish.icon_path = jsonObj["icon_path"].toString();
+            dish.description = jsonObj["introduction"].toString();
+            dish.base_price = jsonObj["price"].toDouble();
+            dish.price_factor = jsonObj["price_factor"].toDouble();
+
+
+            if (!dish.uuid.isEmpty())
+            {
+                if (!db.updateDish(dish))
+                {
+                    throw HTTPException("databse add dish failed");
+                }
+                LOG() << "成功向数据库更新新菜品" << dish.name;
+                resJson["success"] = true;
+                resJson["message"] = "菜品创建成功";
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+            }
+            else
+            {
+      
+                res.status = 200;
+                resJson["message"] = "找不到菜品!";
+                resJson["success"] = false;
+                QJsonDocument doc(resJson);
+                res.body = doc.toJson().toStdString();
+                return;
+            }
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
+
+    svr.Post("/merchant/dish/del", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/merchant/dish/del get a post!";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+            QString dish_id = jsonObj["dish_id"].toString();
+            db.delDishByID(dish_id);
+            resJson["success"] = true;
+            resJson["message"] = "删除成功!";
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
+
 }
 
 void btyGoose::HTTPServer::initAdminAPI()
