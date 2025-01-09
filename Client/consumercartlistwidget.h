@@ -30,6 +30,7 @@ public:
     QLabel* pay;
 
     DishItem(btyGoose::CartDishItem::ptr dish)
+        :dish_id(dish->dish_id)
     {
         QGridLayout* layout = new QGridLayout;
         this->setLayout(layout);

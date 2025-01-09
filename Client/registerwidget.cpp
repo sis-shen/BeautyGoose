@@ -140,7 +140,7 @@ void RegisterWidget::registerSlot()
         input.type = "MERCHANT";
     }
     input.name = nameInput->toPlainText();
-    QString nickname = nameInput->toPlainText();
+    QString nickname = nicknameInput->toPlainText();
     if(nickname.isEmpty())
     {
         input.nickname = input.name;

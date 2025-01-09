@@ -147,7 +147,7 @@ void MainWidget::initAccountResponseConnection()
         else{
             QMessageBox::information(this, "Info", "注册失败！原因:" + reason);
             qDebug()<<"注册失败";
-            toRegisterSlot();   //刷新界面
+            // toRegisterSlot();   //刷新界面
         }
     });
 
@@ -398,7 +398,6 @@ void MainWidget::toConsumerOrderListSlot()
 
 void MainWidget::consumerOrderInfoSlot(QString order_id)
 {
-    clearAll();
     DataCenter* datacenter = DataCenter::getInstance();
     datacenter->consumerGetOrderInfoAsync(order_id);
 }
@@ -511,6 +510,7 @@ void MainWidget::initConsumerResponeConnection()
 
     //订单详情
     connect(datacenter,&DataCenter::consumerGetOrderInfoDone,this,[=](){
+        clearAll();
         ConsumerOrderDetailWidget* cod = new ConsumerOrderDetailWidget(datacenter->consumer_order_item);
         this->layout()->addWidget(cod);
 
