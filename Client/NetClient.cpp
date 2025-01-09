@@ -135,6 +135,48 @@ void NetClient::accountLoginByName(const QString &name, const QString &password)
     });
 }
 
+void NetClient::accountUpdateLevel(const QString&id,const QString &level)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["id"] = id;
+    jsonObj["level"] = level;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/account/update/level");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                QJsonObject responseObj = doc.object();
+                DataCenter::getInstance()->account->level = static_cast<data::Account::Level>(responseObj["level"].toInt());
+                qDebug()<<"level change to :"<<DataCenter::getInstance()->account->level;
+                emit datacenter->accountUpdateLevelDone();
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
 void NetClient::consumerGetDishList()
 {
     // 2. 创建 HTTP 请求并设置 URL 和请求头

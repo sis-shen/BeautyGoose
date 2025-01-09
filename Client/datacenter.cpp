@@ -119,14 +119,16 @@ void DataCenter::loginByPhoneAsync(const QString &phone, const QString &password
 
 }
 
-void DataCenter::accountUpdateAsync()
-{
 
-}
 
 void DataCenter::accountChangeNicknameAsync(const QString &nickname)
 {
 
+}
+
+void DataCenter::accountUpdateLevelAsync(const QString &level)
+{
+    client->accountUpdateLevel(account->uuid,level);
 }
 
 void DataCenter::consumerGetDishListAsync()

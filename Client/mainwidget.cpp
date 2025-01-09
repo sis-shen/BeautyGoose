@@ -212,14 +212,20 @@ void MainWidget::initAccountResponseConnection()
 
     connect(datacenter,&DataCenter::accountChangeNicknameAsyncDone,this,[&](){
         //刷新页面
+        //刷新页面
         if(datacenter->account->type == data::Account::CONSUMER)
-            {
+        {
             toConsumerUserInfoSlot();
         }
         else
-            {
+        {
             toMerchantUserInfoSlot();
         }
+    });
+
+
+    connect(datacenter,&DataCenter::accountUpdateLevelDone,this,[=](){
+        toVIPSlot();
     });
 }
 
@@ -397,7 +403,7 @@ void MainWidget::consumerOrderInfoSlot(QString order_id)
 void MainWidget::toVIPSlot()
 {
     clearAll();
-    ConsumerVIPWidget* vip = new ConsumerVIPWidget;
+    ConsumerVIPWidget* vip = new ConsumerVIPWidget(DataCenter::getInstance()->account->level);
     this->layout()->addWidget(vip);
     //导航栏
     //连导航栏
@@ -412,7 +418,7 @@ void MainWidget::toVIPSlot()
 
 void MainWidget::accountUpgradeSlot(QString level)
 {
-
+    DataCenter::getInstance()->accountUpdateLevelAsync(level);
 }
 
 void MainWidget::payOrderSlot(QString order_id)

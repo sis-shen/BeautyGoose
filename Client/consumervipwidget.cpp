@@ -1,7 +1,7 @@
 #include "consumervipwidget.h"
 
-ConsumerVIPWidget::ConsumerVIPWidget(QWidget *parent)
-    : QWidget{parent}
+ConsumerVIPWidget::ConsumerVIPWidget(btyGoose::data::Account::Level level)
+    : QWidget{nullptr}
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -9,16 +9,29 @@ ConsumerVIPWidget::ConsumerVIPWidget(QWidget *parent)
     rightW = new QWidget;
     layout->addWidget(leftNavW,0,0);
     layout->addWidget(rightW,0,1);
-    initRight();
+    initRight(level);
 }
 
-void ConsumerVIPWidget::initRight()
+void ConsumerVIPWidget::initRight(btyGoose::data::Account::Level level)
 {
     rightW->setFixedSize(1000,800);
     rightW->setStyleSheet("QWidget { border: 2px solid black; }");
     QGridLayout* layout = new QGridLayout;
     rightW->setLayout(layout);
-    QLabel* label = new QLabel("当前用户等级:普通成员");
+    QString lstr;
+    if(level == btyGoose::data::Account::Level::MEMBER)
+    {
+        lstr = "普通会员";
+    }
+    else if(level == btyGoose::data::Account::Level::VIP)
+    {
+        lstr = "VIP会员";
+    }
+    else if(level == btyGoose::data::Account::Level::SUVIP)
+    {
+        lstr = "SUVIP会员";
+    }
+    QLabel* label = new QLabel("当前用户等级:"+lstr);
     label->setFixedHeight(50);
     QPushButton* VIPBtn = new QPushButton("升级为VIP");
     QPushButton* SUVIPBtn = new QPushButton("升级为SUVIP");

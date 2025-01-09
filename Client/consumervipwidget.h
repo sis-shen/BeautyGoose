@@ -8,14 +8,15 @@
 #include <QList>
 #include <QString>
 #include "Nav.h"
+#include "CoreData.h"
 class ConsumerVIPWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ConsumerVIPWidget(QWidget *parent = nullptr);
+    explicit ConsumerVIPWidget(btyGoose::data::Account::Level level);
     ConsumerNavWidget* leftNavW;
     QWidget* rightW;
-    void initRight();
+    void initRight(btyGoose::data::Account::Level level);
 public slots:
     void VIPSlot();
     void SUVIPSlot();

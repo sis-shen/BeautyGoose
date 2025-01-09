@@ -383,6 +383,60 @@ void btyGoose::HTTPServer::initAccountAPI()
         }
 
         });
+
+    svr.Post("/account/update/level", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/account/update/level get a post!";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+            data::Account record_acc = db.searchAccountByID(jsonObj["id"].toString());
+            QString level = jsonObj["level"].toString();
+            qDebug() << "level change to: " << level;
+            if (level == "VIP")
+            {
+                record_acc.level = data::Account::Level::VIP;
+            }            
+            else if (level == "SUVIP")
+            {
+                record_acc.level = data::Account::Level::SUVIP;
+            }
+
+            db.updateAccount(record_acc);
+            record_acc = db.searchAccountByID(jsonObj["id"].toString());
+            resJson["level"] = static_cast<int>(record_acc.level);
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json");
+            qDebug() << e.what();
+        }
+
+        LOG() << "login by name done";
+        });
 }
 
 bool btyGoose::HTTPServer::AuthenticateAuthCode(const QString& phone, const QString& auth_code)

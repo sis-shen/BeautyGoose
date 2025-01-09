@@ -110,10 +110,53 @@ bool btyGoose::DatabaseClient::addAccount(const data::Account& account)
     }
 }
 
-bool btyGoose::DatabaseClient::updataAccount(const data::Account&)
+bool btyGoose::DatabaseClient::updateAccount(const data::Account& account)
 {
-    return false;
+    QMutexLocker locker(&mtx);  // 确保线程安全
+
+    try {
+        // 准备 SQL 更新语句
+        sql::PreparedStatement* pstmt = con->prepareStatement(
+            "UPDATE account SET name = ?, password = ?, nickname = ?, icon_data = ?, type = ?, balance = ?, phone = ?, level = ? "
+            "WHERE uuid = ?"
+        );
+
+        // 设置参数
+        pstmt->setString(1, account.name.toStdString());
+        pstmt->setString(2, account.password.toStdString());
+        pstmt->setString(3, account.nickname.toStdString());
+        std::istringstream iconStream(std::string(account.icon.data(), account.icon.size()));
+        pstmt->setBlob(4, &iconStream);  // 图标是二进制数据（BLOB）
+        pstmt->setInt(5, static_cast<int>(account.type));  // 类型转换为整数
+        pstmt->setDouble(6, account.balance);  // 账户余额
+        pstmt->setString(7, account.phone.toStdString());
+        pstmt->setInt(8, static_cast<int>(account.level));  // 等级转换为整数
+        pstmt->setString(9, account.uuid.toStdString());  // 用uuid作为更新的条件
+
+        // 执行更新操作
+        int affectedRows = pstmt->executeUpdate();
+
+        // 如果受影响的行数为 0，表示没有记录被更新
+        if (affectedRows == 0) {
+            qDebug() << "No account updated, check if uuid exists: " << account.uuid;
+        }
+
+        // 清理资源
+        delete pstmt;
+
+        return affectedRows > 0;  // 如果有受影响的行，则返回 true，表示更新成功
+    }
+    catch (sql::SQLException& e) {
+        // 捕获并打印 SQL 异常信息
+        qDebug() << "Error updating account: " << e.what();
+        return false;
+    }
 }
+
+//bool btyGoose::DatabaseClient::updataAccount(const data::Account&)
+//{
+//    return false;
+//}
 //btyGoose::data::Account btyGoose::DatabaseClient::searchAccountByID(const QString& id)
 //{
 //    return btyGoose::data::Account();

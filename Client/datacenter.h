@@ -67,8 +67,9 @@ public:
                         const QString&nickname,const QString auth_code ,int type);
     void loginByNameAsync(const QString&name,const QString&password);
     void loginByPhoneAsync(const QString&phone,const QString&password);
-    void accountUpdateAsync();
+    void accountUpdateLevelAsync();
     void accountChangeNicknameAsync(const QString&nickname);
+    void accountUpdateLevelAsync(const QString& level);
 public:
     QIcon QRCode;
     //第三方支付子系统
@@ -141,7 +142,7 @@ signals:
     void getLoginByNameDone(bool ok,const QString& reason);
     void getLoginByPhoneDone(bool ok,const QString& reason);
     void accountChangeNicknameAsyncDone();
-
+    void accountUpdateLevelDone();
 ///////////////////////////////////
 ///消费者子系统
 //////////////////////////////////

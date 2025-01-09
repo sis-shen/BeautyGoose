@@ -43,7 +43,7 @@ public:
 
 	//Account CURD
 	bool addAccount(const data::Account&);
-	bool updataAccount(const data::Account&);
+	bool updateAccount(const data::Account&);
 	data::Account searchAccountByID(const QString& id);
 	data::Account searchAccountByName(const QString& name);
 	data::Account searchAccountByPhone(const QString& phone);
