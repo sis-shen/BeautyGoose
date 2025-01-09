@@ -20,6 +20,7 @@ DataCenter::DataCenter()
     order_table =  new QHash<QString,data::Order>;
 
     merchant_dish_table = new QHash<QString,data::Dish>;
+    merchant_order_table = new QHash<QString,data::Order>;
 }
 
 QList<data::Dish> DataCenter::DishListFromJsonArray(const QString &jsonString)
@@ -191,6 +192,37 @@ void DataCenter::merchantGetDishInfoAsync(const QString &dish_id)
 void DataCenter::merchantDishEditDelAsync(const QString &dish_id)
 {
     client->merchantDishEditDel(dish_id);
+}
+
+void DataCenter::merchantGetOrderListAsync()
+{
+    client->merchantGetOrderList(account->uuid);
+}
+
+QList<data::Order> DataCenter::OrderListFromJsonArray(const QString &jsonString)
+{
+    QList<btyGoose::data::Order> orderList;
+
+    // 解析 JSON 字符串为 QJsonDocument
+    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
+
+    // 如果文档有效且是一个 JSON 数组
+    if (doc.isArray()) {
+        QJsonArray jsonArray = doc.array();
+
+        // 遍历数组中的每个元素
+        for (const QJsonValue& value : jsonArray) {
+            if (value.isObject()) {
+                // 通过 Dish 类的 fromJson 方法将 QJsonObject 转换为 Dish 对象
+                QJsonDocument doc(value.toObject());
+                data::Order order;
+                order.loadFromJson(QString(doc.toJson()).toStdString());
+                orderList.append(order);
+            }
+        }
+    }
+
+    return orderList;
 }
 
 

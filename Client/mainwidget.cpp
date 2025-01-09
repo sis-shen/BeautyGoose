@@ -548,17 +548,7 @@ void MainWidget::toMerchantDishInfoWindowSlot(QString dish_id)
 
 void MainWidget::toMerchantOrderListSlot()
 {
-    clearAll();
-    MerchantOrderListWidget* mol = new MerchantOrderListWidget;
-    this->layout()->addWidget(mol);
-
-    //连导航栏
-    connect(mol->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
-    connect(mol->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
-    connect(mol->leftNavW,&MerchantNavWidget::toOrderListSignal,this,&MainWidget::toMerchantOrderListSlot);
-    connect(mol->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);
-    //连接其它信号
-    connect(mol,&MerchantOrderListWidget::merchantOrderInfoSignal,this,&MainWidget::toMerchantOrderDetailSlot);
+    DataCenter::getInstance()->merchantGetOrderListAsync();
 }
 
 void MainWidget::toMerchantOrderDetailSlot()
@@ -734,6 +724,20 @@ void MainWidget::initMerchantResponseConnection()
             mde_win->close();
         }
         toMerchantDishListSlot();
+    });
+
+    connect(datacenter,&DataCenter::merchantGetOrderListDone,this,[=]{
+        clearAll();
+        MerchantOrderListWidget* mol = new MerchantOrderListWidget(datacenter->merchant_order_table);
+        this->layout()->addWidget(mol);
+
+        //连导航栏
+        connect(mol->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
+        connect(mol->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
+        connect(mol->leftNavW,&MerchantNavWidget::toOrderListSignal,this,&MainWidget::toMerchantOrderListSlot);
+        connect(mol->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);
+        //连接其它信号
+        connect(mol,&MerchantOrderListWidget::merchantOrderInfoSignal,this,&MainWidget::toMerchantOrderDetailSlot);
     });
 }
 

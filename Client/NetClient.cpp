@@ -545,5 +545,50 @@ void NetClient::merchantDishEditDel(const QString &dish_id)
     });
 }
 
+void NetClient::merchantGetOrderList(const QString &merchant_id)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["merchant_id"] = merchant_id;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/merchant/order/list");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            QJsonObject responseObj = doc.object();
+            // qDebug()<<responseData;
+            auto list  = datacenter->OrderListFromJsonArray(responseObj["order_list"].toString());
+            //先清空旧数据
+            datacenter->merchant_order_table->clear();
+            for(const data::Order&order:list)
+            {
+                // qDebug()<<order.name;
+                datacenter->merchant_order_table->insert(order.uuid,order);
+            }
+            emit datacenter->merchantGetOrderListDone();
+
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
 
 }

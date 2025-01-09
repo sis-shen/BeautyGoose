@@ -10,7 +10,7 @@
 #include <QPointer>
 #include <QPushButton>
 #include <QList>
-
+#include "CoreData.h"
 namespace merchant
 {
 namespace orderList
@@ -21,7 +21,8 @@ struct OrderItem:public QWidget
 public:
     using ptr = QSharedPointer<OrderItem>;
     QString order_id = "order_id";
-    OrderItem()
+    OrderItem(const btyGoose::data::Order& order)
+        :order_id(order.uuid)
     {
         QWidget* mainW = new QWidget;
         QGridLayout*mLaout = new QGridLayout;
@@ -34,10 +35,10 @@ public:
         mainW->setLayout(layout);
         layout->setContentsMargins(0,0,15,0);
 
-        QLabel*  consumer_name = new QLabel("用户:你好我是李华");
-        QLabel* time = new QLabel("时间:2024/12/31 12:00");
-        QLabel* cnt = new QLabel("菜品数量:00");
-        QLabel* pay = new QLabel("总价:00");;
+        QLabel*  consumer_name = new QLabel(order.consumer_name);
+        QLabel* time = new QLabel("时间:"+btyGoose::util::formatTime(order.time.toInt()));
+        QLabel* cnt = new QLabel("菜品数量:"+QString::number(order.sum));
+        QLabel* pay = new QLabel("总价:"+QString::number(order.pay));
 
         layout->addWidget(consumer_name,0,0);
         layout->addWidget(time,1,0);
@@ -66,7 +67,7 @@ class MerchantOrderListWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MerchantOrderListWidget(QWidget *parent = nullptr);
+    explicit MerchantOrderListWidget(const QHash<QString,btyGoose::data::Order>* order_table);
     MerchantNavWidget* leftNavW;
     QWidget* rightW;
 

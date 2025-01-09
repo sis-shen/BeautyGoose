@@ -65,6 +65,7 @@ public:
                               const QString& introduction = "");
     void merchantGetDishInfo(const QString& dish_id);
     void merchantDishEditDel(const QString&dish_id);
+    void merchantGetOrderList(const QString&merchant_id);
 signals:
 };
 }

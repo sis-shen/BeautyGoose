@@ -64,6 +64,7 @@ public:
 	bool updateOrder(const QString&id ,const data::Order::Status stat);
 	data::Order searchOrderByID(const QString& order_id);
 	QList<data::Order> getOrderListByMerchant(const QString& merchant_id);
+	QList<data::Order> getOrderListByMerchantWaiting(const QString& merchant_id);
 	QList<data::Order> getOrderListByConsumer(const QString& consumer_id);
 	bool delOrderByID(const QString& order_id);
 	int clearOverTimeOrder();

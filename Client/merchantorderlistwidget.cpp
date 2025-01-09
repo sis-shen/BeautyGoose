@@ -2,8 +2,8 @@
 #include <QScrollArea>
 #include <QScrollBar>
 using namespace merchant::orderList;
-MerchantOrderListWidget::MerchantOrderListWidget(QWidget *parent)
-    : QWidget{parent}
+MerchantOrderListWidget::MerchantOrderListWidget(const QHash<QString,btyGoose::data::Order>* order_table)
+    : QWidget{nullptr}
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -11,14 +11,12 @@ MerchantOrderListWidget::MerchantOrderListWidget(QWidget *parent)
     rightW = new QWidget;
     layout->addWidget(leftNavW,0,0);
     layout->addWidget(rightW,0,1);
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
+    for(auto it = order_table->begin();it!=order_table->end();++it)
+    {
+        list.push_back(OrderItem::ptr(new OrderItem(it.value())));
+    }
+    // list.push_back(OrderItem::ptr(new OrderItem));
+
     initRight();
 }
 

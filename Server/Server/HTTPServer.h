@@ -38,6 +38,10 @@ public:
 	//工具函数
 	QString DishListToJsonArray(const QList<data::Dish>& dishList);
 	QList<data::Dish> DishListFromJsonArray(const QString& jsonString);
+
+	QString OrderListToJsonArray(const QList<data::Order>orderList);
+	QList<data::Order> OrderListFromJsonArray(const QString& jsonString);
+
 private:
 	httplib::Server svr;
 	DatabaseClient db;
