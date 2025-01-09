@@ -3,8 +3,8 @@
 #include <QBoxLayout>
 #include <QScrollBar>
 using namespace consumer::orderDetail;
-ConsumerOrderDetailWidget::ConsumerOrderDetailWidget(const btyGoose::ConsumerOrderItem* order_item)
-    : order_id(order_item->order->uuid)
+ConsumerOrderDetailWidget::ConsumerOrderDetailWidget(const btyGoose::data::Order& order,const QList<btyGoose::data::OrderDish>*dish_list)
+    : order_id(order.uuid),order(order)
 {
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -12,7 +12,7 @@ ConsumerOrderDetailWidget::ConsumerOrderDetailWidget(const btyGoose::ConsumerOrd
     rightW = new QWidget;
     layout->addWidget(leftNavW,0,0);
     layout->addWidget(rightW,0,1);
-    for(btyGoose::CartDishItem& dish : *(order_item->list))
+    for(const btyGoose::data::OrderDish& dish : *(dish_list))
     {
         list.push_back(OrderDishItem::ptr(new OrderDishItem(dish)));
     }
@@ -44,8 +44,8 @@ void ConsumerOrderDetailWidget::initRight()
     top->setFixedHeight(100);
     QGridLayout* topLayout = new QGridLayout;
     top->setLayout(topLayout);
-    QLabel* order_id = new QLabel("订单号: o111222333444");
-    QLabel* pay = new QLabel("支付:00元");
+    QLabel* order_id = new QLabel("订单号: "+order.uuid);
+    QLabel* pay = new QLabel("支付:"+QString::number(order.pay)+"元");
     topLayout->setAlignment(order_id,Qt::AlignLeft);
     topLayout->setAlignment(pay,Qt::AlignLeft);
     topLayout->addWidget(order_id,0,0);
@@ -86,11 +86,42 @@ void ConsumerOrderDetailWidget::initRight()
     //初始化bottom
     QGridLayout* b_layout = new QGridLayout;
     bottom->setLayout(b_layout);
+    QString stat;
+    if(order.status == btyGoose::data::Order::Status::UNPAYED)
+        stat = "待支付";
+    else if(order.status == btyGoose::data::Order::Status::WAITING)
+        stat = "等待商家";
+    else if(order.status == btyGoose::data::Order::Status::ERR)
+        stat = "错误";
+    else if(order.status == btyGoose::data::Order::Status::FATAL)
+        stat = "失败";
+    else if(order.status == btyGoose::data::Order::Status::OVER_TIME)
+        stat = "超时";
+    else if(order.status == btyGoose::data::Order::Status::SUCCESS)
+        stat = "成功完成";
+    else if(order.status == btyGoose::data::Order::Status::REJECTED)
+        stat = "被拒单";
+    else
+    {
+        qDebug()<<"stat:"<<order.status;
+        Q_ASSERT(false);
+    }
 
-    QPushButton* statusBtn = new QPushButton("状态：待支付");
+
+
+    QPushButton* statusBtn = new QPushButton("状态："+stat);
     QPushButton* payBtn = new QPushButton("支付订单");
     QPushButton* listBtn = new QPushButton("返回");
     QPushButton* cancelBtn = new QPushButton("取消订单");
+
+    if(order.status != btyGoose::data::Order::Status::UNPAYED)
+    {
+        payBtn->setText("xxx");
+        cancelBtn->setText("xxx");
+        payBtn->setDisabled(true);
+        cancelBtn->setDisabled(true);
+    }
+
     statusBtn->setFixedSize(100,50);
     payBtn->setFixedSize(100,50);
     listBtn->setFixedSize(100,50);

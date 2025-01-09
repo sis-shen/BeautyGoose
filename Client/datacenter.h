@@ -76,21 +76,26 @@ public:
     void PaySuccessSignal();
     void PayFailSignal();
 public:
+//公共数据缓存
+    data::Dish* dish = nullptr;
+    data::Order* order = nullptr;
 //////////////////////
 ///消费者子系统
 ////////////////////////
 //缓存数据
     QHash<QString,QList<data::Dish>>* dish_list_table = nullptr;
-    data::Dish* dish = nullptr;
+
     CartList* cart_list = nullptr;
     // ConsumerOrderList* consumer_order_list =nullptr;
-    ConsumerOrderItem* consumer_order_item = nullptr;
+    // ConsumerOrderItem* consumer_order_item = nullptr;
+    QList<data::OrderDish>* consumer_order_dish_list = nullptr;
     QHash<QString,data::Order>* order_table = nullptr;//order_id -> order
 //接口
     void consumerGetDishListAsync();    //用户数据在本对象的account里
     void consumerGetDishInfoAsync(const QString&dihs_id);
     void consumerOrderGenerateAsync(const QString&merchant_id);//得知道生成的是谁的
-    void consumerGetOrderInfoAsync(const QString&order_id);
+    void consumerGetOrderListAsync();//获取订单列表
+    void consumerGetOrderDishListAsync(const QString&order_id);//订单菜品列表
     int getCartDishNum(const QString&merchant_id,const QString&dish_id);
 
 public:
@@ -134,7 +139,8 @@ signals:
     void consumerGetDishListDone();
     void consumergetDishInfoDone();
     void consumerOrderGenerateDone();
-    void consumerGetOrderInfoDone();
+    void consumerGetOrderListDone();
+    void consumerGetOrderDishListDone(const QString&order_id);
 ///////////////////////////////////
 ///商家者子系统
 //////////////////////////////////

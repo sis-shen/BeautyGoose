@@ -382,25 +382,14 @@ void MainWidget::orderGenerateSlot(QString merchant_id)
 
 void MainWidget::toConsumerOrderListSlot()
 {
-    clearAll();
-    DataCenter* datacenter = DataCenter::getInstance();
-    ConsumerOrderListWidget* col = new ConsumerOrderListWidget(datacenter->order_table);
-    this->layout()->addWidget(col);
-    //连导航栏
-    connect(col->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
-    connect(col->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
-    connect(col->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
-    connect(col->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
-    connect(col->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
 
-    //连其它信号
-    connect(col,&ConsumerOrderListWidget::toOrderInfoSignal,this,&MainWidget::consumerOrderInfoSlot);
+    DataCenter::getInstance()->consumerGetOrderListAsync();
 }
 
 void MainWidget::consumerOrderInfoSlot(QString order_id)
 {
     DataCenter* datacenter = DataCenter::getInstance();
-    datacenter->consumerGetOrderInfoAsync(order_id);
+    datacenter->consumerGetOrderDishListAsync(order_id);
 }
 
 
@@ -510,9 +499,9 @@ void MainWidget::initConsumerResponeConnection()
     });
 
     //订单详情
-    connect(datacenter,&DataCenter::consumerGetOrderInfoDone,this,[=](){
+    connect(datacenter,&DataCenter::consumerGetOrderDishListDone,this,[=](const QString&order_id){
         clearAll();
-        ConsumerOrderDetailWidget* cod = new ConsumerOrderDetailWidget(datacenter->consumer_order_item);
+        ConsumerOrderDetailWidget* cod = new ConsumerOrderDetailWidget(datacenter->order_table->value(order_id),datacenter->consumer_order_dish_list);
         this->layout()->addWidget(cod);
 
         //连导航栏
@@ -525,6 +514,22 @@ void MainWidget::initConsumerResponeConnection()
         connect(cod,&ConsumerOrderDetailWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
         connect(cod,&ConsumerOrderDetailWidget::payOrderSignal,this,&MainWidget::payOrderSlot);
         connect(cod,&ConsumerOrderDetailWidget::cancelSignal,this,&MainWidget::orderCancelSlot);
+    });
+
+    //订单列表
+    connect(datacenter,&DataCenter::consumerGetOrderListDone,this,[=](){
+        clearAll();
+        ConsumerOrderListWidget* col = new ConsumerOrderListWidget(datacenter->order_table);
+        this->layout()->addWidget(col);
+        //连导航栏
+        connect(col->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
+        connect(col->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
+        connect(col->leftNavW,&ConsumerNavWidget::toDishListSignal,this,&MainWidget::toConsumerDishListSlot);
+        connect(col->leftNavW,&ConsumerNavWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
+        connect(col->leftNavW,&ConsumerNavWidget::toVIPSignal,this,&MainWidget::toVIPSlot);
+
+        //连其它信号
+        connect(col,&ConsumerOrderListWidget::toOrderInfoSignal,this,&MainWidget::consumerOrderInfoSlot);
     });
 }
 

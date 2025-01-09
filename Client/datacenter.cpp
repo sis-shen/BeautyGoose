@@ -148,9 +148,14 @@ void DataCenter::consumerOrderGenerateAsync(const QString &merchant_id)
     client->consumerOrderGenerate(merchant_id);
 }
 
-void DataCenter::consumerGetOrderInfoAsync(const QString &order_id)
+void DataCenter::consumerGetOrderListAsync()
 {
-    datacenter->consumer_order_item;
+    client->consumerGetOrderList(account->uuid);
+}
+
+void DataCenter::consumerGetOrderDishListAsync(const QString &order_id)
+{
+    client->consumerGetOrdrerDishList(order_id);
 }
 
 int DataCenter::getCartDishNum(const QString &merchant_id, const QString &dish_id)

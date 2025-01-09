@@ -18,7 +18,7 @@ struct OrderDishItem:public QWidget
     Q_OBJECT
 public:
     using ptr = QSharedPointer<OrderDishItem>;
-    OrderDishItem(const btyGoose::CartDishItem&dish_item)
+    OrderDishItem(const btyGoose::data::OrderDish& dish)
     {
         QGridLayout* this_layout = new QGridLayout;
         this->setLayout(this_layout);
@@ -29,12 +29,12 @@ public:
         QGridLayout* layout = new QGridLayout;
         mainW->setLayout(layout);
 
-        QLabel* name = new QLabel(dish_item.dish_name);
-        QLabel* price = new QLabel("单价:" + QString::number(dish_item.dish_price));
+        QLabel* name = new QLabel(dish.name);
+        QLabel* price = new QLabel("单价:" + QString::number(dish.dish_price)+"元");
         price->setFixedWidth(200);
-        QLabel* cnt = new QLabel("数量：" + QString::number(dish_item.cnt));
+        QLabel* cnt = new QLabel("数量：" + QString::number(dish.count));
         cnt->setFixedWidth(200);
-        QLabel* pay = new QLabel("总价格:"+QString::number(dish_item.pay));
+        QLabel* pay = new QLabel("总价格:"+QString::number(dish.dish_price*dish.count)+"元");
         pay->setFixedWidth(200);
 
         layout->addWidget(name,0,0);
@@ -49,10 +49,11 @@ class ConsumerOrderDetailWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ConsumerOrderDetailWidget(const btyGoose::ConsumerOrderItem* order_item);
+    explicit ConsumerOrderDetailWidget(const btyGoose::data::Order& order,const QList<btyGoose::data::OrderDish>*dish_list);
 
     ConsumerNavWidget* leftNavW;
     QWidget* rightW;
+    btyGoose::data::Order order;
     void initRight();
     QList<consumer::orderDetail::OrderDishItem::ptr> list;
 

@@ -53,6 +53,8 @@ public:
     void consumerGetDishList();
     void consumerGetDishInfo(const QString& dish_id);
     void consumerOrderGenerate(const QString& merchant_id);
+    void consumerGetOrderList(const QString&consumer_id);
+    void consumerGetOrdrerDishList(const QString&order_id);
 /////////////////////////////////////////
 /// Merchant子系统
 /////////////////////////////////////////
