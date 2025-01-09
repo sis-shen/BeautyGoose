@@ -680,6 +680,38 @@ QList<data::Order> btyGoose::DatabaseClient::getOrderListByConsumer(const QStrin
     return orderList;
 }
 
+QList<data::Order> btyGoose::DatabaseClient::getAllOrderList()
+{
+    QMutexLocker locker(&mtx);
+    QList<data::Order> orderList;
+    try {
+        sql::PreparedStatement* pstmt = con->prepareStatement(
+            "SELECT * FROM orders "
+        );
+        sql::ResultSet* res = pstmt->executeQuery();;
+        while (res->next()) {
+            data::Order order;
+            order.uuid = QString::fromStdString(res->getString("uuid"));
+            order.merchant_id = QString::fromStdString(res->getString("merchant_id"));
+            order.merchant_name = QString::fromStdString(res->getString("merchant_name"));
+            order.consumer_id = QString::fromStdString(res->getString("consumer_id"));
+            order.consumer_name = QString::fromStdString(res->getString("consumer_name"));
+            order.time = QString::fromStdString(res->getString("time"));
+            order.level = static_cast<data::Account::Level>(res->getInt("level"));
+            order.pay = res->getDouble("pay");
+            order.status = static_cast<data::Order::Status>(res->getInt("status"));
+            order.sum = res->getInt("sum");
+            orderList.append(order);
+        }
+        delete res;
+        delete pstmt;
+    }
+    catch (sql::SQLException& e) {
+        qDebug() << "Error getting orders by merchant: " << e.what();
+    }
+    return orderList;
+}
+
 // 删除订单
 bool DatabaseClient::delOrderByID(const QString& order_id) {
     QMutexLocker locker(&mtx);

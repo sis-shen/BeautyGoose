@@ -965,6 +965,33 @@ void btyGoose::HTTPServer::initMerchantAPI()
 
 void btyGoose::HTTPServer::initAdminAPI()
 {
+    svr.Post("/admin/order/list", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/admin/order/list get a post!";
+
+ 
+        QJsonObject resJson;
+        try {
+            QList<data::Order> orderList = db.getAllOrderList();
+            LOG() << "admin:" << "find orders" << orderList.size();
+            QString dishListJson = OrderListToJsonArray(orderList);
+            QJsonObject resJson;
+            resJson["order_list"] = dishListJson;
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
 }
 
 bool btyGoose::HTTPServer::getPay(double pay)

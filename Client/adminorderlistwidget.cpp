@@ -3,8 +3,8 @@
 #include <QScrollBar>
 
 using namespace admin::orderList;
-AdminOrderListWidget::AdminOrderListWidget(QWidget *parent)
-    : QWidget{parent}
+AdminOrderListWidget::AdminOrderListWidget(const QList<btyGoose::data::Order>* order_list)
+    : QWidget{nullptr}
 {
     this->setFixedSize(1600,900);
     QGridLayout* layout = new QGridLayout;
@@ -19,16 +19,12 @@ AdminOrderListWidget::AdminOrderListWidget(QWidget *parent)
     layout->addWidget(rightW,0,1);
     // layout->setAlignment(rightW,Qt::AlignLeft);
 
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
-    list.push_back(OrderItem::ptr(new OrderItem));
+    for(const auto&order:(*order_list))
+    {
+        list.push_back(OrderItem::ptr(new OrderItem(order)));
+    }
+    // list.push_back(OrderItem::ptr(new OrderItem));
+
     initRight();
 }
 

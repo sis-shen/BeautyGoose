@@ -69,6 +69,11 @@ public:
     void merchantDishEditDel(const QString&dish_id);
     void merchantGetOrderList(const QString&merchant_id);
     void merchantGetOrderDishList(const QString&order_id);
+
+/////////////////////////////////////////
+/// Admin 子系统
+/////////////////////////////////////////
+    void adminGetOrderList();
 signals:
 };
 }

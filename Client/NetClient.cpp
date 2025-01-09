@@ -729,5 +729,42 @@ void NetClient::merchantGetOrderDishList(const QString &order_id)
     });
 }
 
+void NetClient::adminGetOrderList()
+{
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/admin/order/list");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, "");
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            QJsonObject responseObj = doc.object();
+            // qDebug()<<responseData;
+            auto list  = datacenter->OrderListFromJsonArray(responseObj["order_list"].toString());
+            //先清空旧数据
+            if(datacenter->admin_order_list == nullptr)
+            {
+                datacenter->admin_order_list=new QList<data::Order>;
+            }
+            datacenter->admin_order_list->clear();
+            datacenter->admin_order_list->append(list.begin(),list.end());
+            emit datacenter->adminGetOrderListDone();
+
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
 
 }

@@ -122,6 +122,16 @@ public:
 
     QList<data::Order> OrderListFromJsonArray(const QString& jsonString);
     QList<data::OrderDish> OrderDishListFromJsonArray(const QString&jsonString);
+
+public:
+//////////////////////
+///管理员子系统
+////////////////////////
+/// 数据缓存
+    QList<data::Order>* admin_order_list = nullptr;
+
+//接口
+    void adminGetOrderListAsync();
 signals:
 ///////////////////////////////////
 ///账户子系统
@@ -151,6 +161,12 @@ signals:
     void merchantDishEditDelDone();
     void merchantGetOrderListDone();
     void merchantGetOrderDishListDone(const QString&order_id);
+
+///////////////////////////////////
+///管理员子系统
+//////////////////////////////////
+
+    void adminGetOrderListDone();
 };
 
 

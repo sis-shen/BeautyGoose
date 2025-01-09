@@ -115,6 +115,8 @@ public slots:
 public:
     //管理员子系统
     void toAdminOrderListSlot();    //打开管理员界面
+
+    void initAdminResponseConnection();
 private:
     QString host = "127.0.0.1";
     int port = 80;

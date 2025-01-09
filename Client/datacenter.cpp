@@ -261,6 +261,11 @@ QList<data::OrderDish> DataCenter::OrderDishListFromJsonArray(const QString &jso
     return dishList;
 }
 
+void DataCenter::adminGetOrderListAsync()
+{
+    client->adminGetOrderList();
+}
+
 
 
 

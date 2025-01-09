@@ -13,6 +13,7 @@ MainWidget::MainWidget(QWidget *parent)
     initAccountResponseConnection();
     initConsumerResponeConnection();
     initMerchantResponseConnection();
+    initAdminResponseConnection();
     // toRegisterSlot();
     toNameLoginSlot();
 }
@@ -757,9 +758,17 @@ void MainWidget::initMerchantResponseConnection()
 
 void MainWidget::toAdminOrderListSlot()
 {
-    clearAll();
-    AdminOrderListWidget* aol = new AdminOrderListWidget;
-    this->layout()->addWidget(aol);
+    DataCenter::getInstance()->adminGetOrderListAsync();
+}
+
+void MainWidget::initAdminResponseConnection()
+{
+    DataCenter* datacenter = DataCenter::getInstance();
+    connect(datacenter,&DataCenter::adminGetOrderListDone,this,[=](){
+        clearAll();
+        AdminOrderListWidget* aol = new AdminOrderListWidget(datacenter->admin_order_list);
+        this->layout()->addWidget(aol);
+    });
 }
 
 
