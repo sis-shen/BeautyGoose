@@ -7,6 +7,7 @@
 #include <QPointer>
 #include <QList>
 #include <QString>
+#include "CoreData.h"
 namespace merchant
 {
 namespace orderDetail
@@ -16,7 +17,7 @@ struct OrderDishItem:public QWidget
     Q_OBJECT
 public:
     using ptr = QSharedPointer<OrderDishItem>;
-    OrderDishItem()
+    OrderDishItem(const btyGoose::data::OrderDish& dish)
     {
         QGridLayout* this_layout = new QGridLayout;
         this->setLayout(this_layout);
@@ -27,12 +28,12 @@ public:
         QGridLayout* layout = new QGridLayout;
         mainW->setLayout(layout);
 
-        QLabel* name = new QLabel("菜品名称");
-        QLabel* price = new QLabel("单价:00");
+        QLabel* name = new QLabel("菜品名称: "+ dish.name);
+        QLabel* price = new QLabel("单价:" + QString::number(dish.dish_price)+"元");
         price->setFixedWidth(200);
-        QLabel* cnt = new QLabel("数量：00");
+        QLabel* cnt = new QLabel("数量："+QString::number(dish.count));
         cnt->setFixedWidth(200);
-        QLabel* pay = new QLabel("总价格:00");
+        QLabel* pay = new QLabel("总价格:"+QString::number(dish.dish_price*dish.count)+"元");
         pay->setFixedWidth(200);
 
         layout->addWidget(name,0,0);
@@ -48,9 +49,9 @@ class MerchantOrderDetailWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MerchantOrderDetailWidget(QWidget *parent = nullptr);
+    explicit MerchantOrderDetailWidget(const btyGoose::data::Order& order,const QList<btyGoose::data::OrderDish>* dish_list);
     QWidget* mainW;
-    void initMainW();
+    void initMainW(const btyGoose::data::Order& order);
     QString order_id;
 
     QList<merchant::orderDetail::OrderDishItem::ptr> list;

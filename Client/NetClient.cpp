@@ -590,5 +590,50 @@ void NetClient::merchantGetOrderList(const QString &merchant_id)
     });
 }
 
+void NetClient::merchantGetOrderDishList(const QString &order_id)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["order_id"] = order_id;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/merchant/order/detail/dishlist");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply,order_id]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            QJsonObject responseObj = doc.object();
+            // qDebug()<<responseData;
+            auto list  = datacenter->OrderDishListFromJsonArray(responseObj["dish_list"].toString());
+            qDebug()<<"获取到的菜品数量:"<<list.size();
+            QList<data::OrderDish>* dish_list = datacenter->merchant_order_dish_list;
+            if(dish_list != nullptr)
+            {
+                delete dish_list;
+                dish_list = nullptr;
+            }
+            datacenter->merchant_order_dish_list = new QList<data::OrderDish>(list);
+            emit datacenter->merchantGetOrderDishListDone(order_id);
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
 
 }

@@ -39,8 +39,11 @@ public:
 	QString DishListToJsonArray(const QList<data::Dish>& dishList);
 	QList<data::Dish> DishListFromJsonArray(const QString& jsonString);
 
-	QString OrderListToJsonArray(const QList<data::Order>orderList);
+	QString OrderListToJsonArray(const QList<data::Order>&orderList);
 	QList<data::Order> OrderListFromJsonArray(const QString& jsonString);
+
+	QString OrderDishListToJsonArray(const QList<data::OrderDish>&dishList);
+
 
 private:
 	httplib::Server svr;

@@ -3,20 +3,25 @@
 #include <QScrollBar>
 #include <QPushButton>
 using namespace merchant::orderDetail;
-MerchantOrderDetailWidget::MerchantOrderDetailWidget(QWidget *parent)
-    : QWidget{parent}
+MerchantOrderDetailWidget::MerchantOrderDetailWidget(const btyGoose::data::Order& order,const QList<btyGoose::data::OrderDish>* dish_list)
+    : QWidget{nullptr},order_id(order.uuid)
 {
     QGridLayout* mainLayout = new QGridLayout;
     this->setLayout(mainLayout);
     mainW = new QWidget;
     mainLayout->addWidget(mainW);
 
-    initMainW();
+    for(const auto&dish:(*dish_list))
+    {
+        list.append(merchant::orderDetail::OrderDishItem::ptr(new OrderDishItem(dish)));
+    }
+
+    initMainW(order);
 
 
 }
 
-void MerchantOrderDetailWidget::initMainW()
+void MerchantOrderDetailWidget::initMainW(const btyGoose::data::Order& order)
 {
     mainW->setFixedHeight(600);
     mainW->setFixedWidth(1000);
@@ -34,8 +39,8 @@ void MerchantOrderDetailWidget::initMainW()
     top->setFixedHeight(100);
     QGridLayout* topLayout = new QGridLayout;
     top->setLayout(topLayout);
-    QLabel* order_id = new QLabel("订单号: o111222333444");
-    QLabel* pay = new QLabel("支付:00元");
+    QLabel* order_id = new QLabel("订单号: "+order.uuid);
+    QLabel* pay = new QLabel("支付:"+QString::number(order.pay)+"元");
     topLayout->setAlignment(order_id,Qt::AlignLeft);
     topLayout->setAlignment(pay,Qt::AlignLeft);
     topLayout->addWidget(order_id,0,0);

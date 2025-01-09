@@ -551,20 +551,14 @@ void MainWidget::toMerchantOrderListSlot()
     DataCenter::getInstance()->merchantGetOrderListAsync();
 }
 
-void MainWidget::toMerchantOrderDetailSlot()
+void MainWidget::toMerchantOrderDetailSlot(const QString& order_id)
 {
     if(mod_win != nullptr)
     {
         return;//不允许同时打开多个窗口
     }
-    mod_win = new MerchantOrderDetailWindow;
-    //连接内部信号
-    connect(mod_win->mod,&MerchantOrderDetailWidget::acceptOrderSignal,this,&MainWidget::merchantDishAcceptSlot);
-    connect(mod_win->mod,&MerchantOrderDetailWidget::rejectOrderSignal,this,&MainWidget::merchantDishRejecttSlot);
-    //连接窗口关闭信号
-    connect(mod_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::modCloseSlot);
+    DataCenter::getInstance()->merchantGetOrderDishListAsync(order_id);
 
-    mod_win->exec();
 }
 
 void MainWidget::toDishRegisterWindowSlot()
@@ -738,6 +732,21 @@ void MainWidget::initMerchantResponseConnection()
         connect(mol->leftNavW,&MerchantNavWidget::toDishRegisterWindowSignal,this,&MainWidget::toDishRegisterWindowSlot);
         //连接其它信号
         connect(mol,&MerchantOrderListWidget::merchantOrderInfoSignal,this,&MainWidget::toMerchantOrderDetailSlot);
+    });
+
+    connect(datacenter,&DataCenter::merchantGetOrderDishListDone,this,[=](const QString&order_id){
+        qDebug()<<"开始构建商家订单详情界面";
+        qDebug()<<order_id;
+        Q_ASSERT(datacenter->merchant_order_table->find(order_id) != datacenter->merchant_order_table->end());
+        Q_ASSERT(datacenter->merchant_order_dish_list);
+        mod_win = new MerchantOrderDetailWindow(datacenter->merchant_order_table->value(order_id),datacenter->merchant_order_dish_list);
+        //连接内部信号
+        connect(mod_win->mod,&MerchantOrderDetailWidget::acceptOrderSignal,this,&MainWidget::merchantDishAcceptSlot);
+        connect(mod_win->mod,&MerchantOrderDetailWidget::rejectOrderSignal,this,&MainWidget::merchantDishRejecttSlot);
+        //连接窗口关闭信号
+        connect(mod_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::modCloseSlot);
+
+        mod_win->exec();
     });
 }
 

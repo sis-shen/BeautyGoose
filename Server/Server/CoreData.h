@@ -385,7 +385,7 @@ namespace btyGoose
 			int count = 0;				//菜品数量
 
 			// 将结构体转换为JSON字符串
-			QString toJson()
+			QString toJson()const
 			{
 				QJsonObject jsonObj;
 

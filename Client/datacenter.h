@@ -98,8 +98,9 @@ public:
 ///商家子系统
 ////////////////////////
 /// 数据缓存
-    QHash<QString,data::Dish>* merchant_dish_table;
-    QHash<QString,data::Order>* merchant_order_table;
+    QHash<QString,data::Dish>* merchant_dish_table = nullptr;
+    QHash<QString,data::Order>* merchant_order_table =nullptr;
+    QList<data::OrderDish>* merchant_order_dish_list = nullptr;//菜品列表缓冲
 //接口
     void merchantGetDishListAysnc();
     void merchantDishRegisterAsync(const QString& name,const QString&link,
@@ -112,8 +113,10 @@ public:
     void merchantGetDishInfoAsync(const QString&dish_id);
     void merchantDishEditDelAsync(const QString&dish_id);
     void merchantGetOrderListAsync();
+    void merchantGetOrderDishListAsync(const QString&order_id);
 
     QList<data::Order> OrderListFromJsonArray(const QString& jsonString);
+    QList<data::OrderDish> OrderDishListFromJsonArray(const QString&jsonString);
 signals:
 ///////////////////////////////////
 ///账户子系统
@@ -141,6 +144,7 @@ signals:
     void merchantDishEditSaveDone(bool ok,const QString&reason);
     void merchantDishEditDelDone();
     void merchantGetOrderListDone();
+    void merchantGetOrderDishListDone(const QString&order_id);
 };
 
 

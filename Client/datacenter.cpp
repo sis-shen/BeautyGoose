@@ -199,6 +199,11 @@ void DataCenter::merchantGetOrderListAsync()
     client->merchantGetOrderList(account->uuid);
 }
 
+void DataCenter::merchantGetOrderDishListAsync(const QString &order_id)
+{
+    client->merchantGetOrderDishList(order_id);
+}
+
 QList<data::Order> DataCenter::OrderListFromJsonArray(const QString &jsonString)
 {
     QList<btyGoose::data::Order> orderList;
@@ -223,6 +228,32 @@ QList<data::Order> DataCenter::OrderListFromJsonArray(const QString &jsonString)
     }
 
     return orderList;
+}
+
+QList<data::OrderDish> DataCenter::OrderDishListFromJsonArray(const QString &jsonString)
+{
+    QList<btyGoose::data::OrderDish> dishList;
+
+    // 解析 JSON 字符串为 QJsonDocument
+    QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
+
+    // 如果文档有效且是一个 JSON 数组
+    if (doc.isArray()) {
+        QJsonArray jsonArray = doc.array();
+
+        // 遍历数组中的每个元素
+        for (const QJsonValue& value : jsonArray) {
+            if (value.isObject()) {
+                // 通过 Dish 类的 fromJson 方法将 QJsonObject 转换为 Dish 对象
+                QJsonDocument doc(value.toObject());
+                data::OrderDish dish;
+                dish.loadFromJson(QString(doc.toJson()).toStdString());
+                dishList.append(dish);
+            }
+        }
+    }
+
+    return dishList;
 }
 
 

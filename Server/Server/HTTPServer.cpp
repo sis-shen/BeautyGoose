@@ -870,6 +870,51 @@ void btyGoose::HTTPServer::initMerchantAPI()
         }
 
         });
+
+    svr.Post("/merchant/order/detail/dishlist", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/merchant/order/detail/dishlist get a post!";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+
+            QList<data::OrderDish> dishList = db.getOrderDishesByID(jsonObj["order_id"].toString());
+            LOG() << "order:" << jsonObj["order_id"].toString() << "find dishes" << dishList.size();
+            QString dishListJson = OrderDishListToJsonArray(dishList);
+            QJsonObject resJson;
+            resJson["dish_list"] = dishListJson;
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
 }
 
 void btyGoose::HTTPServer::initAdminAPI()
@@ -923,7 +968,7 @@ QList<btyGoose::data::Dish> btyGoose::HTTPServer::DishListFromJsonArray(const QS
     return dishList;
 }
 
-QString btyGoose::HTTPServer::OrderListToJsonArray(const QList<data::Order> orderList)
+QString btyGoose::HTTPServer::OrderListToJsonArray(const QList<data::Order>& orderList)
 {
     QJsonArray jsonArray;
 
@@ -963,4 +1008,20 @@ QList<btyGoose::data::Order> btyGoose::HTTPServer::OrderListFromJsonArray(const 
     }
 
     return orderList;
+}
+
+QString btyGoose::HTTPServer::OrderDishListToJsonArray(const QList<data::OrderDish>& dishList)
+{
+    QJsonArray jsonArray;
+
+    // 遍历 orderList，将每个 order 对象的 JSON 添加到 jsonArray 中
+    for (const auto& dish : dishList)
+    {
+        // 将每个 order 对象转换为 JSON 字符串并加入到 JSON 数组中
+        jsonArray.append(QJsonDocument::fromJson(dish.toJson().toUtf8()).object());
+    }
+
+    // 将 QJsonArray 转换为 JSON 字符串
+    QJsonDocument doc(jsonArray);
+    return QString(doc.toJson(QJsonDocument::Compact));
 }
