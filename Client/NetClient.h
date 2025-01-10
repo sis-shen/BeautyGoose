@@ -47,6 +47,7 @@ public:
                          const QString&nickname,const QString auth_code ,int type);
     void accountLoginByName(const QString&name,const QString&password);
     void accountUpdateLevel(const QString&id,const QString& level);
+    void accountChangeNickName(const QString&nickname);
 /////////////////////////////////////////
 /// Consumer子系统
 /////////////////////////////////////////
