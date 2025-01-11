@@ -123,7 +123,7 @@ void DataCenter::loginByPhoneAsync(const QString &phone, const QString &password
 
 void DataCenter::accountChangeNicknameAsync(const QString &nickname)
 {
-    client->
+
 }
 
 void DataCenter::accountUpdateLevelAsync(const QString &level)
