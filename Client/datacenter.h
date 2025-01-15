@@ -120,6 +120,7 @@ public:
     void merchantDishEditDelAsync(const QString&dish_id);
     void merchantGetOrderListAsync();
     void merchantGetOrderDishListAsync(const QString&order_id);
+    void merchantOrderAcceptAsync(const QString&order_id);
 
     QList<data::Order> OrderListFromJsonArray(const QString& jsonString);
     QList<data::OrderDish> OrderDishListFromJsonArray(const QString&jsonString);

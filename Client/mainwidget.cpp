@@ -7,6 +7,7 @@ MainWidget::MainWidget(QWidget *parent)
 {
     ui->setupUi(this);
     this->setFixedSize(1600,900);
+    this->setWindowIcon(QIcon(QPixmap(":/qsrc/icon.png")));
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
     //初始化信号连接
@@ -620,6 +621,7 @@ void MainWidget::modCloseSlot()
 void MainWidget::merchantDishAcceptSlot(QString order_id)
 {
     mod_win->close();
+
 }
 
 void MainWidget::merchantDishRejecttSlot(QString order_id)
