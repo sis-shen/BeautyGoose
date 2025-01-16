@@ -121,6 +121,7 @@ public:
     void merchantGetOrderListAsync();
     void merchantGetOrderDishListAsync(const QString&order_id);
     void merchantOrderAcceptAsync(const QString&order_id);
+    void merchantOrderRejectAsync(const QString&order_id);
 
     QList<data::Order> OrderListFromJsonArray(const QString& jsonString);
     QList<data::OrderDish> OrderDishListFromJsonArray(const QString&jsonString);
@@ -164,6 +165,8 @@ signals:
     void merchantDishEditDelDone();
     void merchantGetOrderListDone();
     void merchantGetOrderDishListDone(const QString&order_id);
+    void merchantOrderAcceptDone();
+    void merchantOrderRejectDone();
 
 ///////////////////////////////////
 ///管理员子系统

@@ -216,6 +216,16 @@ void DataCenter::merchantGetOrderDishListAsync(const QString &order_id)
     client->merchantGetOrderDishList(order_id);
 }
 
+void DataCenter::merchantOrderAcceptAsync(const QString &order_id)
+{
+    client->merchantOrderAccept(order_id);
+}
+
+void DataCenter::merchantOrderRejectAsync(const QString &order_id)
+{
+    client->merchantOrderReject(order_id);
+}
+
 QList<data::Order> DataCenter::OrderListFromJsonArray(const QString &jsonString)
 {
     QList<btyGoose::data::Order> orderList;

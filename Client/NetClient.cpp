@@ -811,6 +811,16 @@ void NetClient::merchantGetOrderDishList(const QString &order_id)
     });
 }
 
+void NetClient::merchantOrderReject(const QString &order_id)
+{
+
+}
+
+void NetClient::merchantOrderAccept(const QString &order_id)
+{
+
+}
+
 void NetClient::adminGetOrderList()
 {
     // 2. 创建 HTTP 请求并设置 URL 和请求头
