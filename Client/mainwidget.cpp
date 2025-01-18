@@ -42,6 +42,7 @@ void MainWidget::toRegisterSlot()
     clearAll();
     RegisterWidget* rw = new RegisterWidget;
     this->layout()->addWidget(rw);
+    state = Status::Register;
     connect(rw,&RegisterWidget::toNameLoginSignal,this,&MainWidget::toNameLoginSlot);
     connect(rw,&RegisterWidget::toPhoneLoginSignal,this,&MainWidget::toPhoneLoginSlot);
     connect(rw,&RegisterWidget::authCodeSignal,this,&MainWidget::authCodeSlot);
@@ -53,6 +54,7 @@ void MainWidget::toNameLoginSlot()
     clearAll();
     LoginByNameWidget* ln = new LoginByNameWidget;
     this->layout()->addWidget(ln);
+    state = Status::LoginByName;
     connect(ln,&LoginByNameWidget::toRegisterSignal,this,&MainWidget::toRegisterSlot);
     connect(ln,&LoginByNameWidget::toPhoneLoginSignal,this,&MainWidget::toPhoneLoginSlot);
     connect(ln,&LoginByNameWidget::loginSignal,this,&MainWidget::loginNameSlot);
@@ -63,7 +65,7 @@ void MainWidget::toPhoneLoginSlot()
     clearAll();
     LoginByPhoneWidget* lb = new LoginByPhoneWidget;
     this->layout()->addWidget(lb);
-
+    state = Status::LoginByPhone;
     connect(lb,&LoginByPhoneWidget::loginSignal,this,&MainWidget::loginPhoneSlot);
     connect(lb,&LoginByPhoneWidget::toNameLoginSignal,this,&MainWidget::toNameLoginSlot);
     connect(lb,&LoginByPhoneWidget::toRegisterSignal,this,&MainWidget::toRegisterSlot);
@@ -103,6 +105,7 @@ void MainWidget::toConsumerUserInfoSlot()
     clearAll();
     ConsumerUserInfoWidget* aui = new ConsumerUserInfoWidget(datacenter->account);
     this->layout()->addWidget(aui);
+    state = Status::UserInfo;
     //导航栏
     connect(aui->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
     connect(aui->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
@@ -120,7 +123,8 @@ void MainWidget::toMerchantUserInfoSlot()
     clearAll();
     MerchantUserInfoWidget* aui = new MerchantUserInfoWidget(datacenter->account);
     this->layout()->addWidget(aui);
-    qDebug()<<"start Connection";
+    state = Status::UserInfo;
+    // qDebug()<<"start Connection";
     //连导航栏
     connect(aui->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
     connect(aui->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
@@ -357,6 +361,7 @@ void MainWidget::toCartListSlot()
     DataCenter* datacenter = DataCenter::getInstance();
     ConsumerCartListWidget* ccl = new ConsumerCartListWidget(datacenter->cart_list->cart_table);
     this->layout()->addWidget(ccl);
+    state = Status::CartList;
 
     //连导航栏
     connect(ccl->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
@@ -406,6 +411,7 @@ void MainWidget::toVIPSlot()
     clearAll();
     ConsumerVIPWidget* vip = new ConsumerVIPWidget(DataCenter::getInstance()->account->level);
     this->layout()->addWidget(vip);
+    state = Status::VIP;
     //导航栏
     //连导航栏
     connect(vip->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
@@ -471,6 +477,7 @@ void MainWidget::initConsumerResponeConnection()
         // qDebug()<<"构建成功";
         clearAll();
         this->layout()->addWidget((cdl));
+        state = Status::DishList;
         //连导航栏
         connect(cdl->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
         connect(cdl->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
@@ -530,6 +537,7 @@ void MainWidget::initConsumerResponeConnection()
         clearAll();
         ConsumerOrderListWidget* col = new ConsumerOrderListWidget(datacenter->order_table);
         this->layout()->addWidget(col);
+        state = Status::OrderList;
         //连导航栏
         connect(col->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);
         connect(col->leftNavW,&ConsumerNavWidget::toCartListSignal,this,&MainWidget::toCartListSlot);
@@ -680,7 +688,7 @@ void MainWidget::initMerchantResponseConnection()
         clearAll();
         MerchantDishListWidget* mdl = new MerchantDishListWidget(datacenter->merchant_dish_table);
         this->layout()->addWidget(mdl);
-
+        state = Status::DishList;
         //连导航栏
         connect(mdl->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
         connect(mdl->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
@@ -743,7 +751,7 @@ void MainWidget::initMerchantResponseConnection()
         clearAll();
         MerchantOrderListWidget* mol = new MerchantOrderListWidget(datacenter->merchant_order_table);
         this->layout()->addWidget(mol);
-
+        state = Status::OrderList;
         //连导航栏
         connect(mol->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);
         connect(mol->leftNavW,&MerchantNavWidget::toDishListSignal,this,&MainWidget::toMerchantDishListSlot);
@@ -789,6 +797,7 @@ void MainWidget::initAdminResponseConnection()
         clearAll();
         AdminOrderListWidget* aol = new AdminOrderListWidget(datacenter->admin_order_list);
         this->layout()->addWidget(aol);
+        state = Status::HistoryList;
     });
 }
 

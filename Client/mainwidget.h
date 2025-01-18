@@ -46,9 +46,22 @@ public:
 private:
     //控件操作
     void clearAll();
+
+    enum Status{
+        Register,
+        LoginByName,
+        LoginByPhone,
+        UserInfo,
+        DishList,
+        OrderList,
+        CartList,
+        VIP,
+        HistoryList
+    };
+
+    Status state;
 private:
 //Account模块
-    void initRegisterConnection(RegisterWidget*);
 public slots:
 //Account模块
     void toRegisterSlot();          //转到注册界面

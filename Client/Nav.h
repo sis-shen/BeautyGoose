@@ -12,6 +12,7 @@ class ConsumerNavWidget:public QWidget
 {
     Q_OBJECT
 public:
+
     //导航栏切换界面的按钮
     QPushButton* viewUserInfo;
     QPushButton* viewDishList;
