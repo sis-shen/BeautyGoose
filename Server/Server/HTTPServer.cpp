@@ -1037,7 +1037,8 @@ void btyGoose::HTTPServer::initMerchantAPI()
             }
 
 
-            QList<data::Order> orderList = db.getOrderListByMerchantWaiting(jsonObj["merchant_id"].toString());
+            QList<data::Order> orderList = db.getOrderListByMerchant(jsonObj["merchant_id"].toString());
+            //QList<data::Order> orderList = db.getOrderListByMerchantWaiting(jsonObj["merchant_id"].toString());
             LOG() << "merchant:" << jsonObj["merchant_id"].toString() << "find orders" << orderList.size();
             QString dishListJson = OrderListToJsonArray(orderList);
             QJsonObject resJson;
@@ -1103,6 +1104,97 @@ void btyGoose::HTTPServer::initMerchantAPI()
         }
 
         });
+
+    svr.Post("/merchant/order/accept", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/merchant/order/accept get a post!";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+
+            data::Order order = db.searchOrderByID(jsonObj["order_id"].toString());
+            order.status = data::Order::Status::SUCCESS;//修改状态
+            db.updateOrder(order);
+            //归档
+            db.addHistory(order);
+            db.addHistoryDishesByID(order.uuid, db.getOrderDishesByID(order.uuid));
+
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
+
+    svr.Post("/merchant/order/reject", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/merchant/order/reject get a post!";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+
+            data::Order order = db.searchOrderByID(jsonObj["order_id"].toString());
+            order.status = data::Order::Status::REJECTED;//修改状态
+            db.addHistory(order);
+            db.updateOrder(order);//归档
+            db.addHistoryDishesByID(order.uuid, db.getOrderDishesByID(order.uuid));
+
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
+
+
 }
 
 void btyGoose::HTTPServer::initAdminAPI()

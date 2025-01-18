@@ -103,8 +103,8 @@ public slots:
     void mdrCloseSlot();
     void merchantDishRegisterSlot(MerchantDishRegisterWidget::Input input);
     void modCloseSlot();        //订单处理窗口关闭处理函数
-    void merchantDishAcceptSlot(QString order_id);  //商家接单处理函数
-    void merchantDishRejecttSlot(QString order_id);  //商家接单处理函数
+    void merchantOrderAcceptSlot(QString order_id);  //商家接单处理函数
+    void merchantOrderRejecttSlot(QString order_id);  //商家接单处理函数
     void mddCloseSlot();        //商家菜品详情窗口关闭处理函数
     void merchantDishEditSlot(QString dish_id);//商家菜品编辑窗口
     void mdeCloseSlot();        //商家菜品编辑窗口关闭处理函数

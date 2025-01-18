@@ -618,13 +618,13 @@ void MainWidget::modCloseSlot()
     mod_win = nullptr;
 }
 
-void MainWidget::merchantDishAcceptSlot(QString order_id)
+void MainWidget::merchantOrderAcceptSlot(QString order_id)
 {
     mod_win->close();
-
+    DataCenter::getInstance()->merchantOrderAcceptAsync(order_id);
 }
 
-void MainWidget::merchantDishRejecttSlot(QString order_id)
+void MainWidget::merchantOrderRejecttSlot(QString order_id)
 {
     mod_win->close();
 }
@@ -760,12 +760,20 @@ void MainWidget::initMerchantResponseConnection()
         Q_ASSERT(datacenter->merchant_order_dish_list);
         mod_win = new MerchantOrderDetailWindow(datacenter->merchant_order_table->value(order_id),datacenter->merchant_order_dish_list);
         //连接内部信号
-        connect(mod_win->mod,&MerchantOrderDetailWidget::acceptOrderSignal,this,&MainWidget::merchantDishAcceptSlot);
-        connect(mod_win->mod,&MerchantOrderDetailWidget::rejectOrderSignal,this,&MainWidget::merchantDishRejecttSlot);
+        connect(mod_win->mod,&MerchantOrderDetailWidget::acceptOrderSignal,this,&MainWidget::merchantOrderAcceptSlot);
+        connect(mod_win->mod,&MerchantOrderDetailWidget::rejectOrderSignal,this,&MainWidget::merchantOrderRejecttSlot);
         //连接窗口关闭信号
         connect(mod_win,&MerchantDishRegisterWindow::finished,this,&MainWidget::modCloseSlot);
 
         mod_win->exec();
+    });
+
+    connect(datacenter,&DataCenter::merchantOrderAcceptDone,this,[=](){
+        toMerchantOrderListSlot();
+    });
+
+    connect(datacenter,&DataCenter::merchantOrderRejectDone,this,[=](){
+        toMerchantOrderListSlot();
     });
 }
 
