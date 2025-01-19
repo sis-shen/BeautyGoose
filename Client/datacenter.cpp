@@ -116,14 +116,15 @@ void DataCenter::loginByNameAsync(const QString &name, const QString &password)
 
 void DataCenter::loginByPhoneAsync(const QString &phone, const QString &password)
 {
-
+    QByteArray hashPass = QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256);
+    client->accountLoginByPhone(phone,hashPass);
 }
 
 
 
 void DataCenter::accountChangeNicknameAsync(const QString &nickname)
 {
-
+    client->accountChangeNickName(nickname);
 }
 
 void DataCenter::accountUpdateLevelAsync(const QString &level)

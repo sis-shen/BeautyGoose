@@ -135,6 +135,59 @@ void NetClient::accountLoginByName(const QString &name, const QString &password)
     });
 }
 
+void NetClient::accountLoginByPhone(const QString &phone, const QString &password)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["phone"] = phone;
+    jsonObj["password"] = password;  // 直接使用传入的已加密密码
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/account/login/phone");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                QJsonObject responseObj = doc.object();
+                bool success = responseObj["success"].toBool();  // 假设响应中包含 success 字段
+                QString Message = responseObj["message"].toString();
+                if (success) {
+                    qDebug() << "Account login by name successful!";
+                    QString accJson = responseObj["account"].toString();
+                    data::Account* acc = new data::Account;
+                    acc->loadFromJson(accJson.toStdString());
+                    datacenter->account = acc;//向数据中心存入账户信息
+                } else {
+                    QString errorMessage = responseObj["message"].toString();
+                    qDebug() << "Account login by name failed: " << errorMessage;
+                    // 处理失败的情况
+                }
+                emit datacenter->getLoginByPhoneDone(success,Message);
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
 void NetClient::accountUpdateLevel(const QString&id,const QString &level)
 {
     // 1. 构造 JSON 数据
@@ -165,6 +218,48 @@ void NetClient::accountUpdateLevel(const QString&id,const QString &level)
                 DataCenter::getInstance()->account->level = static_cast<data::Account::Level>(responseObj["level"].toInt());
                 qDebug()<<"level change to :"<<DataCenter::getInstance()->account->level;
                 emit datacenter->accountUpdateLevelDone();
+            } else {
+                qDebug() << "Invalid JSON response!";
+            }
+        } else {
+            qDebug() << "Request failed: " << reply->errorString();
+        }
+
+        // 释放回复对象
+        reply->deleteLater();
+    });
+}
+
+void NetClient::accountChangeNickName(const QString &nickname)
+{
+    // 1. 构造 JSON 数据
+    QJsonObject jsonObj;
+    jsonObj["nickname"] = nickname;
+    jsonObj["id"] = datacenter->account->uuid;
+
+    // 将 JSON 对象转换为字符串
+    QJsonDocument doc(jsonObj);
+    QByteArray jsonData = doc.toJson();
+
+    // 2. 创建 HTTP 请求并设置 URL 和请求头
+    QUrl url(httpUrl + "/account/update/nickname");  //
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json;charset=UTF-8");
+
+    // 3. 发送 POST 请求
+    QNetworkReply *reply = httpClient.post(request, jsonData);
+
+    // 4. 连接信号和槽以处理响应
+    connect(reply, &QNetworkReply::finished, [this, reply]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            // 处理服务器返回的数据
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+            if (!doc.isNull()) {
+                QJsonObject responseObj = doc.object();
+                DataCenter::getInstance()->account->nickname = responseObj["nickname"].toString();
+                // qDebug()<<"nickname change to :"<<DataCenter::getInstance()->account->level;
+                emit datacenter->accountUpdateNicknameDone();
             } else {
                 qDebug() << "Invalid JSON response!";
             }

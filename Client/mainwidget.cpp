@@ -95,8 +95,7 @@ void MainWidget::loginNameSlot(LoginByNameWidget::Input input)
 
 void MainWidget::loginPhoneSlot(LoginByPhoneWidget::Input input)
 {
-    //TODO
-    toConsumerDishListSlot();
+    DataCenter::getInstance()->loginByPhoneAsync(input.phone,input.password);
 }
 
 void MainWidget::toConsumerUserInfoSlot()

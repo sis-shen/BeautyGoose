@@ -146,6 +146,7 @@ signals:
     void getLoginByPhoneDone(bool ok,const QString& reason);
     void accountChangeNicknameAsyncDone();
     void accountUpdateLevelDone();
+    void accountUpdateNicknameDone();
 ///////////////////////////////////
 ///消费者子系统
 //////////////////////////////////

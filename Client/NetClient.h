@@ -46,6 +46,7 @@ public:
     void accountRegister(const QString&name,const QString&password,const QString& phone,
                          const QString&nickname,const QString auth_code ,int type);
     void accountLoginByName(const QString&name,const QString&password);
+    void accountLoginByPhone(const QString&phone,const QString&password);
     void accountUpdateLevel(const QString&id,const QString& level);
     void accountChangeNickName(const QString&nickname);
 /////////////////////////////////////////
