@@ -181,6 +181,11 @@ void DataCenter::consumerOderPayConfirmAsync(const QString &order_id)
     client->consumerOrderPayConfirm(order_id);
 }
 
+void DataCenter::consumerOrderCancelAsync(const QString &order_id)
+{
+    client->consumerOrderCancel(order_id);
+}
+
 void DataCenter::merchantGetDishListAysnc()
 {
     client->merchantGetDishList(account->uuid);

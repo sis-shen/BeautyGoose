@@ -457,9 +457,9 @@ void MainWidget::tpwCloseSlot()
     tpw_win = nullptr;
 }
 
-void MainWidget::orderCancelSlot(QString order_id)
+void MainWidget::consumerOrderCancelSlot(QString order_id)
 {
-
+    DataCenter::getInstance()->consumerOrderCancelAsync(order_id);
 }
 
 void MainWidget::initConsumerResponeConnection()
@@ -529,7 +529,7 @@ void MainWidget::initConsumerResponeConnection()
         //连其它信号
         connect(cod,&ConsumerOrderDetailWidget::toOrderListSignal,this,&MainWidget::toConsumerOrderListSlot);
         connect(cod,&ConsumerOrderDetailWidget::payOrderSignal,this,&MainWidget::payOrderSlot);
-        connect(cod,&ConsumerOrderDetailWidget::cancelSignal,this,&MainWidget::orderCancelSlot);
+        connect(cod,&ConsumerOrderDetailWidget::cancelSignal,this,&MainWidget::consumerOrderCancelSlot);
     });
 
     //订单列表
@@ -551,6 +551,11 @@ void MainWidget::initConsumerResponeConnection()
 
     connect(datacenter,&DataCenter::consumerOrderPayConfirmDone,this,[=](){
         toConsumerOrderListSlot();
+    });
+
+    connect(datacenter,&DataCenter::consumerOrderCancelDone,this,[=](const QString& reason){
+        toConsumerOrderListSlot();
+        QMessageBox::information(this, "Info",reason);
     });
 }
 

@@ -79,7 +79,7 @@ public slots:
 public:
 //消费者子系统
     ConsumerDishDetailWindow* cdd_win = nullptr;      //显示菜品详情的唯一窗口
-    ThirdPayWindow* tpw_win = nullptr;
+    ThirdPayWindow* tpw_win = nullptr;              //第三方支付窗口
 public slots:
     void toConsumerDishListSlot();              //转到菜品列表界面
     void cddCloseSlot();                //关闭消费者菜品详情窗口时执行的槽函数
@@ -98,7 +98,7 @@ public slots:
     void payOrderSlot(QString order_id);//支付某个订单
     void payConfirmlySlot(QString order_id);//真正开始支付某个订单
     void tpwCloseSlot();
-    void orderCancelSlot(QString order_id);//取消某个订单
+    void consumerOrderCancelSlot(QString order_id);//取消某个订单
 
     void initConsumerResponeConnection();
 public:

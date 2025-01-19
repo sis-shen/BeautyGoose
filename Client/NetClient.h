@@ -57,6 +57,7 @@ public:
     void consumerGetOrderList(const QString&consumer_id);
     void consumerGetOrdrerDishList(const QString&order_id);
     void consumerOrderPayConfirm(const QString&order_id);
+    void consumerOrderCancel(const QString&order_id);
 /////////////////////////////////////////
 /// Merchant子系统
 /////////////////////////////////////////

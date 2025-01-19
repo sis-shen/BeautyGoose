@@ -275,7 +275,8 @@ namespace btyGoose
 				REJECTED,		//商家拒收
 				SUCCESS,		//成功完成
 				ERR,			//订单出错
-				FATAL			//订单出现致命错误
+				FATAL,			//订单出现致命错误
+				CANCELED		//消费者取消订单
 			};
 
 			QString merchant_id;		//商家id

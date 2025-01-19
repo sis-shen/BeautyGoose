@@ -71,6 +71,8 @@ public:
             stat = "成功完成";
         else if(order.status == btyGoose::data::Order::Status::REJECTED)
             stat = "被拒单";
+        else if(order.status == btyGoose::data::Order::Status::CANCELED)
+            stat = "已取消";
         else
         {
             qDebug()<<"stat:"<<order.status;

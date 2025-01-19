@@ -721,6 +721,64 @@ void btyGoose::HTTPServer::initConsumerAPI()
         }
 
         });
+
+    svr.Post("/consumer/order/cancel", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG() << "/consumer/order/cancel get a post!";
+        std::string jsonStr = req.body;
+        QString qJsonString = QString::fromStdString(jsonStr);
+        QJsonObject jsonObj;
+        // 解析 JSON 字符串
+        QJsonDocument doc = QJsonDocument::fromJson(qJsonString.toUtf8());
+        if (doc.isObject()) {
+            jsonObj = doc.object();
+        }
+        else
+        {
+            qDebug() << "Invalid Json" << jsonStr;
+            jsonObj = QJsonObject();
+        }
+        QJsonObject resJson;
+        try {
+            if (jsonObj.isEmpty())
+            {
+                throw HTTPException("Json Serialization failed");
+            }
+
+
+            data::Order order = db.searchOrderByID(jsonObj["order_id"].toString());
+            QString reason;
+            if (order.status == data::Order::Status::UNPAYED)
+            {
+                order.status = data::Order::Status::CANCELED;
+                db.updateOrder(order);
+                reason = "订单取消成功";
+            }
+            else if (order.status == data::Order::Status::WAITING)
+            {
+                reason = "订单无法取消：已支付";
+            }
+            else
+            {
+                reason = "订单无法支付,订单状态码:" + QString::number(static_cast<int>(order.status));
+            }
+
+            resJson["reason"] = reason;
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+        }
+        catch (const HTTPException& e)
+        {
+            res.status = 500;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            QJsonDocument doc(resJson);
+            res.body = doc.toJson().toStdString();
+            res.set_header("Content-Type", "application/json;charset=UTF-8");
+            qDebug() << e.what();
+        }
+
+        });
 }
 
 void btyGoose::HTTPServer::initMerchantAPI()
