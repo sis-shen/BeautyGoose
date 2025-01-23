@@ -67,6 +67,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ServerConfig.json
         NetClient.h NetClient.cpp
         qimg.qrc
+        ColorConfig.h
 
 
 

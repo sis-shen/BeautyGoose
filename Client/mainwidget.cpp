@@ -6,7 +6,7 @@ MainWidget::MainWidget(QWidget *parent)
     , ui(new Ui::MainWidget)
 {
     ui->setupUi(this);
-    this->setFixedSize(1600,900);
+    // this->setFixedSize(1600,900);
     this->setWindowIcon(QIcon(QPixmap(":/qsrc/icon.png")));
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
@@ -16,7 +16,7 @@ MainWidget::MainWidget(QWidget *parent)
     initMerchantResponseConnection();
     initAdminResponseConnection();
     // toRegisterSlot();
-    toNameLoginSlot();
+    toNameLoginSlot();      //转到用户名登录界面
 }
 
 MainWidget::~MainWidget()
@@ -42,6 +42,7 @@ void MainWidget::toRegisterSlot()
     clearAll();
     RegisterWidget* rw = new RegisterWidget;
     this->layout()->addWidget(rw);
+    this->setFixedSize(rw->size());
     state = Status::Register;
     connect(rw,&RegisterWidget::toNameLoginSignal,this,&MainWidget::toNameLoginSlot);
     connect(rw,&RegisterWidget::toPhoneLoginSignal,this,&MainWidget::toPhoneLoginSlot);

@@ -25,12 +25,12 @@ public:
 private:
     QRadioButton* consumerRadio;
     QRadioButton* merchantRadio;
-    QTextEdit* nameInput;
-    QTextEdit* nicknameInput;
+    QLineEdit* nameInput;
+    QLineEdit* nicknameInput;
     QLineEdit* passwordInput;
     QLineEdit* passwordRepeatInput;
-    QTextEdit* phoneInput;
-    QTextEdit* auth_codeInput;
+    QLineEdit* phoneInput;
+    QLineEdit* auth_codeInput;
 
     QPushButton* registerBtn;
     QPushButton* getCodeBtn;
