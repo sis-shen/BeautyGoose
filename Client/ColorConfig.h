@@ -13,10 +13,7 @@ private:
 public:
     static const ColorConfig* getInstance();
 
-    ~ColorConfig()
-    {
-        if(_ins)delete _ins;
-    }
+    ~ColorConfig()=default;
 
     const QString main_color = "#F4C81C";
     const QString light_grey = "#AAAAAA";
@@ -34,5 +31,4 @@ inline const ColorConfig *ColorConfig::getInstance()
     return _ins;
 }
 
-ColorConfig* ColorConfig::_ins = nullptr;
 #endif // COLORCONFIG_H

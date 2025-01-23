@@ -1,12 +1,15 @@
 #include "mainwidget.h"
 #include "./ui_mainwidget.h"
+#include "ColorConfig.h"
+
+ColorConfig* ColorConfig::_ins = nullptr;
 
 MainWidget::MainWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MainWidget)
 {
     ui->setupUi(this);
-    // this->setFixedSize(1600,900);
+    this->setFixedSize(400,600);
     this->setWindowIcon(QIcon(QPixmap(":/qsrc/icon.png")));
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);

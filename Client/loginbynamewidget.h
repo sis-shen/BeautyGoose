@@ -16,15 +16,14 @@ public:
     explicit LoginByNameWidget(QWidget *parent = nullptr);
 
     struct Input{
-        QString type;
         QString name;
         QString password;
     };
 
 private:
-    QRadioButton *consumerRadio;
-    QRadioButton *merchantRadio;
-    QRadioButton *adminRadio;
+    // QRadioButton *consumerRadio;
+    // QRadioButton *merchantRadio;
+    // QRadioButton *adminRadio;
 
     QLineEdit *nameInput;
     QLineEdit *passwordInput;
