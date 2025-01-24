@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>qsrc/icon.png</file>
         <file>qsrc/loginByName.png</file>
+        <file>qsrc/loginByPhone.png</file>
     </qresource>
 </RCC>
