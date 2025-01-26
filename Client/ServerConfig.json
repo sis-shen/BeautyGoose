@@ -1,4 +1,4 @@
 {
-    "httpUrl": "http://127.0.0.1:80",
+    "httpUrl": "http://127.0.0.1:30001",
     "sockUrl": "http://127.0.0.1:8001/websock"
 }

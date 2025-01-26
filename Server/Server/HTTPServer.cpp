@@ -8,7 +8,9 @@ btyGoose::HTTPServer::HTTPServer()
     initConsumerAPI();
     initMerchantAPI();
     initAdminAPI();
-    svr.listen(host.toStdString(), port);
+    qDebug() << host << ":" << port << svr.is_running();
+    qDebug()<<svr.listen(host.toStdString(), port);
+
 }
 
 bool btyGoose::HTTPServer::loadConfig()

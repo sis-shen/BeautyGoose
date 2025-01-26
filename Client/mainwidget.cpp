@@ -480,6 +480,7 @@ void MainWidget::initConsumerResponeConnection()
         // qDebug()<<"构建成功";
         clearAll();
         this->layout()->addWidget((cdl));
+        this->setFixedSize(1600,900);
         state = Status::DishList;
         //连导航栏
         connect(cdl->leftNavW,&ConsumerNavWidget::toUesrInfoSignal,this,&MainWidget::toConsumerUserInfoSlot);

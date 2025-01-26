@@ -3,5 +3,9 @@
         <file>qsrc/icon.png</file>
         <file>qsrc/loginByName.png</file>
         <file>qsrc/loginByPhone.png</file>
+        <file>qsrc/avatar.png</file>
+        <file>qsrc/cart.png</file>
+        <file>qsrc/dishList.png</file>
+        <file>qsrc/order.png</file>
     </qresource>
 </RCC>

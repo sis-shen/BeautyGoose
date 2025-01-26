@@ -9,7 +9,7 @@ DataCenter::DataCenter()
         qDebug()<<configFileName<<"服务器地址配置错误";
         exit(1);
     }
-
+    qDebug()<<httpUrl;
     client = new network::NetClient(this,httpUrl,sockUrl);
 
     dish_list_table = new QHash<QString,QList<data::Dish>>;
@@ -78,6 +78,7 @@ bool DataCenter::loadConfig()
         if (doc.isObject()) {
             QJsonObject jsonObject = doc.object();
             httpUrl = jsonObject["httpUrl"].toString();
+            // qDebug()<<jsonObject["httpUrl"].toString();
             sockUrl = jsonObject["sockUrl"].toString();
 
             return true;
