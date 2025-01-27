@@ -28,6 +28,8 @@
 //第三方支付界面
 #include "thirdpaywindow.h"
 
+#include "ColorConfig.h"
+
 #include <QMessageBox>
 #include <QList>
 QT_BEGIN_NAMESPACE

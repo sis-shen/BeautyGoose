@@ -8,6 +8,8 @@
 #include <QStyle>
 #include <QDebug>
 #include <QStyleFactory>
+
+#include "ColorConfig.h"
 class ConsumerNavWidget:public QWidget
 {
     Q_OBJECT
@@ -31,12 +33,14 @@ public:
     {
         this->setFixedWidth(150);
         this->setFixedHeight(800);
-
+        auto color = ColorConfig::getInstance();
         QGridLayout* mainLayout = new QGridLayout;
         QWidget* mainW = new QWidget;
         this->setLayout(mainLayout);
         mainLayout->addWidget(mainW);
-        mainW->setStyleSheet("QWidget { border: 2px solid black;}");
+        mainW->setObjectName("Nav");
+        // mainW->setStyleSheet(QString("QPushButton { background-color: %1;}").arg(color->background_color));
+        mainW->setStyleSheet("QWidget#Nav { border: 2px solid black;}");
         QGridLayout* layout = new QGridLayout;
         mainW->setLayout(layout);
         layout->setAlignment(Qt::AlignTop);

@@ -11,6 +11,7 @@ MainWidget::MainWidget(QWidget *parent)
     ui->setupUi(this);
     this->setFixedSize(400,600);
     this->setWindowIcon(QIcon(QPixmap(":/qsrc/icon.png")));
+    this->setStyleSheet(QString("QWidget{background-color: %1}").arg(ColorConfig::getInstance()->background_color));
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);
     //初始化信号连接

@@ -16,6 +16,7 @@
 
 #include "CoreData.h"
 #include "DataCenterCoreData.h"
+#include "ColorConfig.h"
 
 namespace dishList
 {
@@ -26,23 +27,31 @@ public:
     using ptr = QSharedPointer<DishItem>;
     QString dish_id;
     QPushButton* dish_name;
-    QLabel* single_picture;
+    QPushButton* single_picture;
     QLabel* single_price;
 
 
     DishItem(const btyGoose::data::Dish& dish)
         :dish_id(dish.uuid)
     {
+        auto color = ColorConfig::getInstance();
         QGridLayout* layout = new QGridLayout;
-        this->setLayout(layout);
-        single_picture = new QLabel("图片");
+        QWidget* mainW = new QWidget;
+        QGridLayout* mainL = new QGridLayout;
+        mainL->addWidget(mainW);
+        mainW->setLayout(layout);
+        this->setLayout(mainL);
+
+        mainW->setStyleSheet(QString("QWidget{border-radius: 15px;"
+                                     " border: 2px solid %1;}").arg(color->background_color));
+        single_picture = new QPushButton();
         dish_name = new QPushButton(dish.name);
         QString price = "单价:";
         price += QString::number(dish.price_factor*dish.base_price);
         price += "元";
         single_price = new QLabel(price);
 
-        single_picture->setFixedWidth(100);
+        single_picture->setFixedSize(100,100);
         dish_name->setFixedWidth(100);
         single_price->setFixedWidth(100);
 
@@ -78,7 +87,10 @@ public:
     QList<DishItem::ptr> list;
     MerchantItem(const QList<btyGoose::data::Dish>& lst)
     {
+        auto color = ColorConfig::getInstance();
         merchant_name = new QLabel(lst[0].merchant_name);
+        merchant_name->setStyleSheet(QString("QLabel{border-radius: 5px;"
+                                             " border: 2px solid %1;}").arg(color->background_color2));
         merchant_id = lst[0].merchant_id;
         //默认加三个
         // qDebug()<<"开始往缓冲区插入菜品";
@@ -87,10 +99,17 @@ public:
             list.push_back(DishItem::ptr(new DishItem(dish)));
         }
         // qDebug()<<"插入完成";
-
+        QWidget* mainW = new QWidget;
+        QGridLayout* mainLayout = new QGridLayout;
+        mainLayout->addWidget(mainW);
         QGridLayout* layout = new QGridLayout;
-        this->setLayout(layout);
+        this->setLayout(mainLayout);
+        mainLayout->addWidget(mainW);
+        mainW->setLayout(layout);
         layout->addWidget(merchant_name,0,0);
+
+        mainW->setStyleSheet(QString("QWidget{background-color: %1;"
+                                     "border: 2px solid %2}").arg(color->background_color2,color->background_color));
 
         int line  = 1;
         for(DishItem::ptr p:list)

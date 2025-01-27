@@ -19,6 +19,7 @@ public:
     const QString light_grey = "#AAAAAA";
     const QString grey = "#555555";
     const QString background_color = "#F3F3F3";
+    const QString background_color2 = "#F0F0F0";
 private:
 };
 
