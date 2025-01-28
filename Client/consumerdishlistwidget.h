@@ -43,7 +43,8 @@ public:
         this->setLayout(mainL);
 
         mainW->setStyleSheet(QString("QWidget{border-radius: 15px;"
-                                     " border: 2px solid %1;}").arg(color->background_color));
+                                     " border: 2px solid %1;"
+                                     "padding: 5px;}").arg(color->background_color));
         single_picture = new QPushButton();
         dish_name = new QPushButton(dish.name);
         QString price = "单价:";
@@ -88,9 +89,8 @@ public:
     MerchantItem(const QList<btyGoose::data::Dish>& lst)
     {
         auto color = ColorConfig::getInstance();
-        merchant_name = new QLabel(lst[0].merchant_name);
-        merchant_name->setStyleSheet(QString("QLabel{border-radius: 5px;"
-                                             " border: 2px solid %1;}").arg(color->background_color2));
+
+
         merchant_id = lst[0].merchant_id;
         //默认加三个
         // qDebug()<<"开始往缓冲区插入菜品";
@@ -106,7 +106,19 @@ public:
         this->setLayout(mainLayout);
         mainLayout->addWidget(mainW);
         mainW->setLayout(layout);
-        layout->addWidget(merchant_name,0,0);
+
+        merchant_name = new QLabel(lst[0].merchant_name);
+        QWidget* nameW = new QWidget;
+        nameW->setStyleSheet(QString("QWidget{background-color: %1;border-radius: 5px;}").arg(color->main_color));
+        // nameW->setFixedWidth(this->width());
+        QGridLayout* nameLayout = new QGridLayout;
+        nameW->setLayout(nameLayout);
+        nameLayout->addWidget(merchant_name);
+        merchant_name->setParent(nameW);
+        merchant_name->setStyleSheet(QString("QLabel{border-radius: 5px;"
+                                             " border: 2px solid %1;}").arg(color->background_color2));
+        layout->addWidget(nameW,0,0,1,4);//添加商家名称
+
 
         mainW->setStyleSheet(QString("QWidget{background-color: %1;"
                                      "border: 2px solid %2}").arg(color->background_color2,color->background_color));
