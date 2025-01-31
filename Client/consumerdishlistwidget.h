@@ -52,18 +52,26 @@ public:
         price += "元";
         single_price = new QLabel(price);
 
+        QWidget* leftW = new QWidget;
+        QWidget* rightW = new QWidget;
+
         single_picture->setFixedSize(100,100);
         dish_name->setFixedWidth(100);
         single_price->setFixedWidth(100);
 
+        QGridLayout* leftLayout = new QGridLayout;
+        leftLayout->setAlignment(Qt::AlignLeft);
+        leftW->setLayout(leftLayout);
+        leftLayout->addWidget(single_picture,0,0,2,1);
+        leftLayout->addWidget(dish_name,0,1);
+        QSpacerItem* space = new QSpacerItem(100,50);
+        leftLayout->addItem(space,1,1);
 
-        QSpacerItem* spacer = new QSpacerItem(100,50);
-
-        layout->addWidget(single_picture,0,0);
-        layout->addWidget(dish_name,0,1);
-        layout->addWidget(single_price,0,2);
-
-        layout->addItem(spacer,0,3);
+        QGridLayout* rightLayout = new QGridLayout;
+        rightLayout->setAlignment(Qt::AlignRight);
+        rightW->setLayout(rightLayout);
+        layout->addWidget(leftW,0,0);
+        layout->addWidget(rightW,0,1);
 
 
         connect(dish_name,&QPushButton::clicked,this,&DishItem::dishNameBtnSlot);
