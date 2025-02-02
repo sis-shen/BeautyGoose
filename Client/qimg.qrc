@@ -7,5 +7,6 @@
         <file>qsrc/cart.png</file>
         <file>qsrc/dishList.png</file>
         <file>qsrc/order.png</file>
+        <file>qsrc/defaultDish.png</file>
     </qresource>
 </RCC>

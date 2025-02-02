@@ -16,6 +16,7 @@ public:
     ~ColorConfig()=default;
 
     const QString main_color = "#F4C81C";
+    const QString main_color_light = "#FADD32";
     const QString light_grey = "#AAAAAA";
     const QString grey = "#555555";
     const QString background_color = "#F3F3F3";

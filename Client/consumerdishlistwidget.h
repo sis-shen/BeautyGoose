@@ -12,6 +12,7 @@
 #include <QPointer>
 #include <QScrollArea>
 #include <QHash>
+#include <QEvent>
 #include "Nav.h"
 
 #include "CoreData.h"
@@ -39,12 +40,12 @@ public:
         QWidget* mainW = new QWidget;
         QGridLayout* mainL = new QGridLayout;
         mainL->addWidget(mainW);
+        mainL->setContentsMargins(0,5,0,0);
         mainW->setLayout(layout);
         this->setLayout(mainL);
-
         mainW->setStyleSheet(QString("QWidget{border-radius: 15px;"
                                      " border: 2px solid %1;"
-                                     "padding: 5px;}").arg(color->background_color));
+                                     "background-color: %2;}").arg(color->main_color_light,color->main_color_light));
         single_picture = new QPushButton();
         dish_name = new QPushButton(dish.name);
         QString price = "单价:";
@@ -56,8 +57,17 @@ public:
         QWidget* rightW = new QWidget;
 
         single_picture->setFixedSize(100,100);
+        QIcon icon = btyGoose::util::getIconFromLink(dish.icon_path);
+        if(icon.isNull())
+        {
+            //如果图片下载失败，则使用默认图片
+            icon = QIcon(QPixmap("://qsrc/defaultDish.png"));
+        }
+        single_picture->setIcon(icon);
+        single_picture->setIconSize(QSize(100,100));
         dish_name->setFixedWidth(100);
         single_price->setFixedWidth(100);
+
 
         QGridLayout* leftLayout = new QGridLayout;
         leftLayout->setAlignment(Qt::AlignLeft);
@@ -67,15 +77,31 @@ public:
         QSpacerItem* space = new QSpacerItem(100,50);
         leftLayout->addItem(space,1,1);
 
+
+
         QGridLayout* rightLayout = new QGridLayout;
         rightLayout->setAlignment(Qt::AlignRight);
+        rightLayout->addWidget(single_price);
+        single_price->setFixedHeight(50);
+        single_price->setStyleSheet(QString("QLabel{border-radius: 15px;"
+                                            " border: 2px solid %1;"
+                                            "background-color: %1;}").arg(color->main_color));
         rightW->setLayout(rightLayout);
         layout->addWidget(leftW,0,0);
         layout->addWidget(rightW,0,1);
 
 
         connect(dish_name,&QPushButton::clicked,this,&DishItem::dishNameBtnSlot);
+        connect(single_picture,&QPushButton::clicked,this,&DishItem::dishNameBtnSlot);
+
     }
+protected:
+    void mousePressEvent(QMouseEvent *event) override {
+        qDebug()<<"菜品item鼠标点击事件";
+        emit dishInfoSignal(dish_id);//向外传递信号
+        QWidget::mousePressEvent(event);
+    }
+
 public slots:
     void dishNameBtnSlot()
     {
@@ -126,7 +152,7 @@ public:
         merchant_name->setStyleSheet(QString("QLabel{border-radius: 5px;"
                                              " border: 2px solid %1;}").arg(color->background_color2));
         layout->addWidget(nameW,0,0,1,4);//添加商家名称
-
+        layout->setSpacing(0);
 
         mainW->setStyleSheet(QString("QWidget{background-color: %1;"
                                      "border: 2px solid %2}").arg(color->background_color2,color->background_color));

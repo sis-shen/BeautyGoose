@@ -16,11 +16,37 @@
 #include <QJsonValue>
 #include <QFile>
 #include <QIcon>
+#include <qnetworkaccessmanager.h>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QEventLoop>
 #include <qpixmap.h>
 namespace btyGoose
 {
 namespace util
 {
+static inline QIcon getIconFromLink(const QString& link)
+{
+    QNetworkAccessManager *nam = new QNetworkAccessManager();
+    QNetworkRequest request(link);
+    QNetworkReply *reply = nam->get(request);
+
+    QEventLoop loop;
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    QPixmap pixmap;
+    if (reply->error() == QNetworkReply::NoError) {
+        pixmap.loadFromData(reply->readAll());
+    }
+
+    delete reply;
+    delete nam;
+
+    return QIcon(pixmap);
+}
+
+
 static inline QString getFileName(const QString& path)
 {
     QFileInfo fileInfo(path);
