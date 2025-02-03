@@ -11,6 +11,13 @@ MainWidget::MainWidget(QWidget *parent)
     ui->setupUi(this);
     this->setFixedSize(400,600);
     this->setWindowIcon(QIcon(QPixmap(":/qsrc/icon.png")));
+    this->setWindowTitle("美鹅外卖");
+    //设置全局样式
+    if(qApp)
+    {
+        QApplication* app = qApp;
+        app->setFont(QFont("微软雅黑",8));
+    }
     this->setStyleSheet(QString("QWidget{background-color: %1}").arg(ColorConfig::getInstance()->background_color));
     QGridLayout* layout = new QGridLayout;
     this->setLayout(layout);

@@ -15,6 +15,7 @@
 
 #include "CoreData.h"
 #include "DataCenterCoreData.h"
+#include "ColorConfig.h"
 
 namespace cartList
 {
@@ -96,16 +97,43 @@ public:
 
         QGridLayout* layout = new QGridLayout;
         this->setLayout(layout);
-        layout->addWidget(merchant_name,0,0);
-        layout->addWidget(pay,0,1);
-        layout->addWidget(OrderGenerateBtn,0,3);
-        layout->addWidget(clearCartBtn,0,4);
+        QWidget* nav = new QWidget;
+        layout->addWidget(nav,0,0);
+        QGridLayout* nav_layout = new QGridLayout;
+        nav->setLayout(nav_layout);
+        QWidget* nav_left = new QWidget;
+        QWidget* nav_right = new QWidget;
+        nav_layout->addWidget(nav_left,0,0);
+        nav_layout->addWidget(nav_right,0,1);
+        QGridLayout* nav_left_layout = new QGridLayout;
+        QGridLayout* nav_right_layout = new QGridLayout;
+        nav_left->setLayout(nav_left_layout);
+        nav_right->setLayout(nav_right_layout);
+
+        //设置布局
+        nav_left_layout->addWidget(merchant_name,0,0);
+        nav_left_layout->addWidget(pay,0,1);
+        nav_left_layout->setAlignment(Qt::AlignLeft);
+        nav_right_layout->addWidget(OrderGenerateBtn,0,0);
+        nav_right_layout->addWidget(clearCartBtn,0,1);
+        nav_right_layout->setAlignment(Qt::AlignRight);
+
+        //设置样式
+        auto color = ColorConfig::getInstance();
+        nav->setStyleSheet(QString("QWidget{background-color: %1;border:0;"
+                                   "font-family:微软雅黑; "
+                                   "font-size:12pt}").arg(color->main_color));
+        OrderGenerateBtn->setStyleSheet(QString("QPushButton{background-color:%1}").arg(color->main_color_light));
+        clearCartBtn->setStyleSheet(QString("QPushButton{background-color:%1}").arg(color->main_color_light));
+        // layout->addWidget(pay,0,1);
+        // layout->addWidget(OrderGenerateBtn,0,3);
+        // layout->addWidget(clearCartBtn,0,4);
         int line  = 1;
         for(DishItem::ptr p:list)
         {
             //全都绑定到同一个槽函数
             connect(p.data(),&DishItem::dishInfoSignal,this,&CartItem::dishItemBtnSlot);
-            layout->addWidget(p.data(),line,0,1,4);
+            layout->addWidget(p.data(),line,0);
             line++;
         }
     }

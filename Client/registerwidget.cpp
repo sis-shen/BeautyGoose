@@ -102,6 +102,7 @@ RegisterWidget::RegisterWidget(QWidget *parent)
 
     registerBtn = new QPushButton("注册");
     label->setAlignment(Qt::AlignCenter);//文字居中
+
     registerBtn->setFixedHeight(50);
     layout->addWidget(registerBtn,7,1,1,4);
 
