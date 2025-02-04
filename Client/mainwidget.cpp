@@ -312,6 +312,7 @@ void MainWidget::cartDsihAddSlot(QString merchant_id, QString dish_id)
         //新表
         CartDishItem::ptr dish_item = CartDishItem::ptr(new CartDishItem);
         dish_table->insert(dish_id,dish_item);
+        dish_item->icon_path = datacenter->dish->icon_path;
         dish_item->dish_id = dish_id;
         dish_item->dish_name = datacenter->dish->name;
         dish_item->dish_price = datacenter->dish->base_price * datacenter->dish->price_factor;

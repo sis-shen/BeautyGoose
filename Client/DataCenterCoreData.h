@@ -12,6 +12,7 @@ struct CartDishItem
     using ptr = QSharedPointer<CartDishItem>;
     QString dish_id;
     QString dish_name;
+    QString icon_path;
     double dish_price;  //单价
     double pay;         //总价
     int cnt;            //数量
