@@ -10,8 +10,8 @@
 #include <QIcon>
 #include <QPixmap>
 
-LoginByNameWidget::LoginByNameWidget(QWidget *parent)
-    : QWidget{parent}
+LoginByNameWidget::LoginByNameWidget(QString name,QString password)
+    : QWidget{nullptr}
 {
     this->setFixedSize(400,600);
     QGridLayout* layout = new QGridLayout;
@@ -96,7 +96,7 @@ LoginByNameWidget::LoginByNameWidget(QWidget *parent)
     label->setAlignment(Qt::AlignCenter);//文字居中
     layout->addWidget(label,2,0);
 
-    nameInput=new QLineEdit;
+    nameInput=new QLineEdit(name);
     nameInput->setFixedHeight(50);
     layout->addWidget(nameInput,2,1,1,6);
 
@@ -112,7 +112,7 @@ LoginByNameWidget::LoginByNameWidget(QWidget *parent)
     label->setAlignment(Qt::AlignCenter);//文字居中
     layout->addWidget(label,3,0);
 
-    passwordInput=new QLineEdit;
+    passwordInput=new QLineEdit(password);
     passwordInput->setFixedHeight(50);
     passwordInput->setEchoMode(QLineEdit::Password);
     layout->addWidget(passwordInput,3,1,1,6);

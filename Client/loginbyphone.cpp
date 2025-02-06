@@ -6,8 +6,8 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
-LoginByPhoneWidget::LoginByPhoneWidget(QWidget *parent)
-    : QWidget{parent}
+LoginByPhoneWidget::LoginByPhoneWidget(QString phone,QString password)
+    : QWidget{nullptr}
 {
     QGridLayout* layout=new QGridLayout;
     this->setFixedSize(400,600);
@@ -67,7 +67,7 @@ LoginByPhoneWidget::LoginByPhoneWidget(QWidget *parent)
                                  "font-weight: 500;"
                                  "font-family: 'Microsoft YaHei';}").arg(color->main_color,color->main_color));
     layout->addWidget(label,2,0);
-    phoneInput = new QTextEdit;
+    phoneInput = new QLineEdit(phone);
     phoneInput->setFixedHeight(50);
     layout->addWidget(phoneInput,2,1,1,6);
 
@@ -81,7 +81,7 @@ LoginByPhoneWidget::LoginByPhoneWidget(QWidget *parent)
                                  "font-weight: 500;"
                                  "font-family: 'Microsoft YaHei';}").arg(color->main_color,color->main_color));
     layout->addWidget(label,3,0);
-    passwordInput = new QLineEdit;
+    passwordInput = new QLineEdit(password);
     passwordInput->setFixedHeight(50);
     layout->addWidget(passwordInput,3,1,1,6);
 
@@ -118,7 +118,7 @@ LoginByPhoneWidget::LoginByPhoneWidget(QWidget *parent)
 bool LoginByPhoneWidget::check()
 {
     QRegularExpression regex("^[1][3-9][0-9]{9}$");
-    QString phone = phoneInput->toPlainText();
+    QString phone = phoneInput->text();
     if (regex.match(phone).hasMatch() == false)
     {
         QMessageBox::information(this, "Info", "非法手机号！");
@@ -156,9 +156,8 @@ void LoginByPhoneWidget::loginSlot()
         input.type ="ADMIN";
     }
 
-    //toplaintext不知道是什么，用text了
     input.password = passwordInput->text();
-    input.phone = phoneInput->toPlainText();
+    input.phone = phoneInput->text();
 
     emit loginSignal(input);
 }

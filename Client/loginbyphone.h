@@ -9,8 +9,7 @@ class LoginByPhoneWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit LoginByPhoneWidget(QWidget *parent = nullptr);
-
+    explicit LoginByPhoneWidget(QString phone,QString password);
     struct Input
     {
         QString type;
@@ -22,8 +21,7 @@ private:
     QRadioButton* consumerRadio;
     QRadioButton* merchantRadio;
     QRadioButton *adminRadio;
-    QTextEdit* phoneInput;
-    QTextEdit* auth_codeInput;
+    QLineEdit* phoneInput;
     QLineEdit* passwordInput;
 
     QPushButton* loginBtn;

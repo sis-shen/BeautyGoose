@@ -54,13 +54,18 @@ public:
     QString httpUrl = "http://127.0.0.1:80";
     QString sockUrl = "127.0.0.1:8001/websock";
     bool loadConfig();
-
+    bool loadLocalAccount();
+    bool saveLocalAccountByName();
+    bool saveLocalAccountByPhone();
 public:
 //////////////////////
 ///账户子系统
 ////////////////////////
 /// 核心数据缓存
     data::Account* account = nullptr;
+    QString local_username;
+    QString local_phone;
+    QString local_password;
     //接口
     bool getAuthcode(const QString&phoneNumber);
     void accountRegisterAsync(const QString&name,const QString&password,const QString& phone,

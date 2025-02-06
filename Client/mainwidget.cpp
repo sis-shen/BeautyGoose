@@ -64,7 +64,12 @@ void MainWidget::toRegisterSlot()
 void MainWidget::toNameLoginSlot()
 {
     clearAll();
-    LoginByNameWidget* ln = new LoginByNameWidget;
+    auto datacenter = DataCenter::getInstance();
+    LoginByNameWidget* ln = nullptr;
+    if(!datacenter->local_username.isEmpty())
+        ln = new LoginByNameWidget(datacenter->local_username,datacenter->local_password);
+    else
+        ln = new LoginByNameWidget("","");
     this->layout()->addWidget(ln);
     state = Status::LoginByName;
     connect(ln,&LoginByNameWidget::toRegisterSignal,this,&MainWidget::toRegisterSlot);
@@ -75,7 +80,12 @@ void MainWidget::toNameLoginSlot()
 void MainWidget::toPhoneLoginSlot()
 {
     clearAll();
-    LoginByPhoneWidget* lb = new LoginByPhoneWidget;
+    auto datacenter = DataCenter::getInstance();
+    LoginByPhoneWidget* lb = nullptr;
+    if(!datacenter->local_phone.isEmpty())
+        lb = new LoginByPhoneWidget(datacenter->local_phone,datacenter->local_password);
+    else
+        lb = new LoginByPhoneWidget("","");
     this->layout()->addWidget(lb);
     state = Status::LoginByPhone;
     connect(lb,&LoginByPhoneWidget::loginSignal,this,&MainWidget::loginPhoneSlot);
@@ -102,11 +112,15 @@ void MainWidget::registerSlot(RegisterWidget::Input input)
 void MainWidget::loginNameSlot(LoginByNameWidget::Input input)
 {
     DataCenter* datacenter = DataCenter::getInstance();
+    datacenter->local_username = input.name;
+    datacenter->local_password = input.password;
     datacenter->loginByNameAsync(input.name,input.password);
 }
 
 void MainWidget::loginPhoneSlot(LoginByPhoneWidget::Input input)
 {
+    DataCenter::getInstance()->local_phone = input.phone;
+    DataCenter::getInstance()->local_password = input.password;
     DataCenter::getInstance()->loginByPhoneAsync(input.phone,input.password);
 }
 
@@ -170,9 +184,11 @@ void MainWidget::initAccountResponseConnection()
     });
 
     connect(datacenter,&DataCenter::getLoginByNameDone,this,[=](bool ok,const QString&reason){
-        qDebug()<<"登录成功";
+
         if(ok)
         {
+            qDebug()<<"登录成功";
+            datacenter->saveLocalAccountByName();
             if(datacenter->account->type == data::Account::Type::CONSUMER)
             {
                 toConsumerDishListSlot();
@@ -201,6 +217,8 @@ void MainWidget::initAccountResponseConnection()
     connect(datacenter,&DataCenter::getLoginByPhoneDone,this,[=](bool ok,const QString&reason){
         if(ok)
         {
+            qDebug()<<"登录成功";
+            datacenter->saveLocalAccountByPhone();
             if(datacenter->account->type == data::Account::Type::CONSUMER)
             {
                 toConsumerDishListSlot();

@@ -9,6 +9,12 @@ DataCenter::DataCenter()
         qDebug()<<configFileName<<"服务器地址配置错误";
         exit(1);
     }
+    if(!loadLocalAccount())
+    {
+        local_username = "";
+        local_phone = "";
+        local_password = "";
+    }
     qDebug()<<httpUrl;
     client = new network::NetClient(this,httpUrl,sockUrl);
 
@@ -71,6 +77,7 @@ QString DataCenter::DishListToJsonArray(const QList<data::Dish> &dishList)
 bool DataCenter::loadConfig()
 {
     QFile file(configFileName);
+    qDebug()<<"加载配置信息";
     if (file.open(QIODevice::ReadOnly)) {
         QByteArray data = file.readAll();
         QJsonDocument doc = QJsonDocument::fromJson(data);
@@ -92,6 +99,88 @@ bool DataCenter::loadConfig()
     {
         qDebug()<<"文件打开错误";
     }
+    return false;
+}
+
+bool DataCenter::loadLocalAccount()
+{
+    QFile file("./cache/account.json");
+    qDebug()<<"加载本地缓存";
+    if (file.open(QIODevice::ReadOnly)) {
+        QByteArray data = file.readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(data);
+
+        if (doc.isObject()) {
+            QJsonObject jsonObject = doc.object();
+            local_username = jsonObject["username"].toString();
+            local_phone = jsonObject["phone"].toString();
+            local_password = jsonObject["password"].toString();
+
+            qDebug()<<"username"<<local_username;
+            qDebug()<<"phone"<<local_phone;
+            qDebug()<<"password"<<local_password;
+
+            return true;
+        }
+        else
+        {
+            qDebug()<<"无法打开为json";
+        }
+    }
+    else
+    {
+        qDebug()<<"文件打开错误";
+    }
+    return false;
+}
+
+bool DataCenter::saveLocalAccountByName()
+{
+    QFile file("./cache/account.json");
+    qDebug() << "保存本地缓存";
+
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QJsonObject jsonObject;
+        jsonObject["username"] = local_username;
+        // jsonObject["phone"] = local_phone;
+        jsonObject["password"] = local_password;
+
+        QJsonDocument doc(jsonObject);
+        QByteArray data = doc.toJson();
+
+        file.write(data);
+        file.close();
+
+        return true;
+    } else {
+        qDebug() << "文件打开错误";
+    }
+
+    return false;
+}
+
+bool DataCenter::saveLocalAccountByPhone()
+{
+    QFile file("./cache/account.json");
+    qDebug() << "保存本地缓存";
+
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QJsonObject jsonObject;
+        // jsonObject["username"] = local_username;
+        jsonObject["phone"] = local_phone;
+        jsonObject["password"] = local_password;
+
+        QJsonDocument doc(jsonObject);
+        QByteArray data = doc.toJson();
+
+        file.write(data);
+        file.close();
+
+        return true;
+    } else {
+        qDebug() << "文件打开错误";
+    }
+
     return false;
 }
 

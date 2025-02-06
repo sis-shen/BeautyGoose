@@ -68,11 +68,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         NetClient.h NetClient.cpp
         qimg.qrc
         ColorConfig.h
-
-
-
-
+        cache/account.json
     )
+
+configure_file(cache/account.json ${CMAKE_CURRENT_BINARY_DIR}/cache/account.json COPYONLY)
+configure_file(ServerConfig.json ${CMAKE_CURRENT_BINARY_DIR}/ServerConfig.json COPYONLY)
+
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Client APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)

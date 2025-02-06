@@ -13,7 +13,7 @@ class LoginByNameWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit LoginByNameWidget(QWidget *parent = nullptr);
+    explicit LoginByNameWidget(QString name,QString password);
 
     struct Input{
         QString name;
