@@ -21,6 +21,8 @@ public:
     const QString grey = "#555555";
     const QString background_color = "#F3F3F3";
     const QString background_color2 = "#F0F0F0";
+    const QString hover_color = "#F4F4F4";
+    const QString selected_color = "#E0E0E0";
 private:
 };
 

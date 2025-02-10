@@ -10,6 +10,7 @@
 #include "Nav.h"
 #include "CoreData.h"
 #include "DataCenterCoreData.h"
+#include "ColorConfig.h"
 namespace consumer
 {
 namespace orderList
@@ -23,12 +24,16 @@ public:
     OrderItem(const btyGoose::data::Order& order)
         :order_id(order.uuid)
     {
+        auto color = ColorConfig::getInstance();
         this->setFixedSize(1000,200);
-        this->setStyleSheet("QWidget{border: 2px solid black;}");
+        this->setStyleSheet(QString("QWidget{border: 0;background-color:%1;}"
+                                    "QWidget:hover{background-color: %2}"
+                                    "QWidget:checked{background-color: %3}").arg(color->background_color,color->hover_color,color->selected_color));
         QGridLayout* mainLayout = new QGridLayout;
         this->setLayout(mainLayout);
 
         QWidget* mainW = new QWidget;
+        mainW->setStyleSheet("QWidget{border:0}");
         mainLayout->addWidget(mainW);
         QGridLayout* layout = new QGridLayout;
         mainW->setLayout(layout);
