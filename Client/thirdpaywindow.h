@@ -15,7 +15,8 @@ public:
         QVBoxLayout* layout = new QVBoxLayout;
         this->setLayout(layout);
         // 创建控件
-        code_icon = new QLabel("我是一个二维码啊啊啊啊啊啊啊");
+        code_icon = new QLabel;
+        code_icon->setPixmap(QIcon(QPixmap("://qsrc/QRCode.png")).pixmap(400,400));
         code_icon->setFixedSize(400,400);
         payNum =new QLabel("应支付:00元");
         payBtn = new QPushButton("支付");

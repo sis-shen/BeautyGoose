@@ -9,11 +9,13 @@ ConsumerDishDetailWidget::ConsumerDishDetailWidget(const btyGoose::data::Dish* d
     this->setFixedSize(1080,600);
     QWidget* MW = new QWidget;
     QGridLayout* mwl = new QGridLayout;
+    MW->setStyleSheet("QWidget{border:0}");//取消边框显示
+
     this->setLayout(mwl);
     mwl->addWidget(MW);
     QGridLayout* layout = new QGridLayout;
     MW->setLayout(layout);
-    MW->setStyleSheet("QWidget { border: 2px solid black; }");
+    MW->setStyleSheet(QString("QWidget { border: 0px solid black;background-color: %1 }").arg(ColorConfig::getInstance()->background_color));
     upW = new QWidget;
     downW = new QWidget;
     ulW = new QWidget;
@@ -35,6 +37,7 @@ void ConsumerDishDetailWidget::setCnt(int n)
 
 void ConsumerDishDetailWidget::initUp()
 {
+    auto color = ColorConfig::getInstance();
     QGridLayout* ulayout = new QGridLayout;
     upW->setLayout(ulayout);
     ulayout->addWidget(ulW,0,0);
@@ -43,20 +46,33 @@ void ConsumerDishDetailWidget::initUp()
     ulW->setFixedWidth(200);
     QGridLayout* lLayout = new QGridLayout;
     ulW->setLayout(lLayout);
-    //TODO 此处应改为用QICON
-    iconTMP = new QLabel("图片");
-    iconTMP->setFixedSize(200,200);
+
+    QIcon icon = btyGoose::util::getIconFromLink(_dish->icon_path);
+    if(icon.isNull())
+    {
+        //如果图片下载失败，则使用默认图片
+        icon = QIcon(QPixmap("://qsrc/defaultDish.png"));
+    }
+    icon_label = new QLabel();
+    icon_label->setFixedSize(200,200);
+    icon_label->setPixmap(icon.pixmap(200,200));
 
     QLabel* price = new QLabel("价格：" + QString::number(_dish->base_price*_dish->price_factor)+"元");
+    price->setStyleSheet(QString("QLabel{/*border-radius: 15px;*/"
+                                 " border: 2px solid %1;"
+                                 "background-color: %1;}").arg(color->main_color));
     price->setFixedSize(100,50);
 
-    lLayout->addWidget(iconTMP,0,0);
+    lLayout->addWidget(icon_label,0,0);
     lLayout->addWidget(price,1,0);
 
     //右上角初始化
     QGridLayout* rLayout = new QGridLayout;
     urW->setLayout(rLayout);
     QLabel* name = new QLabel(_dish->name);
+    name->setStyleSheet(QString("QLabel{/*border-radius: 15px;*/"
+                                " border: 2px solid %1;"
+                                "background-color: %1;}").arg(color->main_color));
     name->setFixedHeight(40);
     // QLabel* profile = new QLabel("这是一个多行文本\n这是一个多行文本\n这是一个多行文本\n这是一个多行文本\n");
     QLabel* profile = new QLabel(_dish->description);
@@ -83,7 +99,13 @@ void ConsumerDishDetailWidget::initDown()
     addBtn->setFixedHeight(50);
     popBtn->setFixedHeight(50);
     cnt->setFixedHeight(50);
+    auto color = ColorConfig::getInstance();
+    QString btnStyle = QString("QPushButton{border-radius: 15px;"
+                                " border: 2px solid %1;"
+                                "background-color: %1;}").arg(color->main_color);
 
+    addBtn->setStyleSheet(btnStyle);
+    popBtn->setStyleSheet(btnStyle);
     layout->addWidget(addBtn,0,0);
     layout->addWidget(popBtn,1,0);
     layout->addWidget(cnt,2,0);

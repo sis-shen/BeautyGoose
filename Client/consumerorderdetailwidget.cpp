@@ -2,6 +2,7 @@
 #include <QScrollArea>
 #include <QBoxLayout>
 #include <QScrollBar>
+#include "ColorConfig.h"
 using namespace consumer::orderDetail;
 ConsumerOrderDetailWidget::ConsumerOrderDetailWidget(const btyGoose::data::Order& order,const QList<btyGoose::data::OrderDish>*dish_list)
     : order_id(order.uuid),order(order)

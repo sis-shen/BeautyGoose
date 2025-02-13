@@ -26,19 +26,22 @@ public:
     {
         auto color = ColorConfig::getInstance();
         this->setFixedSize(1000,200);
-        this->setStyleSheet(QString("QWidget{border: 0;background-color:%1;}"
-                                    "QWidget:hover{background-color: %2}"
-                                    "QWidget:checked{background-color: %3}").arg(color->background_color,color->hover_color,color->selected_color));
         QGridLayout* mainLayout = new QGridLayout;
         this->setLayout(mainLayout);
 
         QWidget* mainW = new QWidget;
-        mainW->setStyleSheet("QWidget{border:0}");
+        mainW->setObjectName("mainW");
+        mainW->setStyleSheet("QWidget{border:0px;}");
+        mainW->setStyleSheet(QString("QWidget#mainW{border: 2px solid %4;background-color:%1;}"
+                                    "QWidget:hover{background-color: %2}"
+                                    "QWidget:checked{background-color: %3}").arg(color->background_color,color->hover_color,color->selected_color,color->main_color_light));
         mainLayout->addWidget(mainW);
         QGridLayout* layout = new QGridLayout;
         mainW->setLayout(layout);
         QWidget* leftW = new QWidget;
+        // leftW->setStyleSheet(QString("QWidget{background-color:%1}").arg(color->main_color));
         QWidget* rightW = new QWidget;
+        rightW->setStyleSheet("QWidget{border:0px}");
         layout->addWidget(leftW,0,0);
         layout->addWidget(rightW,0,1);
         layout->setAlignment(leftW,Qt::AlignLeft);
@@ -83,8 +86,14 @@ public:
             qDebug()<<"stat:"<<order.status;
             Q_ASSERT(false);
         }
+        QString btnStyle = QString("QPushButton{border-radius: 15px;"
+                                   " border: 2px solid %1;"
+                                   "background-color: %1;}").arg(color->main_color);
         QPushButton* statBtn = new QPushButton(stat);
         QPushButton* infoBtn = new QPushButton("查看");
+
+        statBtn->setStyleSheet(btnStyle);
+        infoBtn->setStyleSheet(btnStyle);
         statBtn->setFixedSize(100,50);
         infoBtn->setFixedSize(100,50);
         QGridLayout* rLayout = new QGridLayout;

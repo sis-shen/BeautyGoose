@@ -7,6 +7,7 @@
 #include <QIcon>
 #include <QPushButton>
 #include "CoreData.h"
+#include "ColorConfig.h"
 class ConsumerDishDetailWidget : public QWidget
 {
     Q_OBJECT
@@ -19,8 +20,7 @@ public:
     const btyGoose::data::Dish* _dish;
 
     // QIcon* icon;//TODO
-    QLabel* iconTMP;
-    // QIcon* iconTMP;
+    QLabel* icon_label;
 
     QWidget* upW;
     QWidget* downW;

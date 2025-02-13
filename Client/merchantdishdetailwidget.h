@@ -7,6 +7,7 @@
 #include <QIcon>
 #include <QPushButton>
 #include "CoreData.h"
+#include "ColorConfig.h"
 class MerchantDishDetailWidget : public QWidget
 {
     Q_OBJECT
