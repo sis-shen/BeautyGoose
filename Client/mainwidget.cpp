@@ -724,6 +724,7 @@ void MainWidget::initMerchantResponseConnection()
         clearAll();
         MerchantDishListWidget* mdl = new MerchantDishListWidget(datacenter->merchant_dish_table);
         this->layout()->addWidget(mdl);
+        this->setFixedSize(1600,900);
         state = Status::DishList;
         //连导航栏
         connect(mdl->leftNavW,&MerchantNavWidget::toUserInfoSignal,this,&MainWidget::toMerchantUserInfoSlot);

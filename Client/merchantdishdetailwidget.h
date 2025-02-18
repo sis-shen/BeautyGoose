@@ -16,7 +16,7 @@ public:
     QString dish_id = "order_id";
     const btyGoose::data::Dish* dish;
     // QIcon* icon;//TODO
-    QLabel* iconTMP;
+    QLabel* icon_label;
 
     QWidget* upW;
     QWidget* downW;

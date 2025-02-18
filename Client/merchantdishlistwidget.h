@@ -25,23 +25,38 @@ public:
     DishItem(const btyGoose::data::Dish& dish)
         :dish_id(dish.uuid)
     {
+        auto color = ColorConfig::getInstance();
         QWidget* mainW = new QWidget;
         QGridLayout*mLaout = new QGridLayout;
         this->setLayout(mLaout);
         mLaout->addWidget(mainW);
 
-        mainW->setStyleSheet("QWidget { border: 2px solid black; }");
+        // mainW->setStyleSheet("QWidget { border: 2px solid black; }");
+        mainW->setStyleSheet(QString("QWidget{border-radius: 15px;"
+                                     " border: 2px solid %1;"
+                                     "background-color: %2;}").arg(color->main_color_light,color->main_color_light));
 
         QGridLayout* layout = new QGridLayout;
         mainW->setLayout(layout);
-
-        QLabel* icon = new QLabel("图标");
-        icon->setFixedSize(50,50);
+        QIcon icon = btyGoose::util::getIconFromLink(dish.icon_path);
+        if(icon.isNull())
+        {
+            //如果图片下载失败，则使用默认图片
+            icon = QIcon(QPixmap("://qsrc/defaultDish.png"));
+        }
+        QLabel* icon_label = new QLabel();
+        icon_label->setFixedSize(50,50);
+        icon_label->setPixmap(icon.pixmap(50,50));
         QPushButton* dishName = new QPushButton(dish.name);
+        dishName->setStyleSheet(QString("QLabel{border-radius: 15px;"
+                                            " border: 2px solid %1;"
+                                            "background-color: %1;}").arg(color->main_color));
         dishName->setFixedHeight(50);
         QLabel* dishPrice = new QLabel("价格：" + QString::number(dish.base_price*dish.price_factor));
-
-        layout->addWidget(icon,0,0);
+        dishPrice->setStyleSheet(QString("QLabel{border-radius: 15px;"
+                                            " border: 2px solid %1;"
+                                            "background-color: %1;}").arg(color->main_color));
+        layout->addWidget(icon_label,0,0);
         layout->addWidget(dishName,0,1);
         layout->addWidget(dishPrice,0,2);
 
