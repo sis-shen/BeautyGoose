@@ -1,0 +1,22 @@
+services:
+  server:
+    build:
+      context: ./server
+    image: btygoose:v1.0
+    ports:
+      - 30001:80
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=Password!1
+    volumes:
+      - ./mysql/varlib/:/var/lib/mysql 
+      - ./mysql/initdb:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: ["mysql", "-u","BeautyGoose", "-p","Password!1","-e", " 'select 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
