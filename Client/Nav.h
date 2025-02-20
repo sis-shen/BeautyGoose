@@ -10,6 +10,7 @@
 #include <QStyleFactory>
 
 #include "ColorConfig.h"
+#include "datacenter.h"
 class ConsumerNavWidget:public QWidget
 {
     Q_OBJECT
@@ -188,23 +189,87 @@ public:
         this->setLayout(mainLayout);
         mainLayout->addWidget(mainW);
         mainW->setStyleSheet("QWidget { border: 2px solid black;}");
-        viewUserInfo = new QPushButton("查看个人信息");
-        viewUserInfo->setFixedSize(100,100);
-        viewDishList = new QPushButton("查看菜品列表");
-        viewOrderList = new QPushButton("查看订单列表");
-        dishRegister = new QPushButton("注册菜品");
-
         QGridLayout* layout = new QGridLayout;
         mainW->setLayout(layout);
-        layout->addWidget(viewUserInfo,0,0);
-        layout->addWidget(viewDishList,1,0);
-        layout->addWidget(viewOrderList,2,0);
-        layout->addWidget(dishRegister,3,0);
+
+        QGridLayout* lay = nullptr;
+        QWidget* widget = nullptr;
+
+        viewUserInfo = new QPushButton("查看个人信息");
+        viewUserInfo->setFixedSize(100,25);
+        viewUserInfo->setStyleSheet("QPushButton{text-align:center;}");
+        QPushButton* userInfoBtn = new QPushButton;
+        // QIcon icon(QPixmap(DataCenter::getInstance()->account->icon));
+        userInfoBtn->setIcon(QIcon(QPixmap("://qsrc/avatar.png")));
+        userInfoBtn->setIconSize(QSize(100,100));
+        widget = new QWidget;
+        lay = new QGridLayout;
+        widget->setLayout(lay);
+        lay->setSpacing(0);
+        lay->addWidget(userInfoBtn,0,0);
+        lay->addWidget(viewUserInfo,1,0);
+        lay->setAlignment(Qt::AlignTop);
+        layout->addWidget(widget,0,0);
+
+        viewDishList = new QPushButton("查看菜品列表");
+        viewDishList->setFixedSize(100,25);
+        viewDishList->setStyleSheet("QPushButton{text-align:center;}");
+        QPushButton* dishListBtn = new QPushButton;
+        dishListBtn->setIcon(QIcon(QPixmap("://qsrc/dishList.png")));
+        dishListBtn->setIconSize(QSize(100,100));
+        widget = new QWidget;
+        lay = new QGridLayout;
+        widget->setLayout(lay);
+        lay->setSpacing(0);
+        lay->addWidget(dishListBtn,0,0);
+        lay->addWidget(viewDishList,1,0);
+        lay->setAlignment(Qt::AlignTop);
+        layout->addWidget(widget,1,0);
+
+        viewOrderList = new QPushButton("查看订单列表");
+        viewOrderList->setFixedSize(100,25);
+        viewOrderList->setStyleSheet("QPushButton{text-align:center;}");
+        QPushButton* orderListBtn = new QPushButton;
+        orderListBtn->setIcon(QIcon(QPixmap("://qsrc/order.png")));
+        orderListBtn->setIconSize(QSize(100,100));
+        widget = new QWidget;
+        lay = new QGridLayout;
+        widget->setLayout(lay);
+        lay->setSpacing(0);
+        lay->addWidget(orderListBtn,0,0);
+        lay->addWidget(viewOrderList,1,0);
+        lay->setAlignment(Qt::AlignTop);
+        layout->addWidget(widget,2,0);
+
+        dishRegister = new QPushButton("注册菜品");
+        dishRegister->setFixedSize(100,25);
+        dishRegister->setStyleSheet("QPushButton{text-align:center;}");
+        QPushButton* dishRegisterBtn = new QPushButton;
+        dishRegisterBtn->setIcon(QIcon(QPixmap("://qsrc/edit.png")));
+        dishRegisterBtn->setIconSize(QSize(100,100));
+        widget = new QWidget;
+        lay = new QGridLayout;
+        widget->setLayout(lay);
+        lay->setSpacing(0);
+        lay->addWidget(dishRegisterBtn,0,0);
+        lay->addWidget(dishRegister,1,0);
+        lay->setAlignment(Qt::AlignTop);
+        layout->addWidget(widget,3,0);
+
+
+        // layout->addWidget(viewUserInfo,0,0);
+        // layout->addWidget(viewDishList,1,0);
+        // layout->addWidget(viewOrderList,2,0);
+        // layout->addWidget(dishRegister,3,0);
 
         connect(viewUserInfo,&QPushButton::clicked,this,&MerchantNavWidget::toUserInfoSlot);
+        connect(userInfoBtn,&QPushButton::clicked,this,&MerchantNavWidget::toUserInfoSlot);
         connect(viewDishList,&QPushButton::clicked,this,&MerchantNavWidget::toDishListSlot);
+        connect(dishListBtn,&QPushButton::clicked,this,&MerchantNavWidget::toDishListSlot);
         connect(viewOrderList,&QPushButton::clicked,this,&MerchantNavWidget::toOrderListSlot);
+        connect(orderListBtn,&QPushButton::clicked,this,&MerchantNavWidget::toOrderListSlot);
         connect(dishRegister,&QPushButton::clicked,this,&MerchantNavWidget::toDishRegisterWindowSlot);
+        connect(dishRegisterBtn,&QPushButton::clicked,this,&MerchantNavWidget::toDishRegisterWindowSlot);
 
     }
 public slots:

@@ -9,5 +9,6 @@
         <file>qsrc/order.png</file>
         <file>qsrc/defaultDish.png</file>
         <file>qsrc/QRCode.png</file>
+        <file>qsrc/edit.png</file>
     </qresource>
 </RCC>

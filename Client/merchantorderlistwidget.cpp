@@ -22,10 +22,10 @@ MerchantOrderListWidget::MerchantOrderListWidget(const QHash<QString,btyGoose::d
 
 void MerchantOrderListWidget::initRight()
 {
-    rightW->setStyleSheet("QWidget { border: 2px solid black; }");
     rightW->setFixedWidth(1000);
     rightW->setFixedHeight(800);
-    rightW->setStyleSheet("QWidget { border: 2px solid black; }");
+    rightW->setObjectName("rightW");
+    rightW->setStyleSheet("QWidget#rightW { border: 2px solid black; }");
     QGridLayout* glayout = new QGridLayout;
     rightW->setLayout(glayout);
     QScrollArea* sa = new QScrollArea;

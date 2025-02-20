@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QList>
 #include "CoreData.h"
+#include "ColorConfig.h"
 namespace merchant
 {
 namespace orderList
@@ -24,12 +25,16 @@ public:
     OrderItem(const btyGoose::data::Order& order)
         :order_id(order.uuid)
     {
+        auto color = ColorConfig::getInstance();
         QWidget* mainW = new QWidget;
         QGridLayout*mLaout = new QGridLayout;
         this->setLayout(mLaout);
         mLaout->addWidget(mainW);
-
-        mainW->setStyleSheet("QWidget { border: 2px solid black; }");
+        QString btnStyle = QString("QPushButton{border-radius: 15px;"
+                                   " border: 2px solid %1;"
+                                   "background-color: %1;}").arg(color->main_color);
+        mainW->setStyleSheet("QWidget { border: 0px solid black;");
+        mainW->setStyleSheet(btnStyle);
 
         QGridLayout* layout = new QGridLayout;
         mainW->setLayout(layout);
