@@ -14,7 +14,8 @@ DatabaseClient::DatabaseClient()
             exit(-1);
         }
         sql::mysql::MySQL_Driver *driver = sql::mysql::get_mysql_driver_instance();
-        con = driver->connect("tcp://"+host+":"+port, "btyGooseUser", "low_password");
+        cout<<"开始连接数据库" << "tcp://"+host+":"+port << "\nuser: " << user <<"\npassword: "<<password<<"\n";
+        con = driver->connect("tcp://"+host+":"+port, user, password);
         con->setSchema("BeautyGoose");
         stmt = con->createStatement();
     } catch (sql::SQLException &e) {
