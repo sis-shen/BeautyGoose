@@ -1,8 +1,43 @@
 #pragma once
 #include <string>
+#include <random>
+#include <array>
 #include <jsoncpp/json/json.h>
-
+#include <chrono>
 namespace btyGoose{
+
+    namespace util{
+        static uint64_t getSecTime()
+        {
+            return std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::system_clock::now().time_since_epoch()
+            ).count();
+        }
+
+        static std::string makeId(const char pre = '#')
+        {
+            // 生成6字节随机数 (6*8=48bit)
+            std::array<uint8_t, 6> bytes;
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            
+            // 填充随机字节
+            for (auto& byte : bytes) {
+                byte = static_cast<uint8_t>(gen() & 0xFF);
+            }
+
+            // 转换字节为十六进制字符串
+            constexpr char hexmap[] = "0123456789abcdef";
+            std::string id(13, pre); // 预填充前缀+12字符
+            for (int i = 0; i < 6; ++i) {
+                id[1 + 2*i] = hexmap[(bytes[i] & 0xF0) >> 4]; // 高四位
+                id[2 + 2*i] = hexmap[bytes[i] & 0x0F];        // 低四位
+            }
+
+            return id;
+        }
+    }
+
     /// <summary>
 	/// 定义核心数据结构
 	/// </summary>
@@ -89,7 +124,7 @@ namespace btyGoose{
 
     //存放重载函数
     namespace json{
-        std::string toJson(data::Account acc)
+        static std::string toJson(data::Account acc)
         {
             Json::Value root;
         
@@ -113,7 +148,7 @@ namespace btyGoose{
             return Json::writeString(writer, root);
         }
 
-        data::Account createAccount(const std::string& jsonStr) {
+        static data::Account createAccount(const std::string& jsonStr) {
             Json::Value root;
             JSONCPP_STRING errs;
             Json::CharReaderBuilder reader;
@@ -140,7 +175,7 @@ namespace btyGoose{
             return acc;
         }
 
-        std::string toJson(data::Dish dish)
+        static std::string toJson(data::Dish dish)
         {
             Json::Value root;
             root["uuid"] = dish.uuid;
@@ -158,7 +193,7 @@ namespace btyGoose{
             return Json::writeString(writer, root);
         }
 
-        data::Dish createDish(const std::string& jsonStr) {
+        static data::Dish createDish(const std::string& jsonStr) {
             Json::Value root;
             JSONCPP_STRING errs;
             Json::CharReaderBuilder reader;
@@ -183,51 +218,51 @@ namespace btyGoose{
         }
 
             //====== Order结构体 =⭐️=//
-    std::string toJson(data::Order order) {
-        Json::Value root;
-        root["merchant_id"] = order.merchant_id;
-        root["merchant_name"] = order.merchant_name;
-        root["consumer_id"] = order.consumer_id;
-        root["consumer_name"] = order.consumer_name;
-        root["time"] = order.time;
-        root["level"] = static_cast<int>(order.level);
-        root["pay"] = order.pay;
-        root["uuid"] = order.uuid;
-        root["status"] = static_cast<int>(order.status);
-        root["sum"] = order.sum;
+            static std::string toJson(data::Order order) {
+                Json::Value root;
+                root["merchant_id"] = order.merchant_id;
+                root["merchant_name"] = order.merchant_name;
+                root["consumer_id"] = order.consumer_id;
+                root["consumer_name"] = order.consumer_name;
+                root["time"] = order.time;
+                root["level"] = static_cast<int>(order.level);
+                root["pay"] = order.pay;
+                root["uuid"] = order.uuid;
+                root["status"] = static_cast<int>(order.status);
+                root["sum"] = order.sum;
 
-        Json::StreamWriterBuilder writer;
-        writer["indentation"] = "    ";
-        return Json::writeString(writer, root);
-    }
+                Json::StreamWriterBuilder writer;
+                writer["indentation"] = "    ";
+                return Json::writeString(writer, root);
+            }
 
-    data::Order createOrder(const std::string& jsonStr) {
-        Json::Value root;
-        JSONCPP_STRING errs;
-        Json::CharReaderBuilder reader;
-        
-        std::unique_ptr<Json::CharReader> jsonReader(reader.newCharReader());
-        if(!jsonReader->parse(jsonStr.data(), jsonStr.data()+jsonStr.size(), &root, &errs)) {
-            throw std::runtime_error("Order解析失败: " + errs);
+            static data::Order createOrder(const std::string& jsonStr) {
+            Json::Value root;
+            JSONCPP_STRING errs;
+            Json::CharReaderBuilder reader;
+            
+            std::unique_ptr<Json::CharReader> jsonReader(reader.newCharReader());
+            if(!jsonReader->parse(jsonStr.data(), jsonStr.data()+jsonStr.size(), &root, &errs)) {
+                throw std::runtime_error("Order解析失败: " + errs);
+            }
+
+            data::Order order;
+            if(root.isMember("merchant_id")) order.merchant_id = root["merchant_id"].asString();
+            if(root.isMember("merchant_name")) order.merchant_name = root["merchant_name"].asString();
+            if(root.isMember("consumer_id")) order.consumer_id = root["consumer_id"].asString();
+            if(root.isMember("consumer_name")) order.consumer_name = root["consumer_name"].asString();
+            if(root.isMember("time")) order.time = root["time"].asString();
+            if(root.isMember("level")) order.level = static_cast<data::Account::Level>(root["level"].asInt());
+            if(root.isMember("pay")) order.pay = root["pay"].asDouble();
+            if(root.isMember("uuid")) order.uuid = root["uuid"].asString();
+            if(root.isMember("status")) order.status = static_cast<data::Order::Status>(root["status"].asInt());
+            if(root.isMember("sum")) order.sum = root["sum"].asInt();
+
+            return order;
         }
 
-        data::Order order;
-        if(root.isMember("merchant_id")) order.merchant_id = root["merchant_id"].asString();
-        if(root.isMember("merchant_name")) order.merchant_name = root["merchant_name"].asString();
-        if(root.isMember("consumer_id")) order.consumer_id = root["consumer_id"].asString();
-        if(root.isMember("consumer_name")) order.consumer_name = root["consumer_name"].asString();
-        if(root.isMember("time")) order.time = root["time"].asString();
-        if(root.isMember("level")) order.level = static_cast<data::Account::Level>(root["level"].asInt());
-        if(root.isMember("pay")) order.pay = root["pay"].asDouble();
-        if(root.isMember("uuid")) order.uuid = root["uuid"].asString();
-        if(root.isMember("status")) order.status = static_cast<data::Order::Status>(root["status"].asInt());
-        if(root.isMember("sum")) order.sum = root["sum"].asInt();
-
-        return order;
-    }
-
     //====== OrderDish结构体 ======//
-    std::string toJson(data::OrderDish orderDish) {
+    static std::string toJson(data::OrderDish orderDish) {
         Json::Value root;
         root["order_id"] = orderDish.order_id;
         root["dish_id"] = orderDish.dish_id;
@@ -241,7 +276,7 @@ namespace btyGoose{
         return Json::writeString(writer, root);
     }
 
-    data::OrderDish createOrderDish(const std::string& jsonStr) {
+    static data::OrderDish createOrderDish(const std::string& jsonStr) {
         Json::Value root;
         JSONCPP_STRING errs;
         Json::CharReaderBuilder reader;

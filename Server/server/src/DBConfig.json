@@ -1,0 +1,7 @@
+{
+    "database" : "BeautyGoose",
+    "host" : "127.0.0.1",
+    "password" : "low_password",
+    "port" : "3306",
+    "user" : "btyGooseUser"
+}
