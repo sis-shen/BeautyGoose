@@ -6,17 +6,17 @@ services:
     ports:
       - 30001:80
     depends_on:
-      - db
-
+      db:
+        condition: service_healthy
   db:
     image: mysql:8.0
     environment:
-      - MYSQL_ROOT_PASSWORD=Password!1
+      MYSQL_ROOT_PASSWORD: "Password!1"
     volumes:
       - ./mysql/varlib/:/var/lib/mysql 
       - ./mysql/initdb:/docker-entrypoint-initdb.d/
     healthcheck:
-      test: ["mysql", "-u","BeautyGoose", "-p","Password!1","-e", " 'select 1'"]
+      test: mysql -uroot -pPassword!1 -e 'select 1'
       interval: 10s
       timeout: 5s
       retries: 5
