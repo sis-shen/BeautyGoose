@@ -1,10 +1,10 @@
 -- 创建数据库
 DROP DATABASE if EXISTS BeautyGoose;
+DROP USER IF EXISTS btyGooseUser;
 CREATE DATABASE BeautyGoose DEFAULT CHARACTER SET utf8mb4;
 
 -- 创建用户和赋予权限
-set global validate_password_policy = 'LOW';
-create user 'btyGooseUser'@'%' identified by 'low_password';
+CREATE USER 'btyGooseUser'@'%' IDENTIFIED BY 'Password!1';
 grant all on BeautyGoose.* to 'btyGooseUser'@'%';
 flush privileges;
 
@@ -46,6 +46,15 @@ create table orders(
     pay decimal(10,2) not null default 0,
     status tinyint not null default 0,
     sum int not null
+);
+
+create table orderDish(
+    order_id varchar(13) not null,
+    dish_id varchar(13) not null,
+    merchant_id varchar(13) not null,
+    name varchar(10) not null,
+    dish_price decimal(6,2),
+    count int not null default 0
 );
 
 create table history(
