@@ -738,7 +738,7 @@ void btyGoose::HTTPServer::initMerchantAPI()
                 throw HTTPException("菜品不存在");
             }
             
-            resJson = json::toJson(dish);
+            resJson["dish"] = json::toJson(dish);
             res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
             res.set_header("Content-Type", "application/json");
         }
