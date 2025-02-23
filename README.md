@@ -1,24 +1,30 @@
+# v2.0重大版本更新
++ 服务端完成开发与部署环境迁移
+    + 从Windows11 平台转移到了 Ubuntu22.04云服务器环境
++ Docker容器与镜像管理技术引入，使用docker-compose.yml实现一键构建和部署
+
 # BeautyGoose
 一款基于QT框架，采用CS架构的外卖模拟平台
 
-[戳我去博客网站](https://www.supdriver.top/2025/01/15/BeautyGoose-collection/)
+[戳我去博客网站](https://www.supdriver.top/2025/02/23/BeautyGoose-collection2/)
 
 # 项目介绍
-为客户提供一个C/S架构的外卖平台，使用Qt框架和cpp-httplib 等模块实现其业务功能。能够服务消费者，商家和管理员的使用需求，目前支持的平台为Windows平台。
+为客户提供一个C/S架构的外卖平台，使用Qt框架和cpp-httplib 等模块实现其业务功能。能够服务消费者，商家和管理员的使用需求，目前支持的客户端平台为Windows平台。服务端平台只需支持Docker即可
 
 使用的技术点有:
 
 + QT界面框架
-+ QT Json处理模块
++ Json序列化与反序列化
 + cpp-httplib库
 + MySQL connector/c++
++ Docker容器与镜像管理技术
 
 ## 运行环境
-*当前版本v1.0*
+*当前版本v2.0*
 
 客户端: windows 11
 
-服务端: windows 11
+服务端: 阿里云ECS云服务器 ubuntu 22.04
 ## 需求分析
 
 ### 用户需求
@@ -286,7 +292,7 @@ create table historyDish(
 # 客户端详细设计
 
 ## 版本信息
-**当前版本**: v0.9测试版
+**当前版本**: v1.0正式版
 
 当前版本的界面属于类似于毛坯房的只有UI结构和功能而没有美化，且所有的图片显示均尚未处理,均使用了QLabel进行占位
 
@@ -400,9 +406,6 @@ create table historyDish(
 ## 类图设计
 ![](https://picbed0521.oss-cn-shanghai.aliyuncs.com/blogpic/202501201231850.webp)
 
-# 客户端实现
-[戳我🔗去github的release页面获取当前版本的源码](https://github.com/sis-shen/BeautyGoose/releases/tag/v0.9)
-
 
 # 服务端详细设计
 ## 版本信息
@@ -455,6 +458,3 @@ create table historyDish(
 | 路径 | 业务 |
 | --- | --- |
 | `/admin/order/list` | 管理员获取订单列表 |
-
-# 服务端实现
-[戳我🔗去github的release页面获取当前版本的源码](https://github.com/sis-shen/BeautyGoose/releases/tag/v0.9)
