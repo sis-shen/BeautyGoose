@@ -8,6 +8,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:  # 新增网络配置
+      - btygoose_net
   db:
     image: mysql:8.0
     environment:
@@ -20,3 +22,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:  # 新增网络配置
+      - btygoose_net
+
+networks:  # 新增网络定义
+  btygoose_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16  # 自定义子网
