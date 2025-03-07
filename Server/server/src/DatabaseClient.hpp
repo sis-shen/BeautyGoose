@@ -37,7 +37,9 @@ private:
 
 	std::mutex mtx;
 public:
+	void init(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database);
 
+	void start();
 	bool loadConfig();
 	void saveConfig();
 

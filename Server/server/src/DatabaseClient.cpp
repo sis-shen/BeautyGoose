@@ -7,12 +7,21 @@ using namespace std;
 
 DatabaseClient::DatabaseClient()
 {
+
+}
+
+void DatabaseClient::init(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database)
+{
+    user = _user;
+    password = _password;
+    host = _host;
+    port = _port;
+    database = _database;
+}
+
+void DatabaseClient::start()
+{
     try {
-        if(!loadConfig())
-        {
-            saveConfig();
-            exit(-1);
-        }
         sql::mysql::MySQL_Driver *driver = sql::mysql::get_mysql_driver_instance();
         cout<<"开始连接数据库" << "tcp://"+host+":"+port << "\nuser: " << user <<"\npassword: "<<password<<"\n";
         con = driver->connect("tcp://"+host+":"+port, user, password);
@@ -22,52 +31,6 @@ DatabaseClient::DatabaseClient()
         cerr << "数据库连接失败喵！错误码: " << e.getErrorCode() 
              << ", 信息: " << e.what() << endl;
     }
-}
-
-void DatabaseClient::saveConfig()
-{
-    Json::Value root;
-    root["user"] = user;
-    root["password"] = password;
-    root["host"] = host;
-    root["port"] = port;
-    root["database"] = database;
-
-    Json::StreamWriterBuilder writer;
-    writer["indentation"] = "    ";
-    std::ofstream ofs("DBConfig.json",std::ios::out | std::ios::trunc);
-
-    ofs << Json::writeString(writer, root);
-    ofs.close();
-}
-
-bool DatabaseClient::loadConfig()
-{
-    std::ifstream ifs("DBConfig.json",std::ios::in);
-    if(!ifs.is_open())
-    {
-        std::cerr<<"数据库配置文件打开失败\n";
-        return false;
-    }
-
-    Json::Value root;
-    Json::CharReaderBuilder readerBuilder;
-    std::string errs;
-
-    bool parsingSuccessful = Json::parseFromStream(readerBuilder, ifs, &root, &errs);
-
-    if (!parsingSuccessful) {
-        // 错误处理
-        throw std::runtime_error("JSON解析失败: " + errs);
-    }
-
-    user = root["user"].asString();
-    password = root["password"].asString();
-    host = root["host"].asString();
-    port = root["port"].asString() ;
-    database = root["database"].asString();
-
-    return true;
 }
 
 //━━━━━━━━━━━━━━ Account CRUD实现 ━━━━━━━━━━━━━━//

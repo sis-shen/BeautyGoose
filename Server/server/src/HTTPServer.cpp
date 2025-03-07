@@ -7,7 +7,19 @@ HTTPServer* HTTPServer::_ins = nullptr;
 using std::cout;
 btyGoose::HTTPServer::HTTPServer()
 {
-    loadConfig();
+
+}
+
+void btyGoose::HTTPServer::initDB(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database)
+{
+    db.init(_user,_password,_host,_port,_database);
+    db.start();
+}
+
+void btyGoose::HTTPServer::init(const std::string& _host,const uint32_t _port)
+{
+    host = _host;
+    port = _port;
     initTestAPI();
     initAccountAPI();
     initConsumerAPI();
@@ -19,44 +31,6 @@ btyGoose::HTTPServer::HTTPServer()
 void btyGoose::HTTPServer::start()
 {
     cout <<svr.listen(host, port);
-}
-
-bool btyGoose::HTTPServer::loadConfig()
-{
-    std::ifstream file("serverConfig.json", std::ios::in);
-    if (file.is_open()) {
-        // 读取文件内容到字符串
-        std::string data((std::istreambuf_iterator<char>(file)), 
-                        std::istreambuf_iterator<char>());
-        
-        Json::Value root;
-        Json::Reader reader;
-        
-        if (reader.parse(data, root)) {
-            host = root["host"].asString();
-            port = root["port"].asInt();
-            return true;
-        }
-    }
-    // 反序列化失败时生成默认配置
-    saveConfig();
-    return false;
-}
-
-void btyGoose::HTTPServer::saveConfig()
-{
-    std::ofstream file("serverConfig.json", std::ios::out);
-    if (file.is_open()) {
-        Json::Value root;
-        root["host"] = host;
-        root["port"] = port;
-
-        Json::StreamWriterBuilder writer;
-        file << Json::writeString(writer, root);
-        file.close();
-    } else {
-        std::cerr << "无法打开服务器配置文件" << std::endl;
-    }
 }
 
 void btyGoose::HTTPServer::initTestAPI()

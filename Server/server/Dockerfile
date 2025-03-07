@@ -3,11 +3,10 @@ RUN apt update -y && apt install -y g++ \
     make \
     libmysqlcppconn-dev \
     libjsoncpp-dev \
-    libboost-system-dev
+    libboost-system-dev\
+    libgflags-dev
 COPY ./src* /src
-RUN echo '{"host" : "0.0.0.0","port" : 80}' > /src/serverConfig.json && \
-    echo  '{"database" : "BeautyGoose","host" : "db","password" : "Password!1","port" : "3306","user" : "btyGooseUser"}' > /src/DBConfig.json
 
 WORKDIR /src
 RUN make
-CMD ["/src/server"]
+CMD ["/src/server","--flagfile=server.conf"]

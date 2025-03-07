@@ -37,11 +37,10 @@ public:
 
 		return _ins;
 	}
+	void initDB(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database);
+	void init(const std::string&ip,const uint32_t port);
 
 	void start();
-
-	bool loadConfig();
-	void saveConfig();
 
 	void initTestAPI();
 	void initAccountAPI();
@@ -64,8 +63,8 @@ public:
 private:
 	httplib::Server svr;
 	DatabaseClient db;
-	string host = "127.0.0.1";
-	int port = 80;
+	string host;
+	int port;
 };
 }
 
