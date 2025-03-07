@@ -3,6 +3,11 @@
     + 从Windows11 平台转移到了 Ubuntu22.04云服务器环境
 + Docker容器与镜像管理技术引入，使用docker-compose.yml实现一键构建和部署
 
+# v2.1参数更新
++ 删除了json配置文件，添加了.conf配置文件
++ 使用`gflags`库用于命令行参数的声明和解析
++ 使用.conf配置文件控制参数
+
 # BeautyGoose
 一款基于QT框架，采用CS架构的外卖模拟平台
 
