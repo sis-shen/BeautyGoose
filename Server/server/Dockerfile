@@ -4,9 +4,11 @@ RUN apt update -y && apt install -y g++ \
     libmysqlcppconn-dev \
     libjsoncpp-dev \
     libboost-system-dev\
-    libgflags-dev
+    libgflags-dev \ 
+    libfmt-dev \
+    libspdlog-dev
 COPY ./src* /src
 
 WORKDIR /src
-RUN make
+RUN make && mkdir logs
 CMD ["/src/server","--flagfile=server.conf"]

@@ -1,4 +1,4 @@
-LDLIBS = -lmysqlcppconn -ljsoncpp -lpthread -lgflags
+LDLIBS = -lmysqlcppconn -ljsoncpp -lpthread -lgflags -lfmt
 
 server:main.o DatabaseClient.o HTTPServer.o
 	g++ -o $@ *.o -std=c++17 $(LDLIBS)
