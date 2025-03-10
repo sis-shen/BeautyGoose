@@ -12,6 +12,7 @@ btyGoose::HTTPServer::HTTPServer()
 
 void btyGoose::HTTPServer::initDB(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database)
 {
+    // LOG_TRACE("HTTPServer: 开始初始化db");
     db.init(_user,_password,_host,_port,_database);
     db.start();
 }

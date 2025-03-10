@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreData.hpp"
+#include "logger.hpp"
 
 #include <cppconn/prepared_statement.h>
 #include <cppconn/statement.h>

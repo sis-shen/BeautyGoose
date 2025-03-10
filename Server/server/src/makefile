@@ -1,6 +1,6 @@
 LDLIBS = -lmysqlcppconn -ljsoncpp -lpthread -lgflags -lfmt
 
-server:main.o DatabaseClient.o HTTPServer.o
+server:main.o DatabaseClient.o HTTPServer.o logger.o
 	g++ -o $@ *.o -std=c++17 $(LDLIBS)
 
 server-static:main.o DatabaseClient.o HTTPServer.o
@@ -14,6 +14,9 @@ DatabaseClient.o:DatabaseClient.cpp
 
 HTTPServer.o:HTTPServer.cpp
 	g++ -c HTTPServer.cpp -o HTTPServer.o -std=c++17 
+
+logger.o:logger.cpp
+	g++ -c logger.cpp -o logger.o -std=c++17 
 
 .PHONY:clean
 clean:
