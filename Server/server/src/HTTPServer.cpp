@@ -26,18 +26,20 @@ void btyGoose::HTTPServer::init(const std::string& _host,const uint32_t _port)
     initConsumerAPI();
     initMerchantAPI();
     initAdminAPI();
-    cout<<"comlete init!\n";
+    LOG_DEBUG("HTTPServer初始化完成");
 }
 
 void btyGoose::HTTPServer::start()
 {
+    LOG_DEBUG("HTTPServer开始监听{}:{}",host,port);
     cout <<svr.listen(host, port);
 }
 
 void btyGoose::HTTPServer::initTestAPI()
 {
     svr.Get("/ping", [=](const httplib::Request& req, httplib::Response& res) {
-        cout << "/ping";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        cout << "/ping\n";
         res.body = "pong";
         res.set_header("Content-Type", "application/text;charset=UTF-8");
         });
@@ -47,21 +49,20 @@ void btyGoose::HTTPServer::initAccountAPI()
 {
     // 用户名登录
     svr.Post("/account/login/username", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "[INFO] /account/login/username received POST request\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
         Json::Value reqJson, resJson;
         Json::Reader reader;
         
         // 解析JSON请求体
         if (!reader.parse(req.body, reqJson)) {
-            std::cerr << "[ERROR] 无效的JSON格式: " << req.body << std::endl;
+            LOG_ERROR("[用户名登录] 无效的JSON格式: {}",req.body);
             resJson["success"] = false;
             resJson["message"] = "无效的JSON格式";
             res.body = Json::FastWriter().write(resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
             return;
         }
-
         try {
             data::Account record_acc = db.searchAccountByName(reqJson["name"].asString());
             
@@ -70,35 +71,37 @@ void btyGoose::HTTPServer::initAccountAPI()
                 resJson["success"] = true;
                 resJson["message"] = "登录认证成功";
                 resJson["account"] = json::toJson(record_acc); // 假设已实现toJson方法
+                LOG_INFO("登录成功,id:{}",record_acc.uuid);
             } else {
                 // 登录失败响应
                 resJson["success"] = false;
                 resJson["message"] = "登录认证失败";
+                LOG_INFO("登录失败,id:{}",record_acc.uuid);
+
             }
             
             res.body = Json::FastWriter().write(resJson);
         }
         catch (const HTTPException& e) {
-            std::cerr << "[ERROR] " << e.what() << std::endl;
+            LOG_ERROR("账户登录出错,信息:{}",e.what());
             res.status = 500;
             resJson["success"] = false;
             resJson["message"] = e.what();
             res.body = Json::FastWriter().write(resJson);
         }
         
-        std::cout << "[INFO] 用户名登录处理完成\n";
         res.set_header("Content-Type", "application/json;charset=UTF-8");
     });
 
     // 手机号登录
     svr.Post("/account/login/phone", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "[INFO] /account/login/phone received POST request\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
         Json::Value reqJson, resJson;
         Json::Reader reader;
         
         if (!reader.parse(req.body, reqJson)) {
-            std::cerr << "[ERROR] 无效的JSON格式: " << req.body << std::endl;
+            LOG_ERROR("[手机号登录]无效的JSON格式:{}",req.body);
             resJson["success"] = false;
             resJson["message"] = "无效的JSON格式";
             res.body = Json::FastWriter().write(resJson);
@@ -113,14 +116,17 @@ void btyGoose::HTTPServer::initAccountAPI()
                 resJson["success"] = true;
                 resJson["message"] = "手机登录成功";
                 resJson["account"] = json::toJson(record_acc);
+                LOG_INFO("手机号登录成功,id:{}",record_acc.uuid);
             } else {
                 resJson["success"] = false;
                 resJson["message"] = "手机认证失败";
+                LOG_INFO("手机号登录认证失败,id:{}",record_acc.uuid);
             }
             
             res.body = Json::FastWriter().write(resJson);
         }
         catch (const HTTPException& e) {
+            LOG_ERROR("[手机号登录出错],信息:{}",e.what());
             std::cerr << "[ERROR] " << e.what() << std::endl;
             res.status = 500;
             resJson["success"] = false;
@@ -133,14 +139,14 @@ void btyGoose::HTTPServer::initAccountAPI()
 
     // 账户注册
     svr.Post("/account/register", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "[INFO] 开始处理用户注册\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
         Json::Value reqJson, resJson;
         Json::Reader reader;
         res.set_header("Content-Type", "application/json;charset=UTF-8");
 
         if (!reader.parse(req.body, reqJson)) {
-            std::cerr << "[ERROR] 注册请求解析失败: " << req.body << std::endl;
+            LOG_ERROR("[账户注册]无效的JSON格式:{}",req.body);
             resJson["success"] = false;
             resJson["message"] = "无效的JSON格式";
             res.body = Json::FastWriter().write(resJson);
@@ -159,7 +165,7 @@ void btyGoose::HTTPServer::initAccountAPI()
 
             // 验证UUID生成
             if (acc.uuid.empty()) {
-                std::cerr << "[WARN] UUID生成失败\n";
+                LOG_ERROR("[账户注册]UUID生成失败:空的uuid");
                 resJson["message"] = "UUID生成错误";
                 resJson["success"] = false;
                 res.body = Json::FastWriter().write(resJson);
@@ -168,8 +174,8 @@ void btyGoose::HTTPServer::initAccountAPI()
 
             // 验证码校验
             if (!AuthenticateAuthCode(acc.phone, reqJson["auth_code"].asString())) {
-                std::cout << "[WARN] 验证码错误: " << acc.phone << std::endl;
-                resJson["message"] = "验证码错误";
+                LOG_INFO("[账户注册]验证码错误,注册失败");
+                resJson["message"] = "注册失败,验证码错误";
                 resJson["success"] = false;
                 res.body = Json::FastWriter().write(resJson);
                 return;
@@ -177,8 +183,8 @@ void btyGoose::HTTPServer::initAccountAPI()
 
             // 用户名查重
             if (!db.searchAccountByName(acc.name).name.empty()) {
-                std::cout << "[WARN] 用户名已存在: " << acc.name << std::endl;
-                resJson["message"] = "用户名已存在";
+                LOG_INFO("[账户注册]失败：用户名已存在");
+                resJson["message"] = "注册失败,用户名已存在:"+ acc.name;
                 resJson["success"] = false;
                 res.body = Json::FastWriter().write(resJson);
                 return;
@@ -186,8 +192,8 @@ void btyGoose::HTTPServer::initAccountAPI()
 
             // 手机号查重
             if (!db.searchAccountByPhone(acc.phone).name.empty()) {
-                std::cout << "[WARN] 手机号重复: " << acc.phone << std::endl;
-                resJson["message"] = "手机号已被占用";
+                LOG_INFO("[账户注册]失败：手机号已存在");
+                resJson["message"] = "注册失败,手机号已被占用:"+acc.phone;
                 resJson["success"] = false;
                 res.body = Json::FastWriter().write(resJson);
                 return;
@@ -198,13 +204,13 @@ void btyGoose::HTTPServer::initAccountAPI()
                 throw HTTPException("数据库写入失败");
             }
 
-            std::cout << "[SUCCESS] 新用户注册成功: " << acc.name << std::endl;
+            LOG_INFO("[账户注册]成功,id:",acc.uuid);
             resJson["success"] = true;
             resJson["message"] = "注册成功";
             res.body = Json::FastWriter().write(resJson);
         }
         catch (const HTTPException& e) {
-            std::cerr << "[ERROR] 注册异常: " << e.what() << std::endl;
+            LOG_ERROR("[账户注册]错误，信息:{}",e.what());
             res.status = 500;
             resJson["success"] = false;
             resJson["message"] = e.what();
@@ -214,13 +220,14 @@ void btyGoose::HTTPServer::initAccountAPI()
 
     // 等级更新接口
     svr.Post("/account/update/level", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "[INFO] 处理等级更新请求\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
         Json::Value reqJson, resJson;
         Json::Reader reader;
         
         if (!reader.parse(req.body, reqJson)) {
-            std::cerr << "[ERROR] 等级更新请求解析失败\n";
+            LOG_ERROR("[账户等级更新]无效的JSON格式:{}",req.body);
+
             resJson["success"] = false;
             resJson["message"] = "无效的JSON格式";
             res.body = Json::FastWriter().write(resJson);
@@ -231,8 +238,7 @@ void btyGoose::HTTPServer::initAccountAPI()
             data::Account acc = db.searchAccountByID(reqJson["id"].asString());
             std::string level = reqJson["level"].asString();
             
-            std::cout << "正在更新用户等级: " << acc.name 
-                     << " -> " << level << std::endl;
+            LOG_INFO("[用户等级更新]id:{},{}->{}",acc.uuid,acc.level,level);
 
             if (level == "VIP") {
                 acc.level = data::Account::Level::VIP;
@@ -245,9 +251,10 @@ void btyGoose::HTTPServer::initAccountAPI()
             db.updateAccount(acc);
             resJson["level"] = static_cast<int>(acc.level);
             res.body = Json::FastWriter().write(resJson);
+            LOG_INFO("[用户等级更新]成功");
         }
         catch (const HTTPException& e) {
-            std::cerr << "[ERROR] 等级更新失败: " << e.what() << std::endl;
+            LOG_ERROR("[用户等级更新]出错，信息:{}",e.what());
             res.status = 500;
             resJson["success"] = false;
             resJson["message"] = e.what();
@@ -258,7 +265,7 @@ void btyGoose::HTTPServer::initAccountAPI()
     });
 
     svr.Post("/account/update/nickname", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "[INFO] 收到昵称更新请求\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
         Json::Value reqJson, resJson;
         Json::Reader reader;
@@ -266,7 +273,8 @@ void btyGoose::HTTPServer::initAccountAPI()
     
         // 解析JSON请求
         if (!reader.parse(req.body, reqJson)) {
-            std::cerr << "[ERROR] 无效的JSON格式: " << req.body << "\n";
+            LOG_ERROR("[账户更新昵称]无效的JSON格式:{}",req.body);
+
             resJson["success"] = false;
             resJson["message"] = "无效的请求格式";
             res.body = Json::FastWriter().write(resJson);
@@ -283,8 +291,7 @@ void btyGoose::HTTPServer::initAccountAPI()
             std::string userId = reqJson["id"].asString();
             std::string newNickname = reqJson["nickname"].asString();
             
-            std::cout << "[DEBUG] 正在更新用户昵称: " << userId 
-                     << " -> " << newNickname << "\n";
+            LOG_INFO("[用户昵称更新]id:{},?->{}",userId,newNickname);
     
             // 查询并更新账户
             data::Account acc = db.searchAccountByID(userId);
@@ -299,16 +306,16 @@ void btyGoose::HTTPServer::initAccountAPI()
             resJson["nickname"] = updatedAcc.nickname;
             resJson["success"] = true;
             res.body = Json::FastWriter().write(resJson);
+            LOG_INFO("[用户昵称更新]成功，id:{}",updatedAcc.uuid);
         }
         catch (const HTTPException& e) {
-            std::cerr << "[ERROR] 昵称更新失败: " << e.what() << "\n";
+            LOG_ERROR("[昵称更新]出错，信息:{}",e.what());
             res.status = 500;
             resJson["success"] = false;
             resJson["message"] = e.what();
             res.body = Json::FastWriter().write(resJson);
         }
     
-        std::cout << "[INFO] 昵称更新处理完成\n";
     });
 }
 
@@ -332,12 +339,14 @@ bool btyGoose::HTTPServer::AuthenticateAuthCode(const string& phone, const strin
 void btyGoose::HTTPServer::initConsumerAPI()
 {
     svr.Post("/consumer/order/detail/dishlist", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/consumer/order/detail/dishlist get a post!\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
         if (!reader.parse(jsonStr, jsonObj)) {
-            std::cerr << "Invalid Json: " << jsonStr << "\n";
+            LOG_ERROR("[消费者获取订单菜品列表]无效的JSON格式:{}",req.body);
+
             jsonObj = Json::objectValue;
         }
         Json::Value resJson;
@@ -354,6 +363,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
+            LOG_INFO("[消费者获取菜品列表]成功,order_id:{},总数:{}",order_id,dishList.size());
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -362,12 +372,13 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            std::cerr << e.what() << "\n";
+            LOG_ERROR("[消费者获取菜品列表]出错，信息:{}",e.what());
         }
     });
 
     svr.Post("/consumer/dish/list", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/consumer/dish/list get a post!\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        
         std::vector<data::Dish> dishList = db.getAllDishList();
         std::string dishListJson = DishListToJsonArray(dishList);
         Json::Value resJson;
@@ -375,15 +386,17 @@ void btyGoose::HTTPServer::initConsumerAPI()
         Json::StreamWriterBuilder writer;
         res.body = Json::writeString(writer, resJson);
         res.set_header("Content-Type", "application/json;charset=UTF-8");
+        LOG_INFO("[消费者获取菜品列表]成功,总数:{}",dishList.size());
     });
 
     svr.Post("/consumer/dish/dishInfo", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/consumer/dish/dishInfo get a post!\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
         if (!reader.parse(jsonStr, jsonObj)) {
-            std::cerr << "Invalid Json: " << jsonStr << "\n";
+            LOG_ERROR("[消费者获取菜品详情]无效的JSON格式:{}",req.body);
             jsonObj = Json::objectValue;
         }
         Json::Value resJson;
@@ -398,6 +411,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
+            LOG_INFO("[消费者获取菜品详情]成功,dish id:{}",dish_id);
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -406,13 +420,14 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            std::cerr << e.what() << "\n";
+            LOG_ERROR("[消费者获取菜品详情]出错，信息:{}",e.what());
         }
     });
 
     // 订单生成
     svr.Post("/consumer/order/generate", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/consumer/order/generate get a post!\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
@@ -438,14 +453,13 @@ void btyGoose::HTTPServer::initConsumerAPI()
             order.time = std::to_string(util::getSecTime());
             order.status = data::Order::Status::UNPAYED;
 
-            std::cout << "生成一个order, merchant id:" << order.merchant_id << "\n";
+            LOG_DEBUG("[生成订单]order id:{}",order.uuid);
 
             bool ok = db.addOrder(order);
             assert(ok);
             std::vector<data::OrderDish> dish_list;
             Json::Value jsonArr = jsonObj["dish_arr"];
             for (const auto& value : jsonArr) {
-                std::cout << "生成一个OrderDish\n";
                 data::OrderDish dish;
                 dish.order_id = order.uuid;
                 dish.merchant_id = order.merchant_id;
@@ -454,6 +468,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
                 dish.count = value["count"].asInt();
                 dish.dish_id = value["dish_id"].asString();
                 dish_list.push_back(dish);
+                LOG_TRACE("生成一个OrderDish, dish id:{}",dish.dish_id);
             }
             ok = db.addOrderDishesByID(order.uuid, dish_list);
             assert(ok);
@@ -462,6 +477,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
+            LOG_INFO("[订单生成]成功,order_id:{}",order.uuid);
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -470,17 +486,18 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            std::cerr << e.what() << "\n";
+            LOG_ERROR("[订单生成]出错，信息：{}",e.what());
         }
     });
 
     svr.Post("/consumer/order/list", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/consumer/order/list get a post!\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
         if (!reader.parse(jsonStr, jsonObj)) {
-            std::cerr << "Invalid Json: " << jsonStr << "\n";
+            LOG_ERROR("[消费者获取订单列表]无效的JSON格式:{}",req.body);
             jsonObj = Json::objectValue;
         }
         Json::Value resJson;
@@ -497,6 +514,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
+            LOG_INFO("[消费者获取订单列表]成功，总数:{}",orderList.size());
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -505,17 +523,18 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            std::cerr << e.what() << "\n";
+            LOG_ERROR("[消费者获取订单列表]出错，信息:{}",e.what());
         }
     });
 
     svr.Post("/consumer/order/pay/confirm", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/consumer/order/pay/confirm get a post!\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
         if (!reader.parse(jsonStr, jsonObj)) {
-            std::cerr << "Invalid Json: " << jsonStr << "\n";
+            LOG_ERROR("[消费者确认支付订单]无效的JSON格式:{}",req.body);
             jsonObj = Json::objectValue;
         }
         Json::Value resJson;
@@ -529,6 +548,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json");
+            LOG_INFO("[消费者确认支付订单]成功,order id",jsonObj["order_id"].asString());
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -537,16 +557,19 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json");
-            std::cerr << e.what() << "\n";
+            LOG_ERROR("[消费者确认支付订单]出错，信息:{}",e.what());
         }
     });
 
     svr.Post("/consumer/order/cancel", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/consumer/order/cancel get a post!\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
         if (!reader.parse(jsonStr, jsonObj)) {
+            LOG_ERROR("[消费者取消订单]无效的JSON格式:{}",req.body);
+
             std::cerr << "Invalid Json: " << jsonStr << "\n";
             jsonObj = Json::objectValue;
         }
@@ -572,6 +595,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
+            LOG_INFO("[消费者取消订单]结果:{}",reason);
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -580,18 +604,20 @@ void btyGoose::HTTPServer::initConsumerAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            std::cerr << e.what() << "\n";
+            LOG_ERROR("[消费者取消订单]出错，信息:{}",e.what());
         }
     });
 }
 void btyGoose::HTTPServer::initMerchantAPI()
 {
     svr.Post("/merchant/dish/list", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/merchant/dish/list get a post!\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
         if (!reader.parse(jsonStr, jsonObj)) {
+            LOG_ERROR("[商家获取菜品列表]无效的JSON格式:{}",req.body);
             std::cerr << "Invalid Json: " << jsonStr << "\n";
             jsonObj = Json::objectValue;
         }
@@ -609,6 +635,7 @@ void btyGoose::HTTPServer::initMerchantAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
+            LOG_INFO("[商家获取菜品列表]成功，数量:{}",dishList.size());
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -617,18 +644,20 @@ void btyGoose::HTTPServer::initMerchantAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            std::cerr << e.what() << "\n";
+            LOG_ERROR("[商家获取菜品列表]出错，信息:{}",e.what());
         }
     });
 
     // 菜品注册
     svr.Post("/merchant/dish/register", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/merchant/dish/register get a post!\n";
-        std::cout << "菜品开始注册\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
         if (!reader.parse(jsonStr, jsonObj)) {
+            LOG_ERROR("[商家注册菜品]无效的JSON格式:{}",req.body);
+
             std::cerr << "Invalid Json: " << jsonStr << "\n";
             jsonObj = Json::objectValue;
         }
@@ -656,6 +685,7 @@ void btyGoose::HTTPServer::initMerchantAPI()
                 resJson["success"] = false;
                 Json::StreamWriterBuilder writer;
                 res.body = Json::writeString(writer, resJson);
+                LOG_ERROR("[商家注册菜品] uuid生成错误");
                 return;
             }
 
@@ -668,12 +698,14 @@ void btyGoose::HTTPServer::initMerchantAPI()
                 resJson["message"] = "菜品创建成功";
                 Json::StreamWriterBuilder writer;
                 res.body = Json::writeString(writer, resJson);
+                LOG_INFO("[商家注册菜品]成功,dish id:{}",dish.uuid);
             } else {
                 res.status = 200;
-                resJson["message"] = "uuid生成错误!";
+                resJson["message"] = "uuid生成重复!";
                 resJson["success"] = false;
                 Json::StreamWriterBuilder writer;
                 res.body = Json::writeString(writer, resJson);
+                LOG_ERROR("[商家注册菜品] uuid生成重复");
                 return;
             }
         }
@@ -684,19 +716,20 @@ void btyGoose::HTTPServer::initMerchantAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            std::cerr << e.what() << "\n";
+            LOG_ERROR("[商家注册菜品]出错，信息:{}",e.what());
         }
     });
 
        // 菜品信息查询
        svr.Post("/merchant/dish/info", [this](const httplib::Request& req, httplib::Response& res) {
-        std::cout << "/merchant/dish/info收到请求\n";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
         
         if (!reader.parse(jsonStr, jsonObj)) {
-            std::cerr << "JSON解析错误: " << "\n";
+            LOG_ERROR("[商家查询菜品详情] uuid生成错误");
             jsonObj = Json::objectValue;
         }
 
@@ -716,26 +749,26 @@ void btyGoose::HTTPServer::initMerchantAPI()
             resJson["dish"] = json::toJson(dish);
             res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
             res.set_header("Content-Type", "application/json");
+            LOG_INFO("[商家查询菜品详情]成功");
         }
         catch (const HTTPException& e) {
             res.status = 404;
             resJson["success"] = false;
             resJson["message"] = e.what();
             res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
-            std::cerr << "查询错误: " << e.what() << "\n";
+            LOG_ERROR("[商家查询菜品详情]出错,信息:{}",e.what());
         }
     });
 
 // 菜品更新
 svr.Post("/merchant/dish/update", [this](const httplib::Request& req, httplib::Response& res) {
-    std::cout << "/merchant/dish/update收到POST请求\n";
-    std::cout << "开始更新菜品...\n";
+    LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
 
     std::string jsonStr = req.body;
     Json::Value jsonObj;
     Json::Reader reader;
     if (!reader.parse(jsonStr, jsonObj)) {
-        std::cerr << "无效的JSON数据: " << jsonStr << "\n";
+        LOG_ERROR("[商家更新菜品]无效的JSON格式:{}",req.body);
         jsonObj = Json::objectValue;
     }
 
@@ -744,7 +777,7 @@ svr.Post("/merchant/dish/update", [this](const httplib::Request& req, httplib::R
     
     try {
         if (jsonObj.empty() || !jsonObj.isMember("dish_id")) {
-            throw HTTPException("缺少必要字段");
+            throw HTTPException("缺少必要字段 dish_id");
         }
 
         std::string dish_id = jsonObj["dish_id"].asString();
@@ -767,11 +800,13 @@ svr.Post("/merchant/dish/update", [this](const httplib::Request& req, httplib::R
             resJson["success"] = true;
             resJson["message"] = "菜品更新成功";
             res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
+            LOG_INFO("[商家更新菜品]成功,dish id:{}",dish.uuid);
         } else {
             res.status = 404;
             resJson["message"] = "找不到菜品!";
             resJson["success"] = false;
             res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
+            LOG_INFO("[商家更新菜品]失败：找不到菜品");
         }
     }
     catch (const HTTPException& e) {
@@ -779,19 +814,20 @@ svr.Post("/merchant/dish/update", [this](const httplib::Request& req, httplib::R
         resJson["success"] = false;
         resJson["message"] = e.what();
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
-        std::cerr << "数据库错误: " << e.what() << "\n";
+        LOG_ERROR("[商家更新菜品]出错，信息:{}",e.what());
     }
 });
 
 // 菜品删除
 svr.Post("/merchant/dish/del", [this](const httplib::Request& req, httplib::Response& res) {
-    std::cout << "/merchant/dish/del收到删除请求\n";
+    LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
     
     std::string jsonStr = req.body;
     Json::Value jsonObj;
     Json::Reader reader;
     if (!reader.parse(jsonStr, jsonObj)) {
-        std::cerr << "无效的JSON数据: " << jsonStr << "\n";
+        LOG_ERROR("[商家删除菜品]无效的JSON格式:{}",req.body);
+
         jsonObj = Json::objectValue;
     }
 
@@ -809,25 +845,27 @@ svr.Post("/merchant/dish/del", [this](const httplib::Request& req, httplib::Resp
         resJson["success"] = true;
         resJson["message"] = "删除成功!";
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
+        LOG_INFO("[商家删除菜品]成功");
     }
     catch (const HTTPException& e) {
         res.status = 500;
         resJson["success"] = false;
         resJson["message"] = e.what();
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
-        std::cerr << "删除错误: " << e.what() << "\n";
+        LOG_ERROR("[商家删除菜品]错误,信息:{}",e.what());
     }
     });
 
     // 商家订单列表
 svr.Post("/merchant/order/list", [this](const httplib::Request& req, httplib::Response& res) {
-    std::cout << "收到商家订单列表请求\n";
+    LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
     
     std::string jsonStr = req.body;
     Json::Value jsonObj;
     Json::Reader reader;
     if (!reader.parse(jsonStr, jsonObj)) {
-        std::cerr << "无效的JSON数据: " << jsonStr << "\n";
+        LOG_ERROR("[商家获取订单列表]无效的JSON格式:{}",req.body);
+
         jsonObj = Json::objectValue;
     }
 
@@ -839,7 +877,6 @@ svr.Post("/merchant/order/list", [this](const httplib::Request& req, httplib::Re
 
         std::string merchant_id = jsonObj["merchant_id"].asString();
         std::vector<data::Order> orderList = db.getOrderListByMerchant(merchant_id);
-        std::cout << "商家:" << merchant_id << " 找到订单 " << orderList.size() << "个\n";
         
         std::string orderListJson = OrderListToJsonArray(orderList);
         resJson["order_list"] = orderListJson;
@@ -847,25 +884,26 @@ svr.Post("/merchant/order/list", [this](const httplib::Request& req, httplib::Re
         Json::StreamWriterBuilder writer;
         res.body = Json::writeString(writer, resJson);
         res.set_header("Content-Type", "application/json;charset=UTF-8");
+        LOG_INFO("[商家获取订单列表]成功，数量:{}",orderList.size());
     }
     catch (const HTTPException& e) {
         res.status = 500;
         resJson["success"] = false;
         resJson["message"] = e.what();
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
-        std::cerr << "订单列表错误: " << e.what() << "\n";
+        LOG_ERROR("[商家获取订单列表]出错，信息:{}",e.what());
     }
 });
 
 // 订单菜品详情
 svr.Post("/merchant/order/detail/dishlist", [this](const httplib::Request& req, httplib::Response& res) {
-    std::cout << "获取订单菜品详情\n";
+    LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
     
     std::string jsonStr = req.body;
     Json::Value jsonObj;
     Json::Reader reader;
     if (!reader.parse(jsonStr, jsonObj)) {
-        std::cerr << "无效的JSON数据: " << jsonStr << "\n";
+        LOG_ERROR("[商家获取订单菜品列表]无效的JSON格式:{}",req.body);
         jsonObj = Json::objectValue;
     }
 
@@ -877,32 +915,32 @@ svr.Post("/merchant/order/detail/dishlist", [this](const httplib::Request& req, 
 
         std::string order_id = jsonObj["order_id"].asString();
         std::vector<data::OrderDish> dishList = db.getOrderDishesByID(order_id);
-        std::cout << "订单:" << order_id << " 包含菜品 " << dishList.size() << "个\n";
         
         std::string dishListJson = OrderDishListToJsonArray(dishList);
         resJson["dish_list"] = dishListJson;
         
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
         res.set_header("Content-Type", "application/json;charset=UTF-8");
+        LOG_INFO("[商家获取订单菜品列表]成功,数量:{}",dishList.size());
     }
     catch (const HTTPException& e) {
         res.status = 500;
         resJson["success"] = false;
         resJson["message"] = e.what();
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
-        std::cerr << "菜品详情错误: " << e.what() << "\n";
+        LOG_ERROR("[商家获取订单菜品列表]出错,信息:{}",e.what());
     }
 });
 
 // 接受订单
 svr.Post("/merchant/order/accept", [this](const httplib::Request& req, httplib::Response& res) {
-    std::cout << "处理订单接受请求\n";
+    LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
     
     std::string jsonStr = req.body;
     Json::Value jsonObj;
     Json::Reader reader;
     if (!reader.parse(jsonStr, jsonObj)) {
-        std::cerr << "无效的JSON数据: " << jsonStr << "\n";
+        LOG_ERROR("[商家接受订单]无效的JSON格式:{}",req.body);
         jsonObj = Json::objectValue;
     }
 
@@ -926,25 +964,26 @@ svr.Post("/merchant/order/accept", [this](const httplib::Request& req, httplib::
         resJson["message"] = "订单接受成功";
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
         res.set_header("Content-Type", "application/json;charset=UTF-8");
+        LOG_INFO("[商家接受订单]成功,order id:{}",order.uuid);
     }
     catch (const HTTPException& e) {
         res.status = 500;
         resJson["success"] = false;
         resJson["message"] = e.what();
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
-        std::cerr << "接受订单错误: " << e.what() << "\n";
+        LOG_ERROR("[商家接受订单]出错,信息:{}",e.what());
     }
 });
 
 // 拒绝订单
 svr.Post("/merchant/order/reject", [this](const httplib::Request& req, httplib::Response& res) {
-    std::cout << "处理订单拒绝请求\n";
+    LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
     
     std::string jsonStr = req.body;
     Json::Value jsonObj;
     Json::Reader reader;
     if (!reader.parse(jsonStr, jsonObj)) {
-        std::cerr << "无效的JSON数据: " << jsonStr << "\n";
+        LOG_ERROR("[商家拒绝订单]无效的JSON格式:{}",req.body);
         jsonObj = Json::objectValue;
     }
 
@@ -965,28 +1004,26 @@ svr.Post("/merchant/order/reject", [this](const httplib::Request& req, httplib::
         db.addHistoryDishesByID(order.uuid, db.getOrderDishesByID(order.uuid));
 
         resJson["success"] = true;
-        resJson["message"] = "订单已拒绝";
+        resJson["message"] = "订单成功拒绝";
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
         res.set_header("Content-Type", "application/json;charset=UTF-8");
+        LOG_INFO("[商家拒绝订单]成功,id:{}",order.uuid);
     }
     catch (const HTTPException& e) {
         res.status = 500;
         resJson["success"] = false;
         resJson["message"] = e.what();
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
-        std::cerr << "接受订单错误: " << e.what() << "\n";
+        LOG_ERROR("[商家拒绝订单]出错，信息:{}",e.what());
     }
 });
-
-
-
 
 
 }
 void btyGoose::HTTPServer::initAdminAPI()
 {
     svr.Post("/admin/order/list", [this](const httplib::Request& req, httplib::Response& res) {
-        cout << "/admin/order/list get a post!";
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
 
         Json::Value resJson;
         try {
@@ -998,6 +1035,7 @@ void btyGoose::HTTPServer::initAdminAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
+            LOG_INFO("[管理员获取历史订单]成功，数量:{}",orderList.size());
         }
         catch (const HTTPException& e)
         {
@@ -1008,7 +1046,7 @@ void btyGoose::HTTPServer::initAdminAPI()
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            std::cerr << e.what() << "\n";
+            LOG_ERROR("[管理员获取历史订单]出错，信息:{}",e.what());
         }
     });
 }
