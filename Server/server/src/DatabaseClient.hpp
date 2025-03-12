@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <atomic>
+#include <condition_variable>
 
 using std::vector;
 using std::string;
@@ -25,6 +27,7 @@ class DatabaseClient
 {
 public:
 	DatabaseClient();
+	virtual ~DatabaseClient();
 private:
 	//QSqlDatabase db;
 	string user = "";
@@ -37,12 +40,22 @@ private:
 	sql::Statement* stmt;
 
 	std::mutex mtx;
+
+private:
+	//守护线程相关成员变量
+	std::atomic<bool> connected_= false;	//表示连接状态
+    std::chrono::seconds reconnect_interval_;//两次重连的最小间隔时间
+    std::condition_variable reconnect_cv_;	//重连条件变量
+    std::mutex reconnect_mtx_;		//重连锁
+    std::thread reconnect_thread_;	//守护线程
+    bool stop_reconnect_ = false;	//停止重连的标记
+
+	void reconnectLoop();
+	bool checkConnection();
 public:
-	void init(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database);
+	void init(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database,const std::chrono::seconds _reconnect_interval);
 
 	void start();
-	bool loadConfig();
-	void saveConfig();
 
 	//Account CURD
 	bool addAccount(const data::Account&);

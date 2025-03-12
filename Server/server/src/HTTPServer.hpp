@@ -37,7 +37,8 @@ public:
 
 		return _ins;
 	}
-	void initDB(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database);
+	// void initDB(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database,const std::chrono::seconds _reconnect_interval);
+	void setDB(std::shared_ptr<DatabaseClient>& ptr);
 	void init(const std::string&ip,const uint32_t port);
 
 	void start();
@@ -62,7 +63,7 @@ public:
 
 private:
 	httplib::Server svr;
-	DatabaseClient db;
+	std::shared_ptr<DatabaseClient> db;
 	string host;
 	int port;
 };

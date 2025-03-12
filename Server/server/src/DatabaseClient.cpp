@@ -10,7 +10,21 @@ DatabaseClient::DatabaseClient()
 
 }
 
-void DatabaseClient::init(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database)
+DatabaseClient::~DatabaseClient()
+{
+    stop_reconnect_ = true;
+    reconnect_cv_.notify_all();
+    if(reconnect_thread_.joinable())    
+    {
+        reconnect_thread_.join();
+    }
+
+    delete stmt;
+    delete con;
+}
+
+
+void DatabaseClient::init(const string&_user,const string&_password,const string&_host,const string&_port,const string&_database,std::chrono::seconds _reconnect_interval)
 {
     // LOG_TRACE("数据库开始初始化参数");
     user = _user;
@@ -18,6 +32,7 @@ void DatabaseClient::init(const string&_user,const string&_password,const string
     host = _host;
     port = _port;
     database = _database;
+    reconnect_interval_ = _reconnect_interval;
     LOG_DEBUG("数据库初始化参数:\n\tuser:{}\n\tpassword:{}\n\thost:{}\n\tport:{}\n\tdatabase:{}",user,password,host,port,database);
 }
 
@@ -25,16 +40,76 @@ void DatabaseClient::start()
 {
     try {
         sql::mysql::MySQL_Driver *driver = sql::mysql::get_mysql_driver_instance();
-        // cout<< << "tcp://"+host+":"+port << "\nuser: " << user <<"\npassword: "<<password<<"\n";
         LOG_INFO("开始连接数据库 tcp://{}:{}\n\tuser:{}",host,port,user);
         con = driver->connect("tcp://"+host+":"+port, user, password);
         con->setSchema("BeautyGoose");
         stmt = con->createStatement();
+        connected_ = true;
+        //启动守护线程
+        reconnect_thread_ = std::thread(std::bind(&DatabaseClient::reconnectLoop,this));
+        LOG_INFO("守护线程已启动");
     } catch (sql::SQLException &e) {
         LOG_FATAL( "数据库连接失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         exit(-1);
     }
 }
+
+//━━━━━━━━━━━━━━ 守护线程相关实现 ━━━━━━━━━━━━━━//
+
+void DatabaseClient::reconnectLoop()
+{
+    while(!stop_reconnect_)
+    {
+        std::unique_lock<std::mutex> lock(reconnect_mtx_);
+        reconnect_cv_.wait_for(lock,reconnect_interval_);//最多等待reconnect_interval_秒
+        //因为上面有可能是超时等待成功，所以还要再判断一下是否需要重连
+        if(!connected_ && !stop_reconnect_)
+        {
+            LOG_INFO("开始尝试重连");
+            try{
+                std::unique_lock<std::mutex> db_lock(mtx);//锁住数据库其它操作
+
+                //清理旧连接
+                delete stmt;
+                delete con;
+
+                //建立新连接
+                sql::mysql::MySQL_Driver* driver = sql::mysql::get_driver_instance();
+                con = driver->connect("tcp://"+host+":"+port,user,password);
+                con->setSchema(database);
+                stmt = con->createStatement();
+                connected_ = true;
+
+                LOG_INFO("数据库成功重连喵~ (≧∇≦)ﾉ");
+
+            }
+            catch(const sql::SQLException e){
+                LOG_ERROR("重连失败: {} [错误码: {}]", e.what(), e.getErrorCode());
+            }   
+        }
+
+    }
+}
+
+bool DatabaseClient::checkConnection()
+{
+    std::unique_lock<std::mutex> lock(mtx);
+    if(connected_ == false) return false;//如果连接已断开，则不用检查了
+    try{
+        if(con && con->isValid() && !con->isClosed())
+        {
+            //执行简单查询验证链接
+            std::unique_ptr<sql::Statement> test_stmt(con->createStatement());
+            std::unique_ptr<sql::ResultSet> res(test_stmt->executeQuery("SELECT 1"));
+            return true;
+        }
+    }catch (const sql::SQLException&){}
+
+    LOG_WARN("当前数据库连接已丢失");
+    connected_ = false;
+    return false;
+}
+
 
 //━━━━━━━━━━━━━━ Account CRUD实现 ━━━━━━━━━━━━━━//
 bool DatabaseClient::addAccount(const data::Account& acc) {
@@ -503,7 +578,15 @@ vector<data::Order> DatabaseClient::getOrderListByMerchantWaiting(const string& 
         auto res = std::unique_ptr<sql::ResultSet>(pstmt->executeQuery());
         while(res->next()) {
             data::Order order;
-            // 赋值代码同上...
+            order.uuid = res->getString("uuid");
+            order.merchant_id = res->getString("merchant_id");
+            order.merchant_name = res->getString("merchant_name");
+            order.consumer_id = res->getString("consumer_id");
+            order.consumer_name = res->getString("consumer_name");
+            order.level = static_cast<data::Account::Level>(res->getInt("level"));
+            order.pay = res->getDouble("pay");
+            order.status = static_cast<data::Order::Status>(res->getInt("status"));
+            order.sum = res->getInt("sum");
             orders.push_back(order);
         }
     } catch (sql::SQLException& e) {
@@ -525,7 +608,15 @@ vector<data::Order> DatabaseClient::getOrderListByConsumer(const string& consume
         auto res = std::unique_ptr<sql::ResultSet>(pstmt->executeQuery());
         while(res->next()) {
             data::Order order;
-            // 赋值代码同上...
+            order.uuid = res->getString("uuid");
+            order.merchant_id = res->getString("merchant_id");
+            order.merchant_name = res->getString("merchant_name");
+            order.consumer_id = res->getString("consumer_id");
+            order.consumer_name = res->getString("consumer_name");
+            order.level = static_cast<data::Account::Level>(res->getInt("level"));
+            order.pay = res->getDouble("pay");
+            order.status = static_cast<data::Order::Status>(res->getInt("status"));
+            order.sum = res->getInt("sum");
             orders.push_back(order);
         }
     } catch (sql::SQLException& e) {
@@ -544,7 +635,15 @@ vector<data::Order> DatabaseClient::getAllOrderList() {
         );
         while(res->next()) {
             data::Order order;
-            // 赋值代码同上...
+            order.uuid = res->getString("uuid");
+            order.merchant_id = res->getString("merchant_id");
+            order.merchant_name = res->getString("merchant_name");
+            order.consumer_id = res->getString("consumer_id");
+            order.consumer_name = res->getString("consumer_name");
+            order.level = static_cast<data::Account::Level>(res->getInt("level"));
+            order.pay = res->getDouble("pay");
+            order.status = static_cast<data::Order::Status>(res->getInt("status"));
+            order.sum = res->getInt("sum");
             orders.push_back(order);
         }
     } catch (sql::SQLException& e) {
