@@ -58,6 +58,7 @@ void DatabaseClient::start()
 
 void DatabaseClient::reconnectLoop()
 {
+    int cnt = 0;//添加一个自动检测连接的计数器
     while(!stop_reconnect_)
     {
         std::unique_lock<std::mutex> lock(reconnect_mtx_);
@@ -86,6 +87,16 @@ void DatabaseClient::reconnectLoop()
             catch(const sql::SQLException e){
                 LOG_ERROR("重连失败: {} [错误码: {}]", e.what(), e.getErrorCode());
             }   
+        }
+        else
+        {
+            cnt++;
+            if(cnt == 50)
+            {
+                //如果经过50次唤醒，连接状态都没更新，则自动检测一次
+                checkConnection();
+                cnt = 0;
+            }
         }
 
     }
@@ -134,6 +145,7 @@ bool DatabaseClient::addAccount(const data::Account& acc) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "添加账户失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
         return false;
     }
 }
@@ -160,6 +172,8 @@ bool DatabaseClient::updateAccount(const data::Account& acc) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "更新账户失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
     return true;
@@ -190,6 +204,8 @@ data::Account DatabaseClient::searchAccountByID(const string& id) {
         return {}; // 返回空账户
     } catch (sql::SQLException& e) {
         LOG_ERROR( "查询账户失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return {};
     }
 }
@@ -219,6 +235,8 @@ data::Account DatabaseClient::searchAccountByName(const string& name) {
         return {};
     } catch (sql::SQLException& e) {
         LOG_ERROR( "按名称查询账户失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return {};
     }
 }
@@ -248,6 +266,8 @@ data::Account DatabaseClient::searchAccountByPhone(const string& phone) {
         return {}; // 返回空账户
     } catch (sql::SQLException& e) {
         LOG_ERROR( "按手机号查询账户失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return {};
     }
 }
@@ -263,6 +283,8 @@ bool DatabaseClient::delAccountByID(const string& id) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "删除账户失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -292,6 +314,8 @@ bool DatabaseClient::addDish(const data::Dish& dish) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "添加菜品失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -319,6 +343,8 @@ bool DatabaseClient::updateDish(const data::Dish& dish) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "更新菜品失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -349,6 +375,8 @@ data::Dish DatabaseClient::searchDishByID(const std::string& id) {
         return {}; // 返回空菜品
     } catch (sql::SQLException& e) {
         LOG_ERROR( "查询菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return {};
     }
 }
@@ -377,6 +405,8 @@ std::vector<data::Dish> DatabaseClient::getAllDishList() {
         }
     } catch (sql::SQLException& e) {
         LOG_ERROR( "获取菜品列表失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
     }
     return dishes;
 }
@@ -408,6 +438,8 @@ std::vector<data::Dish> DatabaseClient::getDishListByMerchant(const std::string&
         }
     } catch (sql::SQLException& e) {
         LOG_ERROR( "获取商家菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
     }
     return dishes;
 }
@@ -424,6 +456,8 @@ bool DatabaseClient::delDishByID(const std::string& id) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "删除菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -454,6 +488,8 @@ bool DatabaseClient::addOrder(const data::Order& order) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "添加订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -482,6 +518,8 @@ bool DatabaseClient::updateOrder(const data::Order& order) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "更新订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -498,6 +536,8 @@ bool DatabaseClient::updateOrder(const string& id, const data::Order::Status sta
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "更新订单状态失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -529,6 +569,8 @@ data::Order DatabaseClient::searchOrderByID(const string& order_id) {
         return {};
     } catch (sql::SQLException& e) {
         LOG_ERROR( "查询订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return {};
     }
 }
@@ -560,6 +602,8 @@ vector<data::Order> DatabaseClient::getOrderListByMerchant(const string& merchan
         }
     } catch (sql::SQLException& e) {
         LOG_ERROR( "获取商家订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
     }
     return orders;
 }
@@ -591,6 +635,8 @@ vector<data::Order> DatabaseClient::getOrderListByMerchantWaiting(const string& 
         }
     } catch (sql::SQLException& e) {
         LOG_ERROR( "获取待处理订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
     }
     return orders;
 }
@@ -621,6 +667,8 @@ vector<data::Order> DatabaseClient::getOrderListByConsumer(const string& consume
         }
     } catch (sql::SQLException& e) {
         LOG_ERROR( "获取用户订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
     }
     return orders;
 }
@@ -648,6 +696,8 @@ vector<data::Order> DatabaseClient::getAllOrderList() {
         }
     } catch (sql::SQLException& e) {
         LOG_ERROR( "获取全部订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
     }
     return orders;
 }
@@ -663,6 +713,8 @@ bool DatabaseClient::delOrderByID(const string& order_id) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "删除订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -695,6 +747,8 @@ int DatabaseClient::clearOverTimeOrder() {
     } catch (sql::SQLException& e) {
         con->rollback();
         LOG_ERROR( "清理超时订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return -1;
     }
 }
@@ -747,6 +801,9 @@ bool DatabaseClient::addOrderDishesByID(const string& order_id, const vector<dat
     } catch (sql::SQLException& e) {
         con->rollback(); // 启动时空回溯协议
         LOG_ERROR( "添加订单菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
+
         return false;
     }
 }
@@ -762,6 +819,8 @@ bool DatabaseClient::delOrderDishesByID(const string& order_id) {
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
         LOG_ERROR( "删除订单菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -789,6 +848,8 @@ vector<data::OrderDish> DatabaseClient::getOrderDishesByID(const string& order_i
         }
     } catch (sql::SQLException& e) {
         LOG_ERROR( "查询订单菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
     }
     return dishes;
 }
@@ -834,6 +895,8 @@ bool DatabaseClient::addHistory(const data::Order& order) {
     } catch (sql::SQLException& e) {
         con->rollback(); // 时间线回溯
         LOG_ERROR( "插入历史订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -881,6 +944,8 @@ vector<data::Order> DatabaseClient::getAllHistoryList() {
         
     } catch (sql::SQLException& e) {
         LOG_ERROR( "查询全部历史订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
     }
     
     return historyList;
@@ -928,6 +993,8 @@ bool DatabaseClient::addHistoryDishesByID(const string& order_id,
     } catch (sql::SQLException& e) {
         con->rollback();
         LOG_ERROR( "插入历史订单的菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
         return false;
     }
 }
@@ -969,6 +1036,8 @@ vector<data::OrderDish> DatabaseClient::getHistoryDishesByID(const string& order
         
     } catch (sql::SQLException& e) {
         LOG_ERROR( "插入历史订单的菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        checkConnection();//出错时检查一下数据库连接
+
     }
     
     return dishes;
