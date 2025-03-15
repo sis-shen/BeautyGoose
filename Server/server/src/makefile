@@ -3,6 +3,9 @@ LDLIBS = -lmysqlcppconn -ljsoncpp -lpthread -lgflags -lfmt
 server:main.o DatabaseClient.o HTTPServer.o logger.o
 	g++ -o $@ *.o -std=c++17 $(LDLIBS)
 
+server_g:main.o DatabaseClient.o HTTPServer.o logger.o
+	g++ -fno-omit-frame-pointer -O0 -g -o server *.o -std=c++17 $(LDLIBS)
+
 server-static:main.o DatabaseClient.o HTTPServer.o
 	g++ 
 

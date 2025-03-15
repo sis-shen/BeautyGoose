@@ -11,4 +11,7 @@ COPY ./src* /src
 
 WORKDIR /src
 RUN make && mkdir logs
+#DEBUG
+# RUN make server_g && mkdir logs
+#end
 CMD ["/src/server","--flagfile=server.conf"]

@@ -413,6 +413,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
             LOG_INFO("[消费者获取菜品详情]成功,dish id:{}",dish_id);
+            LOG_TRACE("{}",res.body);
         }
         catch (const HTTPException& e) {
             res.status = 500;

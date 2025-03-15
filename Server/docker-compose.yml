@@ -3,6 +3,12 @@ services:
     build:
       context: ./server
     image: btygoose:v1.0
+    environment:
+      - TZ=Asia/Shanghai  # 设置时区变量
+      - LANG=C.UTF-8      # 同步语言编码
+    # ======= 仅测试使用  ======
+    # privileged: true
+    # ======== end =========
     ports:
       - 30001:80
     depends_on:
