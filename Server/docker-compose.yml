@@ -1,16 +1,42 @@
 services:
+  web:
+    image: mynginx
+    build: 
+      context: ./nginx
+    ports:
+      - 30001:80
+    depends_on:
+      server:
+        condition: service_started
+      server2:
+        condition: service_started
+    networks:  # 新增网络配置
+      - btygoose_net
   server:
     build:
       context: ./server
-    image: btygoose:v1.0
+    image: btygoose
     environment:
       - TZ=Asia/Shanghai  # 设置时区变量
       - LANG=C.UTF-8      # 同步语言编码
     # ======= 仅测试使用  ======
     # privileged: true
     # ======== end =========
-    ports:
-      - 30001:80
+    # ports:
+    #   - 30001:80
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:  # 新增网络配置
+      - btygoose_net
+
+  server2:
+    image: btygoose
+    environment:
+      - TZ=Asia/Shanghai  # 设置时区变量
+      - LANG=C.UTF-8      # 同步语言编码
+    # ports:
+    #   - 30001:80
     depends_on:
       db:
         condition: service_healthy
