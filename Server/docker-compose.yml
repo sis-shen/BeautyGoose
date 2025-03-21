@@ -8,8 +8,8 @@ services:
     depends_on:
       server:
         condition: service_started
-      server2:
-        condition: service_started
+      # server2:
+      #   condition: service_started
     networks:  # 新增网络配置
       - btygoose_net
   server:
@@ -35,8 +35,6 @@ services:
     environment:
       - TZ=Asia/Shanghai  # 设置时区变量
       - LANG=C.UTF-8      # 同步语言编码
-    # ports:
-    #   - 30001:80
     depends_on:
       db:
         condition: service_healthy
@@ -54,6 +52,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    ports:
+      - 30006:3306
     networks:  # 新增网络配置
       - btygoose_net
 
