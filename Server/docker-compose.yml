@@ -8,8 +8,8 @@ services:
     depends_on:
       server:
         condition: service_started
-      # server2:
-      #   condition: service_started
+      server2:
+        condition: service_started
     networks:  # 新增网络配置
       - btygoose_net
   server:
