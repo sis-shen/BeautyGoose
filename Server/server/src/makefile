@@ -1,25 +1,19 @@
 LDLIBS = -lmysqlcppconn -ljsoncpp -lpthread -lgflags -lfmt
 
-server:main.o DatabaseClient.o HTTPServer.o logger.o
+SRCS = $(wildcard *.cpp)
+OBJS = $(SRCS:.cpp=.o)
+
+all:server
+
+server: $(OBJS)
 	g++ -o $@ *.o -std=c++17 $(LDLIBS)
 
-server_g:main.o DatabaseClient.o HTTPServer.o logger.o
+server_g: $(OBJS)
 	g++ -fno-omit-frame-pointer -O0 -g -o server *.o -std=c++17 $(LDLIBS)
 
-server-static:main.o DatabaseClient.o HTTPServer.o
-	g++ 
 
-main.o: main.cpp
-	g++ -c main.cpp -o main.o -std=c++17 
-
-DatabaseClient.o:DatabaseClient.cpp 
-	g++ -c DatabaseClient.cpp -o DatabaseClient.o -std=c++17 
-
-HTTPServer.o:HTTPServer.cpp
-	g++ -c HTTPServer.cpp -o HTTPServer.o -std=c++17 
-
-logger.o:logger.cpp
-	g++ -c logger.cpp -o logger.o -std=c++17 
+%.o: %.cpp
+	g++ -c $< -o $@
 
 .PHONY:clean
 clean:
