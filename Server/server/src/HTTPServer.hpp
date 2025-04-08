@@ -1,6 +1,7 @@
 #pragma once
 #include "httplib.h"
 #include "DatabaseClient.hpp"
+#include "RedisClient.hpp"
 using std::string;
 using std::vector;
 namespace btyGoose
