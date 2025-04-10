@@ -16,7 +16,7 @@ DEFINE_string(db_database,"db","数据库中存储数据的数据库");
 DEFINE_int32(db_reconnect_interval,10,"数据库两次重连的最小间隔秒数");
 
 //Redis客户端相关参数
-DEFINE_string(redis_ip,"127.0.0.1","Redis服务器的ip地址");
+DEFINE_string(redis_host,"127.0.0.1","Redis服务器的ip地址");
 DEFINE_uint32(redis_port,6379,"Redis服务器的端口");
 DEFINE_uint32(redis_db,0,"Redis数据库的变化，默认0，范围[0,15]");
 DEFINE_bool(redis_keep_alive,true,"是否保持长连接");
@@ -38,11 +38,10 @@ int main(int argc, char *argv[])
     btyGoose::HTTPServer::getInstance()->setDB(db);
     LOG_DEBUG("数据库对象设置成功");
 
-    sw::redis::ConnectionOptions opts;
-    opts.host = FLAGS_redis_ip;
-    opts.port = FLAGS_redis_port;
-    opts.db = FLAGS_redis_db;
-    opts.keep_alive = FLAGS_redis_keep_alive;
+    auto redis = std::make_shared<btyGoose::RedisClient>(
+        btyGoose::RedisClient(FLAGS_redis_host,FLAGS_redis_port,FLAGS_redis_db,FLAGS_redis_keep_alive));
+
+    btyGoose::HTTPServer::getInstance()->setRedis(redis);
 
     btyGoose::HTTPServer::getInstance()->init(FLAGS_host,FLAGS_port);
     btyGoose::HTTPServer::getInstance()->start();

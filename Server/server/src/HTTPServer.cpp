@@ -16,6 +16,11 @@ void btyGoose::HTTPServer::setDB(std::shared_ptr<DatabaseClient>& ptr)
     db = ptr;
 }
 
+void btyGoose::HTTPServer::setRedis(std::shared_ptr<RedisClient>&ptr)
+{
+    redis = ptr;
+}
+
 void btyGoose::HTTPServer::init(const std::string& _host,const uint32_t _port)
 {
     host = _host;
@@ -65,7 +70,8 @@ void btyGoose::HTTPServer::initAccountAPI()
             return;
         }
         try {
-            data::Account record_acc = db->searchAccountByName(reqJson["name"].asString());
+            data::Account record_acc;
+            record_acc = db->searchAccountByName(reqJson["name"].asString());
             
             if (!record_acc.name.empty() && reqJson["password"].asString() == record_acc.password) {
                 // 登录成功响应
