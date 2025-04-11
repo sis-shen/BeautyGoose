@@ -16,7 +16,9 @@ RUN git clone https://github.com/sewenew/redis-plus-plus.git
 RUN mkdir -p /redispp/redis-plus-plus/build
 WORKDIR /redispp/redis-plus-plus/build
 RUN cmake ..
-RUN make && make install
+RUN make 
+RUN make install
+RUN ldconfig
 
 COPY ./src* /src
 
