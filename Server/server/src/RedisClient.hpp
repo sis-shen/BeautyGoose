@@ -26,6 +26,7 @@ class RedisClient
 public:
     RedisClient(const string&ip,const uint16_t port,const uint16_t db,const bool keep_alive)
     {
+        LOG_INFO("即将连接Redis服务器,地址 {}:{}",ip,port);
         sw::redis::ConnectionOptions opts;
         opts.host = ip;
         opts.port = port;
