@@ -1,4 +1,4 @@
-LDLIBS = -lmysqlcppconn -ljsoncpp -lpthread -lgflags -lfmt
+LDLIBS = -lmysqlcppconn -ljsoncpp -lpthread -lgflags -lfmt -lredis++ -lhiredis
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:.cpp=.o)
