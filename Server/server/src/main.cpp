@@ -40,7 +40,10 @@ int main(int argc, char *argv[])
 
     auto redis = std::make_shared<btyGoose::RedisClient>(
         btyGoose::RedisClient(FLAGS_redis_host,FLAGS_redis_port,FLAGS_redis_db,FLAGS_redis_keep_alive));
-
+    if(redis->isOK())
+        LOG_INFO("Redis连接成功!");
+    else
+        LOG_ERROR("Redis连接失败!");
     btyGoose::HTTPServer::getInstance()->setRedis(redis);
 
     btyGoose::HTTPServer::getInstance()->init(FLAGS_host,FLAGS_port);

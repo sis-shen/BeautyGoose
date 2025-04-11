@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <memory>
 #include "CoreData.hpp"
+#include "logger.hpp"
 
 namespace btyGoose{
 
@@ -37,6 +38,18 @@ public:
     
 
 public:
+    bool isOK()
+    {
+        try {
+            auto pong = _redis->ping();
+            if (pong == "PONG") {
+                return true;
+            }
+        } catch (const sw::redis::Error &e) {
+            LOG_WARN("Redis连接失败：{}",e.what());
+            return false;
+        }
+    }    
 
     //订单相关
     void setOrder(const data::Order& order);
