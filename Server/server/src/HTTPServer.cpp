@@ -53,7 +53,7 @@ void btyGoose::HTTPServer::initTestAPI()
 
 void btyGoose::HTTPServer::initAccountAPI()
 {
-    // 用户名登录
+    // ==============用户名登录================ //
     svr.Post("/account/login/username", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
@@ -71,7 +71,17 @@ void btyGoose::HTTPServer::initAccountAPI()
         }
         try {
             data::Account record_acc;
-            record_acc = db->searchAccountByName(reqJson["name"].asString());
+            std::string name = reqJson["name"].asString();
+            record_acc = redis->getAccountByName(name);
+            if(record_acc.uuid.empty())
+            {
+                //缓存不命中
+                record_acc = db->searchAccountByName(name);
+                if(!record_acc.uuid.empty())
+                {
+                    redis->setAccount(record_acc);
+                }
+            }
             
             if (!record_acc.name.empty() && reqJson["password"].asString() == record_acc.password) {
                 // 登录成功响应
@@ -100,7 +110,7 @@ void btyGoose::HTTPServer::initAccountAPI()
         res.set_header("Content-Type", "application/json;charset=UTF-8");
     });
 
-    // 手机号登录
+    // =============== 手机号登录 =========== //
     svr.Post("/account/login/phone", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
@@ -117,8 +127,20 @@ void btyGoose::HTTPServer::initAccountAPI()
         }
 
         try {
-            data::Account record_acc = db->searchAccountByPhone(reqJson["phone"].asString());
-            
+            data::Account record_acc;
+            std::string phone = reqJson["phone"].asString();
+            record_acc = redis->getAccountByPhone(phone);
+            if(record_acc.uuid.empty())
+            {
+                //缓存不命中
+                record_acc =  db->searchAccountByPhone(phone);
+                if(!record_acc.uuid.empty())
+                {
+                    redis->setAccount(record_acc);
+                }
+            }
+
+
             if (!record_acc.phone.empty() && reqJson["password"].asString() == record_acc.password) {
                 resJson["success"] = true;
                 resJson["message"] = "手机登录成功";
@@ -144,7 +166,7 @@ void btyGoose::HTTPServer::initAccountAPI()
         res.set_header("Content-Type", "application/json;charset=UTF-8");
     });
 
-    // 账户注册
+    //  ============= 账户注册 =============
     svr.Post("/account/register", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
@@ -211,6 +233,8 @@ void btyGoose::HTTPServer::initAccountAPI()
                 throw HTTPException("数据库写入失败");
             }
 
+            redis->setAccount(acc);
+
             LOG_INFO("[账户注册]成功,id:",acc.uuid);
             resJson["success"] = true;
             resJson["message"] = "注册成功";
@@ -225,7 +249,7 @@ void btyGoose::HTTPServer::initAccountAPI()
         }
     });
 
-    // 等级更新接口
+    // =============== 等级更新接口 ============
     svr.Post("/account/update/level", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
@@ -242,7 +266,11 @@ void btyGoose::HTTPServer::initAccountAPI()
         }
 
         try {
-            data::Account acc = db->searchAccountByID(reqJson["id"].asString());
+            data::Account acc;
+            std::string id = reqJson["id"].asString();
+            acc = redis->getAccountById(id);
+            if(acc.uuid.empty())
+                acc = db->searchAccountByID(id);
             std::string level = reqJson["level"].asString();
             
             LOG_INFO("[用户等级更新]id:{},{}->{}",acc.uuid,acc.level,level);
@@ -256,6 +284,7 @@ void btyGoose::HTTPServer::initAccountAPI()
             }
 
             db->updateAccount(acc);
+            redis->setAccount(acc);
             resJson["level"] = static_cast<int>(acc.level);
             res.body = Json::FastWriter().write(resJson);
             LOG_INFO("[用户等级更新]成功");
@@ -271,6 +300,7 @@ void btyGoose::HTTPServer::initAccountAPI()
         res.set_header("Content-Type", "application/json");
     });
 
+    //============= 更新用户昵称 ============== //
     svr.Post("/account/update/nickname", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
@@ -301,15 +331,19 @@ void btyGoose::HTTPServer::initAccountAPI()
             LOG_INFO("[用户昵称更新]id:{},?->{}",userId,newNickname);
     
             // 查询并更新账户
-            data::Account acc = db->searchAccountByID(userId);
+            data::Account acc;
+            acc = redis->getAccountById(userId);
+            if(acc.uuid.empty())
+                acc = db->searchAccountByID(userId);
             acc.nickname = newNickname;
             
             if (!db->updateAccount(acc)) {
                 throw HTTPException("数据库更新失败");
             }
-    
+            
             // 验证更新结果
             data::Account updatedAcc = db->searchAccountByID(userId);
+            redis->setAccount(updatedAcc);
             resJson["nickname"] = updatedAcc.nickname;
             resJson["success"] = true;
             res.body = Json::FastWriter().write(resJson);
