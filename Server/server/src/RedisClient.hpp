@@ -1,6 +1,8 @@
 #pragma once
 #include <sw/redis++/redis.h>
 #include <unordered_set>
+#include <vector>
+#include <unordered_map>
 #include <memory>
 #include "CoreData.hpp"
 
@@ -9,6 +11,7 @@ namespace btyGoose{
 using std::string;
 using std::shared_ptr;
 using std::make_shared;
+using std::vector;
 
 
 //设定前缀

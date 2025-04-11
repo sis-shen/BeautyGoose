@@ -1,5 +1,4 @@
 #include "RedisClient.hpp"
-
 namespace btyGoose
 {
 using namespace std;
