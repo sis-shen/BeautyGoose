@@ -27,6 +27,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redismaster:  
+        condition: service_healthy
     networks:  # 新增网络配置
       - btygoose_net
 
@@ -38,7 +40,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    networks:  # 新增网络配置
+      redismaster:  
+        condition: service_healthy
+    networks:  
       - btygoose_net
   db:
     image: mysql:8.0
@@ -54,7 +58,27 @@ services:
       retries: 5
     ports:
       - 30006:3306
-    networks:  # 新增网络配置
+    networks:  
+      - btygoose_net
+
+  redismaster:
+    image: redis:7.2.4
+    restart: always
+    volumes:
+    - ./redis/data:/data
+    - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf  # 加载配置
+    environment:
+    - TZ=Asia/Shanghai
+    - REDIS_PASSWORD=redispass123  # 设置访问密码
+    - maxmemory=512mb     # 限定内存大小
+    - maxmemory-policy=allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$$REDIS_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:  
       - btygoose_net
 
 networks:  # 新增网络定义
