@@ -20,6 +20,7 @@ DEFINE_string(redis_host,"127.0.0.1","Redis服务器的ip地址");
 DEFINE_uint32(redis_port,6379,"Redis服务器的端口");
 DEFINE_uint32(redis_db,0,"Redis数据库的变化，默认0，范围[0,15]");
 DEFINE_bool(redis_keep_alive,true,"是否保持长连接");
+DEFINE_string(redis_master_password,"password","redis主节点的登录密码");
 
 //日志器相关参数
 DEFINE_string(log_logfile,"./log/logfile","日志落地文件及路径");
@@ -39,7 +40,7 @@ int main(int argc, char *argv[])
     LOG_DEBUG("数据库对象设置成功");
 
     auto redis = std::make_shared<btyGoose::RedisClient>(
-        btyGoose::RedisClient(FLAGS_redis_host,FLAGS_redis_port,FLAGS_redis_db,FLAGS_redis_keep_alive));
+        btyGoose::RedisClient(FLAGS_redis_host,FLAGS_redis_port,FLAGS_redis_db,FLAGS_redis_keep_alive,FLAGS_redis_master_password));
     if(redis->isOK())
         LOG_INFO("Redis连接成功!");
     else

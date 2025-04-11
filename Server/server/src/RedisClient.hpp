@@ -24,7 +24,7 @@ const std::string history_prefix = "data:History:";
 class RedisClient
 {
 public:
-    RedisClient(const string&ip,const uint16_t port,const uint16_t db,const bool keep_alive)
+    RedisClient(const string&ip,const uint16_t port,const uint16_t db,const bool keep_alive,const string&password)
     {
         LOG_INFO("即将连接Redis服务器,地址 {}:{}",ip,port);
         sw::redis::ConnectionOptions opts;
@@ -32,6 +32,7 @@ public:
         opts.port = port;
         opts.db = db;
         opts.keep_alive = keep_alive;
+        opts.password = password;
 
         _redis = make_shared<sw::redis::Redis>(sw::redis::Redis(opts));
     }
