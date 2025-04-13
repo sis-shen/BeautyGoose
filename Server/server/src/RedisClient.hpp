@@ -55,11 +55,14 @@ public:
 
     //订单相关
     void setOrder(const data::Order& order);
+    void setOrderDishListJson(const string&order_id,const string& dish_list_json);
+    string getOrderDishListJson(const string&order_id);
     data::Order getOrderById(const string& id);
     void setOrderList(const vector<data::Order> order_list);
     vector<data::Order> getOrderListByMerchant(const string&id);
     vector<data::Order> getOrderListByMerchantWaiting(const string&id);
     vector<data::Order> getOrderListByConsumer(const string&id);
+    bool hasOrderList(const data::Order& order);
     
 
     //菜品相关

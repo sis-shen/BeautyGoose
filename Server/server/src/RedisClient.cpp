@@ -137,6 +137,23 @@ void RedisClient::setOrder(const data::Order&order)
     _redis->sadd(order_prefix+"consumer:"+order.consumer_id,order.uuid);
 }
 
+bool RedisClient::hasOrderList(const data::Order& order)
+{
+    return _redis->exists(order_prefix+"consumer:"+order.consumer_id);
+}
+
+void RedisClient::setOrderDishListJson(const string&order_id,const string& dish_list_json)
+{
+    _redis->set(order_prefix+"dishlist:"+order_id,dish_list_json);
+}
+
+string RedisClient::getOrderDishListJson(const string&order_id)
+{
+    auto res = _redis->get(order_prefix+"dishlist:"+order_id);
+    if(res.has_value())return res.value();
+    else return "";
+}
+
 data::Order RedisClient::getOrderById(const string& id)
 {
     unordered_map<string,string> m;
