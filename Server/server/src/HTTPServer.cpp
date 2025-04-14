@@ -41,6 +41,27 @@ void btyGoose::HTTPServer::start()
     cout <<svr.listen(host, port);
 }
 
+bool btyGoose::HTTPServer::checkRedisOrderListExist(const data::Order&order)
+{
+    bool has_consumer = redis->hasOrderListByUserId(order.consumer_id);
+    bool has_merchant = redis->hasOrderListByUserId(order.merchant_id);
+
+    if(has_consumer && has_merchant) return true;
+    if(!has_consumer)
+    {
+        auto dish_list = db->getOrderListByConsumer(order.consumer_id);
+        redis->setOrderList(dish_list);
+        redis->setOrderListByIdDone(order.consumer_id);
+    }
+    if(!has_merchant)
+    {
+        auto dish_list = db->getOrderListByMerchant(order.merchant_id);
+        redis->setOrderList(dish_list);
+        redis->setOrderListByIdDone(order.merchant_id);
+    }
+    return false;
+}
+
 void btyGoose::HTTPServer::initTestAPI()
 {
     svr.Get("/ping", [=](const httplib::Request& req, httplib::Response& res) {
@@ -366,19 +387,21 @@ bool btyGoose::HTTPServer::AuthenticateAuthCode(const string& phone, const strin
     // TODO
     // ///////////////////
     //这里就不具体实现了
-    if (auth_code == "888888")
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    // if (auth_code == "888888")
+    // {
+    //     return true;
+    // }
+    // else
+    // {
+    //     return false;
+    // }
+    return true;
 }
 
 
 void btyGoose::HTTPServer::initConsumerAPI()
 {
+    //=========== 消费者获取订单的菜品列表 ===========
     svr.Post("/consumer/order/detail/dishlist", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
 
@@ -397,14 +420,23 @@ void btyGoose::HTTPServer::initConsumerAPI()
             }
 
             std::string order_id = jsonObj["order_id"].asString();
-            std::vector<data::OrderDish> dishList = db->getOrderDishesByID(order_id);
-            std::cout << "order:" << order_id << " find dishes " << dishList.size() << "\n";
-            std::string dishListJson = OrderDishListToJsonArray(dishList);
-            resJson["dish_list"] = dishListJson;
-            Json::StreamWriterBuilder writer;
-            res.body = Json::writeString(writer, resJson);
+            std::string dish_list_json = redis->getOrderDishListJson(order_id);
+            if(dish_list_json.empty())
+            {
+                std::vector<data::OrderDish> dishList = db->getOrderDishesByID(order_id);
+                // std::cout << "order:" << order_id << " find dishes " << dishList.size() << "\n";
+                std::string dishListJson = OrderDishListToJsonArray(dishList);
+                resJson["dish_list"] = dishListJson;
+                Json::StreamWriterBuilder writer;
+                res.body = Json::writeString(writer, resJson);
+                redis->setOrderDishListJson(order_id,res.body);
+            }
+            else 
+            {
+                res.body = dish_list_json;
+            }
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            LOG_INFO("[消费者获取菜品列表]成功,order_id:{},总数:{}",order_id,dishList.size());
+            LOG_INFO("[消费者获取菜品列表]成功,order_id:{}",order_id);
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -417,6 +449,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
         }
     });
 
+    // ================= 消费者获取菜品列表 ============= //
     svr.Post("/consumer/dish/list", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
@@ -430,6 +463,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
         LOG_INFO("[消费者获取菜品列表]成功,总数:{}",dishList.size());
     });
 
+    // ============== 消费者获取菜品详情 ===================//
     svr.Post("/consumer/dish/dishInfo", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
@@ -447,13 +481,36 @@ void btyGoose::HTTPServer::initConsumerAPI()
             }
 
             std::string dish_id = jsonObj["dish_id"].asString();
-            data::Dish dish = db->searchDishByID(dish_id);
-            resJson["dish"] = json::toJson(dish);
-            Json::StreamWriterBuilder writer;
-            res.body = Json::writeString(writer, resJson);
-            res.set_header("Content-Type", "application/json;charset=UTF-8");
-            LOG_INFO("[消费者获取菜品详情]成功,dish id:{}",dish_id);
-            LOG_TRACE("{}",res.body);
+            data::Dish dish;
+            dish = redis->getDishById(dish_id);
+            if(dish.uuid.empty())
+            {
+                dish = db->searchDishByID(dish_id);
+                if(!dish.uuid.empty())
+                {
+                    redis->setDish(dish);
+                }
+            }
+
+            if(!dish.uuid.empty())
+            {
+                resJson["dish"] = json::toJson(dish);
+                Json::StreamWriterBuilder writer;
+                res.body = Json::writeString(writer, resJson);
+                res.set_header("Content-Type", "application/json;charset=UTF-8");
+                LOG_INFO("[消费者获取菜品详情]成功,dish id:{}",dish_id);
+                LOG_TRACE("{}",res.body);
+            }
+            else
+            {
+                res.status = 404;
+                resJson["success"] = false;
+                resJson["message"] = "菜品不存在";
+                Json::StreamWriterBuilder writer;
+                res.body = Json::writeString(writer, resJson);
+                res.set_header("Content-Type", "application/json;charset=UTF-8");
+                LOG_WARN("[消费者获取菜品详情]出错，菜品不存在");
+            }
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -466,7 +523,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
         }
     });
 
-    // 订单生成
+    // =========== 订单生成 ============== //
     svr.Post("/consumer/order/generate", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
@@ -496,9 +553,18 @@ void btyGoose::HTTPServer::initConsumerAPI()
             order.status = data::Order::Status::UNPAYED;
 
             LOG_DEBUG("[生成订单]order id:{}",order.uuid);
-
+            
+            //先插入订单
             bool ok = db->addOrder(order);
-            assert(ok);
+            if(!ok)
+            {
+                LOG_ERROR("订单生成失败,id: {},来自消费者:{}",order.uuid,order.consumer_id);
+            }
+            //如果缓存不存在，则重新全部加载
+            if(checkRedisOrderListExist(order))
+            {
+                redis->setOrder(order);
+            }
             std::vector<data::OrderDish> dish_list;
             Json::Value jsonArr = jsonObj["dish_arr"];
             for (const auto& value : jsonArr) {
@@ -513,7 +579,10 @@ void btyGoose::HTTPServer::initConsumerAPI()
                 LOG_TRACE("生成一个OrderDish, dish id:{}",dish.dish_id);
             }
             ok = db->addOrderDishesByID(order.uuid, dish_list);
-            assert(ok);
+            if(!ok)
+                LOG_ERROR("订单菜品插入失败,order_id: {},来自消费者:{}",order.uuid,order.consumer_id);
+            Json::StreamWriterBuilder dish_writer;
+            redis->setOrderDishListJson(order.uuid,Json::writeString(dish_writer, jsonArr)); 
 
             resJson["order"] = json::toJson(order);
             Json::StreamWriterBuilder writer;
@@ -532,6 +601,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
         }
     });
 
+    // ===================消费者获取订单列表 ============= // 
     svr.Post("/consumer/order/list", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
@@ -549,7 +619,18 @@ void btyGoose::HTTPServer::initConsumerAPI()
             }
 
             std::string consumer_id = jsonObj["consumer_id"].asString();
-            std::vector<data::Order> orderList = db->getOrderListByConsumer(consumer_id);
+            std::vector<data::Order> orderList;
+            if(redis->hasOrderListByUserId(consumer_id))
+            {
+                orderList = redis->getOrderListByConsumer(consumer_id);
+            }
+            //缓存不命中或者缓存为空
+            if(orderList.empty())
+            {
+                orderList = db->getOrderListByConsumer(consumer_id);
+                redis->setOrderList(orderList);
+                redis->setOrderListByIdDone(consumer_id);
+            }
             // std::cout << "consumer:" << consumer_id << " find orders " << orderList.size() << "\n";
             std::string dishListJson = OrderListToJsonArray(orderList);
             resJson["order_list"] = dishListJson;
@@ -584,9 +665,17 @@ void btyGoose::HTTPServer::initConsumerAPI()
             if (jsonObj.empty()) {
                 throw HTTPException("Json Serialization failed");
             }
-            data::Order order = db->searchOrderByID(jsonObj["order_id"].asString());
+            data::Order order;
+            std::string order_id = jsonObj["order_id"].asString();
+
+            order = redis->getOrderById(order_id);
+            if(order.uuid.empty())
+            {
+                order = db->searchOrderByID(order_id);
+            }
             order.status = data::Order::Status::WAITING;
             db->updateOrder(order);
+            redis->setOrder(order);
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json");
@@ -620,8 +709,13 @@ void btyGoose::HTTPServer::initConsumerAPI()
             if (jsonObj.empty()) {
                 throw HTTPException("Json Serialization failed");
             }
-
-            data::Order order = db->searchOrderByID(jsonObj["order_id"].asString());
+            data::Order order;
+            std::string order_id = jsonObj["order_id"].asString();
+            order = redis->getOrderById(order_id);
+            if(order.uuid.empty())
+            {
+                order = db->searchOrderByID(order_id);
+            }
             std::string reason;
             if (order.status == data::Order::Status::UNPAYED) {
                 order.status = data::Order::Status::CANCELED;
@@ -632,6 +726,7 @@ void btyGoose::HTTPServer::initConsumerAPI()
             } else {
                 reason = "订单无法支付,订单状态码:" + std::to_string(static_cast<int>(order.status));
             }
+            redis->setOrder(order);
 
             resJson["reason"] = reason;
             Json::StreamWriterBuilder writer;
@@ -660,7 +755,7 @@ void btyGoose::HTTPServer::initMerchantAPI()
         Json::Reader reader;
         if (!reader.parse(jsonStr, jsonObj)) {
             LOG_ERROR("[商家获取菜品列表]无效的JSON格式:{}",req.body);
-            std::cerr << "Invalid Json: " << jsonStr << "\n";
+            // std::cerr << "Invalid Json: " << jsonStr << "\n";
             jsonObj = Json::objectValue;
         }
         Json::Value resJson;
@@ -668,16 +763,22 @@ void btyGoose::HTTPServer::initMerchantAPI()
             if (jsonObj.empty()) {
                 throw HTTPException("Json Serialization failed");
             }
-
+            
             std::string merchant_id = jsonObj["merchant_id"].asString();
-            std::vector<data::Dish> dishList = db->getDishListByMerchant(merchant_id);
-            std::cout << "merchant:" << merchant_id << " find dishes " << dishList.size() << "\n";
-            std::string dishListJson = DishListToJsonArray(dishList);
+            std::string dishListJson = redis->getDishListJsonByMerchant(merchant_id); 
+            LOG_TRACE("Redis获取到的菜品列表json: {}",dishListJson);
+            if(dishListJson.empty())
+            {
+                std::vector<data::Dish> dishList = db->getDishListByMerchant(merchant_id);
+                dishListJson = DishListToJsonArray(dishList);
+                LOG_TRACE("数据库查询到菜品数量:{} , 获得的菜品json: {}",dishList.size(),dishListJson);
+                redis->setDishListJsonByMerchant(merchant_id,dishListJson);
+            }
             resJson["dish_list"] = dishListJson;
             Json::StreamWriterBuilder writer;
             res.body = Json::writeString(writer, resJson);
             res.set_header("Content-Type", "application/json;charset=UTF-8");
-            LOG_INFO("[商家获取菜品列表]成功，数量:{}",dishList.size());
+            LOG_INFO("[商家获取菜品列表]成功");
         }
         catch (const HTTPException& e) {
             res.status = 500;
@@ -735,7 +836,9 @@ void btyGoose::HTTPServer::initMerchantAPI()
                 if (!db->addDish(dish)) {
                     throw HTTPException("databse add dish failed");
                 }
-                std::cout << "成功向数据库插入新菜品 " << dish.name << "\n";
+                redis->setDish(dish);
+                redis->delDishListJsonByMerchant(dish.merchant_id);//缓存失效
+                // std::cout << "成功向数据库插入新菜品 " << dish.name << "\n";
                 resJson["success"] = true;
                 resJson["message"] = "菜品创建成功";
                 Json::StreamWriterBuilder writer;
@@ -763,7 +866,7 @@ void btyGoose::HTTPServer::initMerchantAPI()
     });
 
        // 菜品信息查询
-       svr.Post("/merchant/dish/info", [this](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/merchant/dish/info", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         
         std::string jsonStr = req.body;
@@ -782,10 +885,15 @@ void btyGoose::HTTPServer::initMerchantAPI()
             }
 
             std::string dish_id = jsonObj["dish_id"].asString();
-            data::Dish dish = db->searchDishByID(dish_id);
-            
-            if (dish.uuid.empty()) {
-                throw HTTPException("菜品不存在");
+            data::Dish dish;
+            dish = redis->getDishById(dish_id);
+            if(dish.uuid.empty())
+            {
+                dish = db->searchDishByID(dish_id);
+                if (dish.uuid.empty()) {
+                    throw HTTPException("菜品不存在");
+                }
+                redis->setDish(dish);
             }
             
             resJson["dish"] = json::toJson(dish);
@@ -801,9 +909,9 @@ void btyGoose::HTTPServer::initMerchantAPI()
             LOG_ERROR("[商家查询菜品详情]出错,信息:{}",e.what());
         }
     });
-
-// 菜品更新
-svr.Post("/merchant/dish/update", [this](const httplib::Request& req, httplib::Response& res) {
+    
+    // 菜品更新
+    svr.Post("/merchant/dish/update", [this](const httplib::Request& req, httplib::Response& res) {
     LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
 
     std::string jsonStr = req.body;
@@ -823,8 +931,15 @@ svr.Post("/merchant/dish/update", [this](const httplib::Request& req, httplib::R
         }
 
         std::string dish_id = jsonObj["dish_id"].asString();
-        data::Dish dish = db->searchDishByID(dish_id);
-        std::cout << "找到菜品ID: " << dish.uuid << "\n";
+        data::Dish dish;
+        dish = redis->getDishById(dish_id);
+        if(dish.uuid.empty())
+        {
+            dish = db->searchDishByID(dish_id);
+        }
+
+
+        // std::cout << "找到菜品ID: " << dish.uuid << "\n";
 
         dish.name = jsonObj["name"].asString();
         dish.merchant_id = jsonObj["merchant_id"].asString();
@@ -838,7 +953,8 @@ svr.Post("/merchant/dish/update", [this](const httplib::Request& req, httplib::R
             if (!db->updateDish(dish)) {
                 throw HTTPException("数据库更新失败");
             }
-            std::cout << "成功更新菜品: " << dish.name << "\n";
+            redis->setDish(dish);
+            // std::cout << "成功更新菜品: " << dish.name << "\n";
             resJson["success"] = true;
             resJson["message"] = "菜品更新成功";
             res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
@@ -883,6 +999,7 @@ svr.Post("/merchant/dish/del", [this](const httplib::Request& req, httplib::Resp
 
         std::string dish_id = jsonObj["dish_id"].asString();
         db->delDishByID(dish_id);
+        redis->delDishById(dish_id);
         
         resJson["success"] = true;
         resJson["message"] = "删除成功!";
@@ -918,7 +1035,17 @@ svr.Post("/merchant/order/list", [this](const httplib::Request& req, httplib::Re
         }
 
         std::string merchant_id = jsonObj["merchant_id"].asString();
-        std::vector<data::Order> orderList = db->getOrderListByMerchant(merchant_id);
+        std::vector<data::Order> orderList;
+        if(redis->hasOrderListByUserId(merchant_id))
+        {
+            orderList = redis->getOrderListByMerchant(merchant_id);
+        }
+        if(orderList.empty())
+        {
+            orderList = db->getOrderListByMerchant(merchant_id);
+            redis->setOrderList(orderList);
+            redis->setOrderListByIdDone(merchant_id);
+        }
         
         std::string orderListJson = OrderListToJsonArray(orderList);
         resJson["order_list"] = orderListJson;
@@ -956,14 +1083,20 @@ svr.Post("/merchant/order/detail/dishlist", [this](const httplib::Request& req, 
         }
 
         std::string order_id = jsonObj["order_id"].asString();
-        std::vector<data::OrderDish> dishList = db->getOrderDishesByID(order_id);
+        std::string dishListJson;
+        dishListJson = redis->getOrderDishListJson(order_id);
+        if(dishListJson.empty())
+        {
+            std::vector<data::OrderDish> dishList = db->getOrderDishesByID(order_id);
+            dishListJson = OrderDishListToJsonArray(dishList);
+            redis->setOrderDishListJson(order_id,dishListJson);
+        }
         
-        std::string dishListJson = OrderDishListToJsonArray(dishList);
         resJson["dish_list"] = dishListJson;
         
         res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
         res.set_header("Content-Type", "application/json;charset=UTF-8");
-        LOG_INFO("[商家获取订单菜品列表]成功,数量:{}",dishList.size());
+        LOG_INFO("[商家获取订单菜品列表]成功");
     }
     catch (const HTTPException& e) {
         res.status = 500;
@@ -993,12 +1126,18 @@ svr.Post("/merchant/order/accept", [this](const httplib::Request& req, httplib::
         }
 
         std::string order_id = jsonObj["order_id"].asString();
-        data::Order order = db->searchOrderByID(order_id);
+        data::Order order;
+        order = redis->getOrderById(order_id);
+        if(order.uuid.empty())
+        {
+            order = db->searchOrderByID(order_id);
+        }
         order.status = data::Order::Status::SUCCESS;
         
         if (!db->updateOrder(order)) {
             throw HTTPException("数据库更新失败");
         }
+        redis->delOrderById(order_id);
         db->addHistory(order);
         db->addHistoryDishesByID(order.uuid, db->getOrderDishesByID(order.uuid));
 
@@ -1036,12 +1175,18 @@ svr.Post("/merchant/order/reject", [this](const httplib::Request& req, httplib::
         }
 
         std::string order_id = jsonObj["order_id"].asString();
-        data::Order order = db->searchOrderByID(order_id);
+        data::Order order;
+        order = redis->getOrderById(order_id);
+        if(order.uuid.empty())
+        {
+            order = db->searchOrderByID(order_id);
+        }
         order.status = data::Order::Status::REJECTED;
         
         if (!db->updateOrder(order)) {
             throw HTTPException("数据库更新失败");
         }
+        redis->delOrderById(order_id);
         db->addHistory(order);
         db->addHistoryDishesByID(order.uuid, db->getOrderDishesByID(order.uuid));
 

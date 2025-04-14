@@ -62,6 +62,8 @@ public:
 
 	string OrderDishListToJsonArray(const vector<data::OrderDish>&dishList);
 
+	bool checkRedisOrderListExist(const data::Order&order);
+
 
 private:
 	httplib::Server svr;
