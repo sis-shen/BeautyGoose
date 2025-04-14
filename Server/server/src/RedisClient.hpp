@@ -15,14 +15,16 @@ using std::make_shared;
 using std::vector;
 
 
-//设定前缀
-const std::string account_prefix = "data:Account:";
-const std::string dish_prefix = "data:Dish:";
-const std::string order_prefix = "data:Order:";
-const std::string history_prefix = "data:History:";
+
 
 class RedisClient
 {
+    //设定前缀
+    const std::string account_prefix = "data:Account:";
+    const std::string dish_prefix = "data:Dish:";
+    const std::string order_prefix = "data:Order:";
+    const std::string history_prefix = "data:History:";
+    const std::chrono::seconds expire_time = std::chrono::seconds(300);
 public:
     RedisClient(const string&ip,const uint16_t port,const uint16_t db,const bool keep_alive,const string&password)
     {
@@ -59,16 +61,21 @@ public:
     string getOrderDishListJson(const string&order_id);
     data::Order getOrderById(const string& id);
     void setOrderList(const vector<data::Order> order_list);
+    void setOrderListByIdDone(const string&id);
     vector<data::Order> getOrderListByMerchant(const string&id);
     vector<data::Order> getOrderListByMerchantWaiting(const string&id);
     vector<data::Order> getOrderListByConsumer(const string&id);
-    bool hasOrderList(const data::Order& order);
+    bool hasOrderListByUserId(const string& id);
+    void delOrderById(const string&id);
+
     
 
     //菜品相关
     data::Dish getDishById(const string&id);
+    void delDishById(const string&id);
     string getDishListJsonByMerchant(const string&id);
     void setDishListJsonByMerchant(const string&id,const string&json);
+    void delDishListJsonByMerchant(const string&id);    //缓存会有失效的时候
     void setDish(const data::Dish& dish);
     
     //账号相关

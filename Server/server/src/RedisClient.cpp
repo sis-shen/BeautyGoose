@@ -79,7 +79,12 @@ void RedisClient::setDish(const data::Dish& dish)
     m["base_price"] = to_string(dish.base_price);
     m["price_factor"] = to_string(dish.price_factor);
 
-    _redis->hset(dish_prefix+"id"+dish.uuid,m.begin(),m.end());
+    _redis->hset(dish_prefix+"id:"+dish.uuid,m.begin(),m.end());
+}
+
+void RedisClient::delDishById(const string&id)
+{
+    _redis->del(dish_prefix+"id:"+id);
 }
 
 data::Dish RedisClient::getDishById(const string&id)
@@ -107,6 +112,12 @@ data::Dish RedisClient::getDishById(const string&id)
 void RedisClient::setDishListJsonByMerchant(const string&id,const string&jsonstr)
 {
     _redis->set(dish_prefix+"merchant:"+id,jsonstr);
+    _redis->expire(dish_prefix+"merchant:"+id,expire_time);
+}
+
+void RedisClient::delDishListJsonByMerchant(const string&id)
+{
+    _redis->del(dish_prefix+"merchant:"+id);
 }
 
 string RedisClient::getDishListJsonByMerchant(const string&id)
@@ -137,9 +148,20 @@ void RedisClient::setOrder(const data::Order&order)
     _redis->sadd(order_prefix+"consumer:"+order.consumer_id,order.uuid);
 }
 
-bool RedisClient::hasOrderList(const data::Order& order)
+bool RedisClient::hasOrderListByUserId(const string&id)
 {
-    return _redis->exists(order_prefix+"consumer:"+order.consumer_id);
+    return _redis->exists(order_prefix+"exist:"+id);
+}
+
+void RedisClient::setOrderListByIdDone(const string&id)
+{
+    string key =order_prefix+"exist:"+id; 
+    _redis->set(key,"1");
+    //我们认为5分钟内数据有完整性
+    ////////////////////////////////////
+    //TODO 风险分析
+    ////////////////////////////////////
+    _redis->expire(key,expire_time);
 }
 
 void RedisClient::setOrderDishListJson(const string&order_id,const string& dish_list_json)
@@ -224,5 +246,12 @@ vector<data::Order> RedisClient::getOrderListByConsumer(const string&id)
     }
     return order_list;
 }
+
+void RedisClient::delOrderById(const string&id)
+{
+    _redis->del(order_prefix+"id:"+id);
+}
+
+
 
 }
