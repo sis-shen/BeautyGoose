@@ -29,6 +29,8 @@ Release/
 doc/
 
 Server/mysql/varlib/
+Server/redis/data/
+Server/unitTest/
 
 makefile
 
