@@ -84,6 +84,11 @@ void MerchantOrderDetailWidget::initMainW(const btyGoose::data::Order& order)
 
     QPushButton* accBtn = new QPushButton("接单");
     QPushButton* rejBtn = new QPushButton("拒单");
+    if(order.status != btyGoose::data::Order::Status::WAITING)
+    {
+        accBtn->setEnabled(false);
+        rejBtn->setEnabled(false);
+    }
     accBtn->setFixedSize(100,50);
     rejBtn->setFixedSize(100,50);
 

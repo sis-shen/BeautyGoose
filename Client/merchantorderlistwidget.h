@@ -50,14 +50,37 @@ public:
         layout->addWidget(cnt,2,0);
         layout->addWidget(pay,3,0);
 
-        QPushButton* stat = new QPushButton("状态:待处理");
+        QString stat;
+        if(order.status == btyGoose::data::Order::Status::UNPAYED)
+            stat = "待支付";
+        else if(order.status == btyGoose::data::Order::Status::WAITING)
+            stat = "等待商家";
+        else if(order.status == btyGoose::data::Order::Status::ERR)
+            stat = "错误";
+        else if(order.status == btyGoose::data::Order::Status::FATAL)
+            stat = "失败";
+        else if(order.status == btyGoose::data::Order::Status::OVER_TIME)
+            stat = "超时";
+        else if(order.status == btyGoose::data::Order::Status::SUCCESS)
+            stat = "成功完成";
+        else if(order.status == btyGoose::data::Order::Status::REJECTED)
+            stat = "被拒单";
+        else if(order.status == btyGoose::data::Order::Status::CANCELED)
+            stat = "已取消";
+        else
+        {
+            qDebug()<<"stat:"<<order.status;
+            Q_ASSERT(false);
+        }
+
+        QPushButton* statBtn = new QPushButton("状态:"+stat);
         QPushButton* process = new QPushButton("处理");
         process->setStyleSheet("QPushButton { margin-right: 20px; }");
 
-        stat->setFixedSize(100,50);
+        statBtn->setFixedSize(100,50);
         process->setFixedSize(100,50);
 
-        layout->addWidget(stat,0,1,4,1);
+        layout->addWidget(statBtn,0,1,4,1);
         layout->addWidget(process,0,2,4,1);
         connect(process,&QPushButton::clicked,this,&OrderItem::orderInfoSlot);
     }
