@@ -53,7 +53,13 @@ public:
             LOG_WARN("Redis连接失败：{}",e.what());
             return false;
         }
+        return false;
     }    
+
+    void flushall()
+    {
+        _redis->flushall();
+    }
 
     //订单相关
     void setOrder(const data::Order& order);

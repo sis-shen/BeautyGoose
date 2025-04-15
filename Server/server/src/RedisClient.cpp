@@ -198,6 +198,11 @@ data::Order RedisClient::getOrderById(const string& id)
     return order;
 }
 
+void RedisClient::delOrderById(const string&id)
+{
+    _redis->del(order_prefix+"id:"+id);
+}
+
 void RedisClient::setOrderList(const vector<data::Order> order_list)
 {
     for(const auto& order:order_list)
@@ -247,10 +252,7 @@ vector<data::Order> RedisClient::getOrderListByConsumer(const string&id)
     return order_list;
 }
 
-void RedisClient::delOrderById(const string&id)
-{
-    _redis->del(order_prefix+"id:"+id);
-}
+
 
 
 
