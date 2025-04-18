@@ -15,4 +15,34 @@ void init_logger(bool mode, const std::string &file, int32_t level);
 #define LOG_WARN(format, ...) btyGoose::g_default_logger->warn(std::string("[{}:{}] ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
 #define LOG_ERROR(format, ...) btyGoose::g_default_logger->error(std::string("[{}:{}] ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
 #define LOG_FATAL(format, ...) btyGoose::g_default_logger->critical(std::string("[{}:{}] ") + format, __FILE__, __LINE__, ##__VA_ARGS__)
+
+
+class ScopedTimer
+{
+public:
+    ScopedTimer(const std::string&name)
+    :_name(name),_start(std::chrono::high_resolution_clock::now())
+    {
+        _prev = _start;
+    }
+
+    int64_t staged()
+    {
+        auto stage = std::chrono::high_resolution_clock::now();
+        auto ret = stage - _prev;
+        _prev = stage;
+        return (std::chrono::duration_cast<std::chrono::microseconds>(ret)).count();
+    }
+        
+    ~ScopedTimer() {
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-_start);
+        LOG_DEBUG("计时器 {} 存活时间: {} μs",_name,duration.count());
+    }
+
+private:
+    std::string _name;
+    std::chrono::time_point<std::chrono::high_resolution_clock> _start;
+    std::chrono::time_point<std::chrono::high_resolution_clock> _prev;
+};
 }
