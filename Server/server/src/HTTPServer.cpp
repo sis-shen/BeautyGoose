@@ -7,7 +7,15 @@ HTTPServer* HTTPServer::_ins = nullptr;
 using std::cout;
 btyGoose::HTTPServer::HTTPServer()
 {
+    // 关键参数设置
+    svr.set_read_timeout(5, 0);     // 5秒读超时 
+    svr.set_write_timeout(5, 0);    // 5秒写超时
+    svr.set_payload_max_length(1024 * 1024 * 10); // 10MB最大请求体
 
+    // 启用keep-alive
+    svr.set_keep_alive_max_count(1000); // 最大长连接数
+    // 启动服务时指定线程数（建议CPU核数×2）
+    svr.new_task_queue = [] { return new httplib::ThreadPool(4); };
 }
 
 void btyGoose::HTTPServer::setDB(std::shared_ptr<DatabaseClient>& ptr)
@@ -71,7 +79,7 @@ void btyGoose::HTTPServer::initTestAPI()
         res.set_header("Content-Type", "application/text;charset=UTF-8");
         });
     
-        svr.Get("flush/redis",[=](const httplib::Request& req, httplib::Response& res){
+        svr.Get("/flush/redis",[=](const httplib::Request& req, httplib::Response& res){
             LOG_INFO("收到HTTP请求, method={},path={}",req.method,req.path);
             auto [begin,end] = req.params.equal_range("password");
             std::string password = begin->second;
@@ -883,10 +891,67 @@ void btyGoose::HTTPServer::initMerchantAPI()
         }
     });
 
-       // 菜品信息查询
-    svr.Post("/merchant/dish/info", [this](const httplib::Request& req, httplib::Response& res) {
+       // 菜品信息查询 debug版
+    svr.Post("/debug/merchant/dish/info", [this](const httplib::Request& req, httplib::Response& res) {
         LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
+        ScopedTimer timer("菜品详情查询");
+        std::string jsonStr = req.body;
+        Json::Value jsonObj;
+        Json::Reader reader;
         
+        if (!reader.parse(jsonStr, jsonObj)) {
+            LOG_ERROR("[商家查询菜品详情] uuid生成错误");
+            jsonObj = Json::objectValue;
+        }
+        ///////////////////////
+        LOG_TRACE("Json解析完成,    耗时 {}μs",timer.staged());
+        //////////////////////////
+        Json::Value resJson;
+        try {
+            if (!jsonObj.isMember("dish_id")) {
+                throw HTTPException("缺少菜品ID");
+            }
+
+            std::string dish_id = jsonObj["dish_id"].asString();
+            data::Dish dish;
+            //////////////////
+            timer.staged();
+            /////////////////
+            dish = redis->getDishById(dish_id);
+            //////////////////
+            LOG_TRACE("完成Redis的get查询,  耗时 {}μs",timer.staged());
+            /////////////////
+            if(dish.uuid.empty())
+            {
+                timer.staged();
+                dish = db->searchDishByID(dish_id);
+                LOG_TRACE("完成数据库查询数据，耗时 {}μs",timer.staged());
+                if (dish.uuid.empty()) {
+                    throw HTTPException("菜品不存在");
+                }
+                timer.staged();
+                redis->setDish(dish);
+                LOG_TRACE("完成Redis设置缓存，耗时 {}μs",timer.staged());
+            }
+            timer.staged();
+            resJson["dish"] = json::toJson(dish);
+            res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
+            LOG_TRACE("完成Json序列化和报文写入,耗时 {}μs",timer.staged());
+            res.set_header("Content-Type", "application/json");
+            LOG_INFO("[商家查询菜品详情]成功");
+        }
+        catch (const HTTPException& e) {
+            res.status = 404;
+            resJson["success"] = false;
+            resJson["message"] = e.what();
+            res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
+            LOG_ERROR("[商家查询菜品详情]出错,信息:{}",e.what());
+        }
+    });
+
+           // 菜品信息查询
+        svr.Post("/merchant/dish/info", [this](const httplib::Request& req, httplib::Response& res) {
+        LOG_DEBUG("收到HTTP请求, method={},path={}",req.method,req.path);
         std::string jsonStr = req.body;
         Json::Value jsonObj;
         Json::Reader reader;
