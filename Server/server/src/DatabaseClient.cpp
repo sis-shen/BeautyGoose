@@ -41,7 +41,16 @@ void DatabaseClient::start()
     try {
         sql::mysql::MySQL_Driver *driver = sql::mysql::get_mysql_driver_instance();
         LOG_INFO("开始连接数据库 tcp://{}:{}\n\tuser:{}",host,port,user);
-        con = driver->connect("tcp://"+host+":"+port, user, password);
+        sql::ConnectOptionsMap ops;
+
+        ops["hostName"] = "tcp://"+host+":"+port;
+        ops["userName"] = user;
+        ops["password"] = password;
+
+        ops["useServerPrepStmts"] = true;
+        ops["cachePrepStmts"] = true;
+        ops["prepStmtCacheSize"] = 25;  // 默认25个
+        con = driver->connect(ops);
         con->setSchema("BeautyGoose");
         stmt = con->createStatement();
         connected_ = true;
@@ -350,15 +359,18 @@ bool DatabaseClient::updateDish(const data::Dish& dish) {
 }
 
 data::Dish DatabaseClient::searchDishByID(const std::string& id) {
+    ScopedTimer timer("数据库接口内部");
     std::lock_guard<std::mutex> lock(mtx);
+    LOG_TRACE("API数据库接口加锁耗时: {}μs",timer.staged());
     LOG_DEBUG("数据库查询菜品, ID:{}",id);
     try {
         auto pstmt = con->prepareStatement(
             "SELECT * FROM dishes WHERE uuid=?"
         );
         pstmt->setString(1, id);
-        
+        LOG_TRACE("API生成SQL语句，耗时 {}μs",timer.staged());
         auto res = std::unique_ptr<sql::ResultSet>(pstmt->executeQuery());
+        LOG_TRACE("API执行SQL语句，耗时 {}μs",timer.staged());
         if(res->next()) {
             data::Dish dish;
             dish.uuid = res->getString("uuid");
@@ -370,6 +382,7 @@ data::Dish DatabaseClient::searchDishByID(const std::string& id) {
             dish.base_price = res->getDouble("base_price");
             dish.price_factor = res->getDouble("price_factor");
             dish.is_delete = res->getBoolean("is_delete");
+            LOG_TRACE("API完成对象初始化,耗时{}μs",timer.staged());
             return dish;
         }
         return {}; // 返回空菜品
