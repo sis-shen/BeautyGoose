@@ -26,7 +26,7 @@ create table account(
 
 create table dishes(
     `id` BIGINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    `uuid` varchar(32) unique,
+    `uuid` varchar(32) unique not null,
     `merchant_id` varchar(32) not null,
     `merchant_name` varchar(16) not null,
     `name` varchar(16) not null,
@@ -60,6 +60,8 @@ create table orderDish(
     `dish_price` decimal(6,2),
     `count` int not null default 0
 )ENGINE=InnoDB;
+
+ALTER TABLE orderDish ADD INDEX idx_order_id (order_id);
 
 create table history(
     `id` BIGINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
