@@ -28,7 +28,7 @@ class RedisClient
 public:
     RedisClient(const string&ip,const uint16_t port,const uint16_t db,const bool keep_alive,const string&password)
     {
-        LOG_INFO("即将连接Redis服务器,地址 {}:{}",ip,port);
+        SUP_LOG_INFO("即将连接Redis服务器,地址 {}:{}",ip,port);
         sw::redis::ConnectionOptions opts;
         opts.host = ip;
         opts.port = port;
@@ -50,7 +50,7 @@ public:
                 return true;
             }
         } catch (const sw::redis::Error &e) {
-            LOG_WARN("Redis连接失败：{}",e.what());
+            SUP_LOG_WARN("Redis连接失败：{}",e.what());
             return false;
         }
         return false;
