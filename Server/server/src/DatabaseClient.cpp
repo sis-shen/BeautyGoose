@@ -33,14 +33,14 @@ void DatabaseClient::init(const string&_user,const string&_password,const string
     port = _port;
     database = _database;
     reconnect_interval_ = _reconnect_interval;
-    LOG_DEBUG("数据库初始化参数:\n\tuser:{}\n\tpassword:{}\n\thost:{}\n\tport:{}\n\tdatabase:{}",user,password,host,port,database);
+    SUP_LOG_DEBUG("数据库初始化参数:\n\tuser:{}\n\tpassword:{}\n\thost:{}\n\tport:{}\n\tdatabase:{}",user,password,host,port,database);
 }
 
 void DatabaseClient::start()
 {
     try {
         sql::mysql::MySQL_Driver *driver = sql::mysql::get_mysql_driver_instance();
-        LOG_INFO("开始连接数据库 tcp://{}:{}\n\tuser:{}",host,port,user);
+        SUP_LOG_INFO("开始连接数据库 tcp://{}:{}\n\tuser:{}",host,port,user);
         sql::ConnectOptionsMap ops;
 
         ops["hostName"] = "tcp://"+host+":"+port;
@@ -56,9 +56,9 @@ void DatabaseClient::start()
         connected_ = true;
         //启动守护线程
         reconnect_thread_ = std::thread(std::bind(&DatabaseClient::reconnectLoop,this));
-        LOG_INFO("守护线程已启动");
+        SUP_LOG_INFO("守护线程已启动");
     } catch (sql::SQLException &e) {
-        LOG_FATAL( "数据库连接失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_FATAL( "数据库连接失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         exit(-1);
     }
 }
@@ -75,7 +75,7 @@ void DatabaseClient::reconnectLoop()
         //因为上面有可能是超时等待成功，所以还要再判断一下是否需要重连
         if(!connected_ && !stop_reconnect_)
         {
-            LOG_INFO("开始尝试重连");
+            SUP_LOG_INFO("开始尝试重连");
             try{
                 std::unique_lock<std::mutex> db_lock(mtx);//锁住数据库其它操作
 
@@ -90,11 +90,11 @@ void DatabaseClient::reconnectLoop()
                 stmt = con->createStatement();
                 connected_ = true;
 
-                LOG_INFO("数据库成功重连喵~ (≧∇≦)ﾉ");
+                SUP_LOG_INFO("数据库成功重连喵~ (≧∇≦)ﾉ");
 
             }
             catch(const sql::SQLException e){
-                LOG_ERROR("重连失败: {} [错误码: {}]", e.what(), e.getErrorCode());
+                SUP_LOG_ERROR("重连失败: {} [错误码: {}]", e.what(), e.getErrorCode());
             }   
         }
         else
@@ -125,7 +125,7 @@ bool DatabaseClient::checkConnection()
         }
     }catch (const sql::SQLException&){}
 
-    LOG_WARN("当前数据库连接已丢失");
+    SUP_LOG_WARN("当前数据库连接已丢失");
     connected_ = false;
     return false;
 }
@@ -134,7 +134,7 @@ bool DatabaseClient::checkConnection()
 //━━━━━━━━━━━━━━ Account CRUD实现 ━━━━━━━━━━━━━━//
 bool DatabaseClient::addAccount(const data::Account& acc) {
     lock_guard<mutex> lock(mtx);
-    LOG_DEBUG("数据库插入账户, ID:{}",acc.uuid);
+    SUP_LOG_DEBUG("数据库插入账户, ID:{}",acc.uuid);
     try {
         auto pstmt = con->prepareStatement(
             "INSERT INTO account(uuid, phone, name, password, nickname, "
@@ -153,7 +153,7 @@ bool DatabaseClient::addAccount(const data::Account& acc) {
 
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "添加账户失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "添加账户失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
         return false;
     }
@@ -161,7 +161,7 @@ bool DatabaseClient::addAccount(const data::Account& acc) {
 
 bool DatabaseClient::updateAccount(const data::Account& acc) {
     lock_guard<mutex> lock(mtx);
-    LOG_DEBUG("数据库更新账户, ID:{}",acc.uuid);
+    SUP_LOG_DEBUG("数据库更新账户, ID:{}",acc.uuid);
     try {
         auto pstmt = con->prepareStatement(
             "UPDATE account SET phone=?, name=?, password=?, nickname=?, "
@@ -180,7 +180,7 @@ bool DatabaseClient::updateAccount(const data::Account& acc) {
 
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "更新账户失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "更新账户失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -190,7 +190,7 @@ bool DatabaseClient::updateAccount(const data::Account& acc) {
 
 data::Account DatabaseClient::searchAccountByID(const string& id) {
     lock_guard<mutex> lock(mtx);
-    LOG_DEBUG("数据库通过ID查询账户, ID:{}",id);
+    SUP_LOG_DEBUG("数据库通过ID查询账户, ID:{}",id);
     try {
         auto pstmt = con->prepareStatement(
             "SELECT * FROM account WHERE uuid=?"
@@ -212,7 +212,7 @@ data::Account DatabaseClient::searchAccountByID(const string& id) {
         }
         return {}; // 返回空账户
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "查询账户失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "查询账户失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return {};
@@ -221,7 +221,7 @@ data::Account DatabaseClient::searchAccountByID(const string& id) {
 
 data::Account DatabaseClient::searchAccountByName(const string& name) {
     lock_guard<mutex> lock(mtx);
-    LOG_DEBUG("数据库通过用户名查询账户, ID:{}",name);
+    SUP_LOG_DEBUG("数据库通过用户名查询账户, ID:{}",name);
     try {
         auto pstmt = con->prepareStatement(
             "SELECT * FROM account WHERE name=?"
@@ -243,7 +243,7 @@ data::Account DatabaseClient::searchAccountByName(const string& name) {
         }
         return {};
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "按名称查询账户失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "按名称查询账户失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return {};
@@ -252,7 +252,7 @@ data::Account DatabaseClient::searchAccountByName(const string& name) {
 
 data::Account DatabaseClient::searchAccountByPhone(const string& phone) {
     lock_guard<mutex> lock(mtx);
-    LOG_DEBUG("数据库通过手机号查询账户, ID:{}",phone);
+    SUP_LOG_DEBUG("数据库通过手机号查询账户, ID:{}",phone);
     try {
         auto pstmt = con->prepareStatement(
             "SELECT * FROM account WHERE phone=?"
@@ -274,7 +274,7 @@ data::Account DatabaseClient::searchAccountByPhone(const string& phone) {
         }
         return {}; // 返回空账户
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "按手机号查询账户失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "按手机号查询账户失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return {};
@@ -283,7 +283,7 @@ data::Account DatabaseClient::searchAccountByPhone(const string& phone) {
 
 bool DatabaseClient::delAccountByID(const string& id) {
     lock_guard<mutex> lock(mtx);
-    LOG_DEBUG("数据库通过id删除账户, ID:{}",id);
+    SUP_LOG_DEBUG("数据库通过id删除账户, ID:{}",id);
     try {
         auto pstmt = con->prepareStatement(
             "DELETE FROM account WHERE uuid=?"
@@ -291,7 +291,7 @@ bool DatabaseClient::delAccountByID(const string& id) {
         pstmt->setString(1, id);
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "删除账户失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "删除账户失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -302,7 +302,7 @@ bool DatabaseClient::delAccountByID(const string& id) {
 //━━━━━━━━━━━━━━ Dish CRUD实现 ━━━━━━━━━━━━━━//
 bool DatabaseClient::addDish(const data::Dish& dish) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库插入菜品, ID:{}",dish.uuid);
+    SUP_LOG_DEBUG("数据库插入菜品, ID:{}",dish.uuid);
     try {
         auto pstmt = con->prepareStatement(
             "INSERT INTO dishes(uuid, merchant_id, merchant_name, name, "
@@ -322,7 +322,7 @@ bool DatabaseClient::addDish(const data::Dish& dish) {
 
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "添加菜品失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "添加菜品失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -331,7 +331,7 @@ bool DatabaseClient::addDish(const data::Dish& dish) {
 
 bool DatabaseClient::updateDish(const data::Dish& dish) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库更新菜品, ID:{}",dish.uuid);
+    SUP_LOG_DEBUG("数据库更新菜品, ID:{}",dish.uuid);
     try {
         auto pstmt = con->prepareStatement(
             "UPDATE dishes SET merchant_id=?, merchant_name=?, name=?, "
@@ -351,7 +351,7 @@ bool DatabaseClient::updateDish(const data::Dish& dish) {
 
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "更新菜品失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "更新菜品失败喵!\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -361,16 +361,16 @@ bool DatabaseClient::updateDish(const data::Dish& dish) {
 data::Dish DatabaseClient::searchDishByID(const std::string& id) {
     ScopedTimer timer("数据库接口内部");
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_TRACE("API数据库接口加锁耗时: {}μs",timer.staged());
-    LOG_DEBUG("数据库查询菜品, ID:{}",id);
+    SUP_LOG_TRACE("API数据库接口加锁耗时: {}μs",timer.staged());
+    SUP_LOG_DEBUG("数据库查询菜品, ID:{}",id);
     try {
         auto pstmt = con->prepareStatement(
             "SELECT * FROM dishes WHERE uuid=?"
         );
         pstmt->setString(1, id);
-        LOG_TRACE("API生成SQL语句，耗时 {}μs",timer.staged());
+        SUP_LOG_TRACE("API生成SQL语句，耗时 {}μs",timer.staged());
         auto res = std::unique_ptr<sql::ResultSet>(pstmt->executeQuery());
-        LOG_TRACE("API执行SQL语句，耗时 {}μs",timer.staged());
+        SUP_LOG_TRACE("API执行SQL语句，耗时 {}μs",timer.staged());
         if(res->next()) {
             data::Dish dish;
             dish.uuid = res->getString("uuid");
@@ -382,12 +382,12 @@ data::Dish DatabaseClient::searchDishByID(const std::string& id) {
             dish.base_price = res->getDouble("base_price");
             dish.price_factor = res->getDouble("price_factor");
             dish.is_delete = res->getBoolean("is_delete");
-            LOG_TRACE("API完成对象初始化,耗时{}μs",timer.staged());
+            SUP_LOG_TRACE("API完成对象初始化,耗时{}μs",timer.staged());
             return dish;
         }
         return {}; // 返回空菜品
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "查询菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "查询菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return {};
@@ -396,7 +396,7 @@ data::Dish DatabaseClient::searchDishByID(const std::string& id) {
 
 std::vector<data::Dish> DatabaseClient::getAllDishList() {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库查询取所有菜品");
+    SUP_LOG_DEBUG("数据库查询取所有菜品");
     std::vector<data::Dish> dishes;
     try {
         auto res = std::unique_ptr<sql::ResultSet>(
@@ -417,7 +417,7 @@ std::vector<data::Dish> DatabaseClient::getAllDishList() {
             dishes.push_back(dish);
         }
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "获取菜品列表失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "获取菜品列表失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
     }
@@ -426,7 +426,7 @@ std::vector<data::Dish> DatabaseClient::getAllDishList() {
 
 std::vector<data::Dish> DatabaseClient::getDishListByMerchant(const std::string& id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库根据商家id查询取所有菜品,merchant id: {}",id);
+    SUP_LOG_DEBUG("数据库根据商家id查询取所有菜品,merchant id: {}",id);
 
     std::vector<data::Dish> dishes;
     try {
@@ -450,7 +450,7 @@ std::vector<data::Dish> DatabaseClient::getDishListByMerchant(const std::string&
             dishes.push_back(dish);
         }
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "获取商家菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "获取商家菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
     }
@@ -459,7 +459,7 @@ std::vector<data::Dish> DatabaseClient::getDishListByMerchant(const std::string&
 
 bool DatabaseClient::delDishByID(const std::string& id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库根据菜品id查询取所有菜品,dish id: {}",id);
+    SUP_LOG_DEBUG("数据库根据菜品id查询取所有菜品,dish id: {}",id);
 
     try {
         auto pstmt = con->prepareStatement(
@@ -468,7 +468,7 @@ bool DatabaseClient::delDishByID(const std::string& id) {
         pstmt->setString(1, id);
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "删除菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "删除菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -478,7 +478,7 @@ bool DatabaseClient::delDishByID(const std::string& id) {
 //━━━━━━━━━━━━━━ Order CRUD实现 ━━━━━━━━━━━━━━//
 bool DatabaseClient::addOrder(const data::Order& order) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库插入订单,id: {}",order.uuid);
+    SUP_LOG_DEBUG("数据库插入订单,id: {}",order.uuid);
 
     try {
         auto pstmt = con->prepareStatement(
@@ -500,7 +500,7 @@ bool DatabaseClient::addOrder(const data::Order& order) {
 
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "添加订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "添加订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -509,7 +509,7 @@ bool DatabaseClient::addOrder(const data::Order& order) {
 
 bool DatabaseClient::updateOrder(const data::Order& order) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库更新订单,id: {}",order.uuid);
+    SUP_LOG_DEBUG("数据库更新订单,id: {}",order.uuid);
     try {
         auto pstmt = con->prepareStatement(
             "UPDATE orders SET time=?, merchant_id=?, merchant_name=?, "
@@ -530,7 +530,7 @@ bool DatabaseClient::updateOrder(const data::Order& order) {
 
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "更新订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "更新订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -539,7 +539,7 @@ bool DatabaseClient::updateOrder(const data::Order& order) {
 
 bool DatabaseClient::updateOrder(const string& id, const data::Order::Status stat) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库更新订单状态,id: {} ,state: {}",id,static_cast<int>(stat) );
+    SUP_LOG_DEBUG("数据库更新订单状态,id: {} ,state: {}",id,static_cast<int>(stat) );
     try {
         auto pstmt = con->prepareStatement(
             "UPDATE orders SET status=? WHERE uuid=?"
@@ -548,7 +548,7 @@ bool DatabaseClient::updateOrder(const string& id, const data::Order::Status sta
         pstmt->setString(2, id);
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "更新订单状态失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "更新订单状态失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -557,7 +557,7 @@ bool DatabaseClient::updateOrder(const string& id, const data::Order::Status sta
 
 data::Order DatabaseClient::searchOrderByID(const string& order_id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库查询订单,id: {}",order_id);
+    SUP_LOG_DEBUG("数据库查询订单,id: {}",order_id);
     try {
         auto pstmt = con->prepareStatement(
             "SELECT * FROM orders WHERE uuid=?"
@@ -581,7 +581,7 @@ data::Order DatabaseClient::searchOrderByID(const string& order_id) {
         }
         return {};
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "查询订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "查询订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return {};
@@ -590,7 +590,7 @@ data::Order DatabaseClient::searchOrderByID(const string& order_id) {
 
 vector<data::Order> DatabaseClient::getOrderListByMerchant(const string& merchant_id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库查询商家订单列表,merchant id: {}",merchant_id);
+    SUP_LOG_DEBUG("数据库查询商家订单列表,merchant id: {}",merchant_id);
     vector<data::Order> orders;
     try {
         auto pstmt = con->prepareStatement(
@@ -614,7 +614,7 @@ vector<data::Order> DatabaseClient::getOrderListByMerchant(const string& merchan
             orders.push_back(order);
         }
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "获取商家订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "获取商家订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
     }
@@ -623,7 +623,7 @@ vector<data::Order> DatabaseClient::getOrderListByMerchant(const string& merchan
 
 vector<data::Order> DatabaseClient::getOrderListByMerchantWaiting(const string& merchant_id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库查询商家等待状态订单列表,merchant id: {}",merchant_id);
+    SUP_LOG_DEBUG("数据库查询商家等待状态订单列表,merchant id: {}",merchant_id);
     vector<data::Order> orders;
     try {
         auto pstmt = con->prepareStatement(
@@ -647,7 +647,7 @@ vector<data::Order> DatabaseClient::getOrderListByMerchantWaiting(const string& 
             orders.push_back(order);
         }
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "获取待处理订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "获取待处理订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
     }
@@ -656,7 +656,7 @@ vector<data::Order> DatabaseClient::getOrderListByMerchantWaiting(const string& 
 
 vector<data::Order> DatabaseClient::getOrderListByConsumer(const string& consumer_id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库查询消费者订单列表,consumer id: {}",consumer_id);
+    SUP_LOG_DEBUG("数据库查询消费者订单列表,consumer id: {}",consumer_id);
     vector<data::Order> orders;
     try {
         auto pstmt = con->prepareStatement(
@@ -679,7 +679,7 @@ vector<data::Order> DatabaseClient::getOrderListByConsumer(const string& consume
             orders.push_back(order);
         }
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "获取用户订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "获取用户订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
     }
@@ -688,7 +688,7 @@ vector<data::Order> DatabaseClient::getOrderListByConsumer(const string& consume
 
 vector<data::Order> DatabaseClient::getAllOrderList() {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库查询所有订单列表");
+    SUP_LOG_DEBUG("数据库查询所有订单列表");
     vector<data::Order> orders;
     try {
         auto res = std::unique_ptr<sql::ResultSet>(
@@ -708,7 +708,7 @@ vector<data::Order> DatabaseClient::getAllOrderList() {
             orders.push_back(order);
         }
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "获取全部订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "获取全部订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
     }
@@ -717,7 +717,7 @@ vector<data::Order> DatabaseClient::getAllOrderList() {
 
 bool DatabaseClient::delOrderByID(const string& order_id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库通过订单id查询订单列表,id: {}",order_id);
+    SUP_LOG_DEBUG("数据库通过订单id查询订单列表,id: {}",order_id);
     try {
         auto pstmt = con->prepareStatement(
             "DELETE FROM orders WHERE uuid=?"
@@ -725,7 +725,7 @@ bool DatabaseClient::delOrderByID(const string& order_id) {
         pstmt->setString(1, order_id);
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "删除订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "删除订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -734,7 +734,7 @@ bool DatabaseClient::delOrderByID(const string& order_id) {
 
 int DatabaseClient::clearOverTimeOrder() {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库清理超时订单");
+    SUP_LOG_DEBUG("数据库清理超时订单");
     try {
         // 将超时订单转移到历史表
         con->setAutoCommit(false);
@@ -759,7 +759,7 @@ int DatabaseClient::clearOverTimeOrder() {
         return affected;
     } catch (sql::SQLException& e) {
         con->rollback();
-        LOG_ERROR( "清理超时订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "清理超时订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return -1;
@@ -770,7 +770,7 @@ int DatabaseClient::clearOverTimeOrder() {
 //━━━━━━━━━━━━━━ OrderDish 相关操作 ━━━━━━━━━━━━━━//
 bool DatabaseClient::addOrderDishesByID(const string& order_id, const vector<data::OrderDish>& list) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库添加订单菜品,order id: {}",order_id);
+    SUP_LOG_DEBUG("数据库添加订单菜品,order id: {}",order_id);
     try {
         con->setAutoCommit(false); // 启动量子纠缠态（事务）
 
@@ -805,7 +805,7 @@ bool DatabaseClient::addOrderDishesByID(const string& order_id, const vector<dat
         // 验证所有次元跃迁结果
         for(auto count : updateCounts) {
             if(count <= 0) {
-                LOG_ERROR( "部分插入订单菜品失败喵！");
+                SUP_LOG_ERROR( "部分插入订单菜品失败喵！");
                 return false;
             }
         }
@@ -813,7 +813,7 @@ bool DatabaseClient::addOrderDishesByID(const string& order_id, const vector<dat
 
     } catch (sql::SQLException& e) {
         con->rollback(); // 启动时空回溯协议
-        LOG_ERROR( "添加订单菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "添加订单菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
 
@@ -823,7 +823,7 @@ bool DatabaseClient::addOrderDishesByID(const string& order_id, const vector<dat
 
 bool DatabaseClient::delOrderDishesByID(const string& order_id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库删除订单菜品,order id: {}",order_id);
+    SUP_LOG_DEBUG("数据库删除订单菜品,order id: {}",order_id);
     try {
         auto pstmt = con->prepareStatement(
             "DELETE FROM orderDish WHERE order_id=?"
@@ -831,7 +831,7 @@ bool DatabaseClient::delOrderDishesByID(const string& order_id) {
         pstmt->setString(1, order_id);
         return pstmt->executeUpdate() > 0;
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "删除订单菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "删除订单菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -840,7 +840,7 @@ bool DatabaseClient::delOrderDishesByID(const string& order_id) {
 
 vector<data::OrderDish> DatabaseClient::getOrderDishesByID(const string& order_id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库查询订单菜品,order id: {}",order_id);
+    SUP_LOG_DEBUG("数据库查询订单菜品,order id: {}",order_id);
     vector<data::OrderDish> dishes;
     try {
         auto pstmt = con->prepareStatement(
@@ -860,7 +860,7 @@ vector<data::OrderDish> DatabaseClient::getOrderDishesByID(const string& order_i
             dishes.push_back(dish);
         }
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "查询订单菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "查询订单菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
     }
@@ -872,7 +872,7 @@ vector<data::OrderDish> DatabaseClient::getOrderDishesByID(const string& order_i
 // 原子化历史记录添加（事务保护）
 bool DatabaseClient::addHistory(const data::Order& order) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库添加历史订单,order id: {}",order.uuid);
+    SUP_LOG_DEBUG("数据库添加历史订单,order id: {}",order.uuid);
     try {
         con->setAutoCommit(false); // 启动时间线锁定
         
@@ -907,7 +907,7 @@ bool DatabaseClient::addHistory(const data::Order& order) {
 
     } catch (sql::SQLException& e) {
         con->rollback(); // 时间线回溯
-        LOG_ERROR( "插入历史订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "插入历史订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -956,7 +956,7 @@ vector<data::Order> DatabaseClient::getAllHistoryList() {
         delete stmt;
         
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "查询全部历史订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "查询全部历史订单失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
     }
@@ -969,7 +969,7 @@ vector<data::Order> DatabaseClient::getAllHistoryList() {
 bool DatabaseClient::addHistoryDishesByID(const string& order_id, 
                                         const vector<data::OrderDish>& list) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库添加历史订单菜品,history id: {}",order_id);
+    SUP_LOG_DEBUG("数据库添加历史订单菜品,history id: {}",order_id);
     try {
         con->setAutoCommit(false); // 启动时空冻结
         
@@ -1005,7 +1005,7 @@ bool DatabaseClient::addHistoryDishesByID(const string& order_id,
 
     } catch (sql::SQLException& e) {
         con->rollback();
-        LOG_ERROR( "插入历史订单的菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "插入历史订单的菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
         return false;
@@ -1014,7 +1014,7 @@ bool DatabaseClient::addHistoryDishesByID(const string& order_id,
 
 vector<data::OrderDish> DatabaseClient::getHistoryDishesByID(const string& order_id) {
     std::lock_guard<std::mutex> lock(mtx);
-    LOG_DEBUG("数据库查询历史订单菜品,history id: {}",order_id);
+    SUP_LOG_DEBUG("数据库查询历史订单菜品,history id: {}",order_id);
     vector<data::OrderDish> dishes;
 
     try {
@@ -1048,7 +1048,7 @@ vector<data::OrderDish> DatabaseClient::getHistoryDishesByID(const string& order
         delete pstmt;
         
     } catch (sql::SQLException& e) {
-        LOG_ERROR( "插入历史订单的菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
+        SUP_LOG_ERROR( "插入历史订单的菜品失败喵！\n\t错误码: {}\n\t信息:",e.getErrorCode(),e.what());
         checkConnection();//出错时检查一下数据库连接
 
     }
