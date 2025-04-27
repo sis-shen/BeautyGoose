@@ -341,7 +341,7 @@ void MerchantCtrl::merhcnatDishDel(const HttpRequestPtr &req, std::function<void
 void MerchantCtrl::merhcnatOrderList(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 {
     SUP_LOG_DEBUG("收到HTTP请求, method={},path={}","Post",req->getPath());
-    std::string jsonStr = req.getBody().data();
+    std::string jsonStr = req->getBody().data();
     Json::Value jsonObj;
     Json::Reader reader;
     if (!reader.parse(jsonStr, jsonObj)) {
@@ -351,47 +351,197 @@ void MerchantCtrl::merhcnatOrderList(const HttpRequestPtr &req, std::function<vo
     }
 
     Json::Value resJson;
-    try {
-        if (jsonObj.empty() || !jsonObj.isMember("merchant_id")) {
-            throw HTTPException("缺少商家ID");
-        }
+    if (jsonObj.empty() || !jsonObj.isMember("merchant_id"))
+    {
+        if (jsonObj.empty())
+            resJson["message"] = "Json序列化解析失败";
+        else
+            resJson["message"] = "缺少字段merchant_id";
+        auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+        resp->setStatusCode(k400BadRequest);
+        resp->setContentTypeCode(CT_APPLICATION_JSON);
+        callback(resp);
+        return;
+    }
 
-        std::string merchant_id = jsonObj["merchant_id"].asString();
-        std::vector<data::Order> orderList;
-        if(redis->hasOrderListByUserId(merchant_id))
-        {
-            orderList = redis->getOrderListByMerchant(merchant_id);
-        }
-        if(orderList.empty())
-        {
-            orderList = db->getOrderListByMerchant(merchant_id);
-            redis->setOrderList(orderList);
-            redis->setOrderListByIdDone(merchant_id);
-        }
-        
-        std::string orderListJson = OrderListToJsonArray(orderList);
-        resJson["order_list"] = orderListJson;
-        
-        Json::StreamWriterBuilder writer;
-        res.body = Json::writeString(writer, resJson);
-        res.set_header("Content-Type", "application/json;charset=UTF-8");
-        LOG_INFO("[商家获取订单列表]成功，数量:{}",orderList.size());
+    std::string merchant_id = jsonObj["merchant_id"].asString();
+    std::vector<data::Order> orderList;
+    if (redis->hasOrderListByUserId(merchant_id))
+    {
+        orderList = redis->getOrderListByMerchant(merchant_id);
     }
-    catch (const HTTPException& e) {
-        res.status = 500;
-        resJson["success"] = false;
-        resJson["message"] = e.what();
-        res.body = Json::writeString(Json::StreamWriterBuilder(), resJson);
-        LOG_ERROR("[商家获取订单列表]出错，信息:{}",e.what());
+    if (orderList.empty())
+    {
+        orderList = db->getOrderListByMerchant(merchant_id);
+        redis->setOrderList(orderList);
+        redis->setOrderListByIdDone(merchant_id);
     }
+
+    std::string orderListJson = json::OrderListToJsonArray(orderList);
+    resJson["order_list"] = orderListJson;
+
+    SUP_LOG_INFO("[商家获取订单列表]成功，数量:{}", orderList.size());
+    auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+    resp->setStatusCode(k500InternalServerError);
+    resp->setContentTypeCode(CT_APPLICATION_JSON);
+    callback(resp);
+    return;
+
 }
 void MerchantCtrl::merhcnatOrderDetailDishList(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 {
     SUP_LOG_DEBUG("收到HTTP请求, method={},path={}","Post",req->getPath());
+    std::string jsonStr = req->getBody().data();
+    Json::Value jsonObj;
+    Json::Reader reader;
+    if (!reader.parse(jsonStr, jsonObj)) {
+        SUP_LOG_ERROR("[商家获取订单菜品列表]无效的JSON格式:{}",jsonStr);
+        jsonObj = Json::objectValue;
+    }
+
+    Json::Value resJson;
+    if (jsonObj.empty() || !jsonObj.isMember("order_id"))
+    {
+        if (jsonObj.empty())
+            resJson["message"] = "Json序列化解析失败";
+        else
+            resJson["message"] = "缺少字段order_id";
+        auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+        resp->setStatusCode(k400BadRequest);
+        resp->setContentTypeCode(CT_APPLICATION_JSON);
+        callback(resp);
+        return;
+    }
+
+    std::string order_id = jsonObj["order_id"].asString();
+    std::string dishListJson;
+    dishListJson = redis->getOrderDishListJson(order_id);
+    if (dishListJson.empty())
+    {
+        std::vector<data::OrderDish> dishList = db->getOrderDishesByID(order_id);
+        dishListJson = json::OrderDishListToJsonArray(dishList);
+        redis->setOrderDishListJson(order_id, dishListJson);
+    }
+
+    resJson["dish_list"] = dishListJson;
+    SUP_LOG_INFO("[商家获取订单菜品列表]成功");
+    auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+    resp->setStatusCode(k200OK);
+    resp->setContentTypeCode(CT_APPLICATION_JSON);
+    callback(resp);
 
 }
 void MerchantCtrl::merhcnatOrderAccept(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 {
     SUP_LOG_DEBUG("收到HTTP请求, method={},path={}","Post",req->getPath());
+    std::string jsonStr = req->getBody().data();
+    Json::Value jsonObj;
+    Json::Reader reader;
+    if (!reader.parse(jsonStr, jsonObj))
+    {
+        SUP_LOG_ERROR("[商家接受订单]无效的JSON格式:{}", jsonStr);
+        jsonObj = Json::objectValue;
+    }
 
+    Json::Value resJson;
+    if (jsonObj.empty() || !jsonObj.isMember("order_id"))
+    {
+        if (jsonObj.empty())
+            resJson["message"] = "Json序列化解析失败";
+        else
+            resJson["message"] = "缺少字段dish_id";
+        auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+        resp->setStatusCode(k400BadRequest);
+        resp->setContentTypeCode(CT_APPLICATION_JSON);
+        callback(resp);
+        return;
+    }
+
+    std::string order_id = jsonObj["order_id"].asString();
+    data::Order order;
+    order = redis->getOrderById(order_id);
+    if (order.uuid.empty())
+    {
+        order = db->searchOrderByID(order_id);
+    }
+    order.status = data::Order::Status::SUCCESS;
+
+    if (!db->updateOrder(order))
+    {
+        resJson["message"] = "数据库更新失败";
+        auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+        resp->setStatusCode(k400BadRequest);
+        resp->setContentTypeCode(CT_APPLICATION_JSON);
+        callback(resp);
+        return;
+    }
+    redis->setOrder(order);
+
+    db->addHistory(order);
+    db->addHistoryDishesByID(order.uuid, db->getOrderDishesByID(order.uuid));
+
+    resJson["success"] = true;
+    resJson["message"] = "订单接受成功";
+    SUP_LOG_INFO("[商家接受订单]成功,order id:{}", order.uuid);
+    auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+    resp->setStatusCode(k200OK);
+    resp->setContentTypeCode(CT_APPLICATION_JSON);
+    callback(resp);
+}
+
+void MerchantCtrl::merchantOrderReject(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
+{
+    SUP_LOG_DEBUG("收到HTTP请求, method={},path={}","Post",req->getPath());
+    std::string jsonStr = req->getBody().data();
+    Json::Value jsonObj;
+    Json::Reader reader;
+    if (!reader.parse(jsonStr, jsonObj)) {
+        SUP_LOG_ERROR("[商家拒绝订单]无效的JSON格式:{}",jsonStr);
+        jsonObj = Json::objectValue;
+    }
+
+    Json::Value resJson;
+
+    if (jsonObj.empty() || !jsonObj.isMember("order_id"))
+    {
+        if (jsonObj.empty())
+            resJson["message"] = "Json序列化解析失败";
+        else
+            resJson["message"] = "缺少字段dish_id";
+        auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+        resp->setStatusCode(k400BadRequest);
+        resp->setContentTypeCode(CT_APPLICATION_JSON);
+        callback(resp);
+        return;
+    }
+
+    std::string order_id = jsonObj["order_id"].asString();
+    data::Order order;
+    order = redis->getOrderById(order_id);
+    if (order.uuid.empty())
+    {
+        order = db->searchOrderByID(order_id);
+    }
+    order.status = data::Order::Status::REJECTED;
+
+    if (!db->updateOrder(order))
+    {
+        resJson["message"] = "数据库更新失败";
+        auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+        resp->setStatusCode(k400BadRequest);
+        resp->setContentTypeCode(CT_APPLICATION_JSON);
+        callback(resp);
+        return;
+    }
+    redis->delOrderById(order_id);
+    db->addHistory(order);
+    db->addHistoryDishesByID(order.uuid, db->getOrderDishesByID(order.uuid));
+
+    resJson["success"] = true;
+    resJson["message"] = "订单成功拒绝";
+    SUP_LOG_INFO("[商家拒绝订单]成功,id:{}", order.uuid);
+    auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
+    resp->setStatusCode(k200OK);
+    resp->setContentTypeCode(CT_APPLICATION_JSON);
+    callback(resp);
 }
