@@ -124,85 +124,7 @@ namespace btyGoose{
 
     //存放重载函数
     namespace json{
-    static string DishListToJsonArray(const vector<data::Dish>& dishList)
-    {
-        Json::Value jsonArray(Json::arrayValue);
-        Json::Reader reader;
 
-        for (const auto& dish : dishList)
-        {
-            Json::Value dishJson;
-            if (reader.parse(json::toJson(dish), dishJson)) {
-                jsonArray.append(dishJson);
-            }
-        }
-
-        Json::StreamWriterBuilder writer;
-        writer["indentation"] = ""; // 紧凑模式
-        return Json::writeString(writer, jsonArray);
-    }
-    vector<data::Dish> DishListFromJsonArray(const string& jsonStr)
-    {
-        std::vector<data::Dish> dishList;
-        Json::Value root;
-        Json::Reader reader;
-
-        if (reader.parse(jsonStr, root) && root.isArray()) {
-            for (const auto& item : root) {
-
-                Json::StreamWriterBuilder writer;
-                data::Dish dish = json::createDish(Json::writeString(writer, item));
-                dishList.push_back(dish);
-            }
-        }
-        return dishList;
-    }
-
-    string OrderListToJsonArray(const vector<data::Order>&orderList)
-    {
-        Json::Value jsonArray(Json::arrayValue);
-        
-        for (const auto& order : orderList) {
-            Json::Value orderJson;
-            Json::Reader().parse(json::toJson(order), orderJson);
-            jsonArray.append(orderJson);
-        }
-
-        Json::StreamWriterBuilder writer;
-        writer["indentation"] = "";
-        return Json::writeString(writer, jsonArray);
-    }
-    vector<data::Order> OrderListFromJsonArray(const string& jsonStr)
-    {
-        std::vector<data::Order> orderList;
-        Json::Value root;
-        Json::Reader reader;
-
-        if (reader.parse(jsonStr, root) && root.isArray()) {
-            for (const auto& item : root) {
-                ;
-                Json::StreamWriterBuilder writer;
-                data::Order order = json::createOrder(Json::writeString(writer, item));
-                orderList.push_back(order);
-            }
-        }
-        return orderList;
-    }
-
-    string OrderDishListToJsonArray(const vector<data::OrderDish>&dishList)
-    {
-        Json::Value jsonArray(Json::arrayValue);
-        
-        for (const auto& dish : dishList) {
-            Json::Value dishJson;
-            Json::Reader().parse(json::toJson(dish), dishJson);
-            jsonArray.append(dishJson);
-        }
-
-        Json::StreamWriterBuilder writer;
-        writer["indentation"] = "";
-        return Json::writeString(writer, jsonArray);
-    }
 
         static std::string toJson(data::Account acc)
         {
@@ -375,6 +297,84 @@ namespace btyGoose{
         if(root.isMember("count")) od.count = root["count"].asInt();
 
         return od;
+    }
+    static std::string DishListToJsonArray(const std::vector<data::Dish>& dishList)
+    {
+        Json::Value jsonArray(Json::arrayValue);
+        Json::Reader reader;
+
+        for (const auto& dish : dishList)
+        {
+            Json::Value dishJson;
+            if (reader.parse(json::toJson(dish), dishJson)) {
+                jsonArray.append(dishJson);
+            }
+        }
+
+        Json::StreamWriterBuilder writer;
+        writer["indentation"] = ""; // 紧凑模式
+        return Json::writeString(writer, jsonArray);
+    }
+    static std::vector<data::Dish> DishListFromJsonArray(const std::string& jsonStr)
+    {
+        std::vector<data::Dish> dishList;
+        Json::Value root;
+        Json::Reader reader;
+
+        if (reader.parse(jsonStr, root) && root.isArray()) {
+            for (const auto& item : root) {
+
+                Json::StreamWriterBuilder writer;
+                data::Dish dish = json::createDish(Json::writeString(writer, item));
+                dishList.push_back(dish);
+            }
+        }
+        return dishList;
+    }
+
+    static std::string OrderListToJsonArray(const std::vector<data::Order>&orderList)
+    {
+        Json::Value jsonArray(Json::arrayValue);
+        
+        for (const auto& order : orderList) {
+            Json::Value orderJson;
+            Json::Reader().parse(json::toJson(order), orderJson);
+            jsonArray.append(orderJson);
+        }
+
+        Json::StreamWriterBuilder writer;
+        writer["indentation"] = "";
+        return Json::writeString(writer, jsonArray);
+    }
+    static std::vector<data::Order> OrderListFromJsonArray(const std::string& jsonStr)
+    {
+        std::vector<data::Order> orderList;
+        Json::Value root;
+        Json::Reader reader;
+
+        if (reader.parse(jsonStr, root) && root.isArray()) {
+            for (const auto& item : root) {
+                Json::StreamWriterBuilder writer;
+                data::Order order = json::createOrder(Json::writeString(writer, item));
+                orderList.push_back(order);
+            }
+        }
+        return orderList;
+    }
+
+    static std::string OrderDishListToJsonArray(const std::vector<data::OrderDish>&dishList)
+    {
+        Json::Value jsonArray(Json::arrayValue);
+        
+        for (const auto& dish : dishList) {
+            Json::Value dishJson;
+            Json::Reader().parse(json::toJson(dish), dishJson);
+            jsonArray.append(dishJson);
+        }
+
+        Json::StreamWriterBuilder writer;
+        writer["indentation"] = "";
+        return Json::writeString(writer, jsonArray);
     }
 
     }//json
