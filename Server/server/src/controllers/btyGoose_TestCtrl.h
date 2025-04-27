@@ -1,6 +1,7 @@
 #pragma once
 
 #include <drogon/HttpController.h>
+#include <drogon/HttpResponse.h>
 #include "SharedResources.h"
 
 using namespace drogon;
@@ -18,6 +19,7 @@ class TestCtrl : public drogon::HttpController<TestCtrl>
     METHOD_LIST_END
     void ping(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback)
     {
+      SUP_LOG_DEBUG("收到请求，methid ={}, path = {}","Get",req->getPath());
       auto resp = drogon::HttpResponse::newHttpResponse();
       resp->setStatusCode(k200OK);
       resp->setContentTypeCode(CT_TEXT_HTML);
@@ -26,12 +28,21 @@ class TestCtrl : public drogon::HttpController<TestCtrl>
     }
     void flushAll(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback)
     {
-
+      SUP_LOG_DEBUG("收到请求，methid ={}, path = {}","Get",req->getPath());
+      std::string password = req->getOptionalParameter<std::string>("password").value_or("");
 
       auto resp = drogon::HttpResponse::newHttpResponse();
+      if(password == "IDOCONFIRM")
+      {
+          SR::ins().redis()->flushall();
+          resp->setBody("flush done");
+      }
+      else
+      {
+        resp->setBody("密码错误");
+      }
       resp->setStatusCode(k200OK);
       resp->setContentTypeCode(CT_TEXT_HTML);
-      resp->setBody("flush redis success");
       SR::ins().redis()->flushall();
       callback(resp);    
     }
