@@ -1,6 +1,7 @@
 #pragma once
 
 #include <drogon/HttpController.h>
+#include "SharedResources.h"
 
 using namespace drogon;
 
@@ -10,14 +11,20 @@ class AccountCtrl : public drogon::HttpController<AccountCtrl>
 {
   public:
     METHOD_LIST_BEGIN
-    // use METHOD_ADD to add your custom processing function here;
-    // METHOD_ADD(AccountCtrl::get, "/{2}/{1}", Get); // path is /btyGoose/AccountCtrl/{arg2}/{arg1}
-    // METHOD_ADD(AccountCtrl::your_method_name, "/{1}/{2}/list", Get); // path is /btyGoose/AccountCtrl/{arg1}/{arg2}/list
-    // ADD_METHOD_TO(AccountCtrl::your_method_name, "/absolute/path/{1}/{2}/list", Get); // path is /absolute/path/{arg1}/{arg2}/list
+    ADD_METHOD_TO(AccountCtrl::accountLoginUsername,"/account/login/username",Post);
+    ADD_METHOD_TO(AccountCtrl::accountLoginPhone,"/account/login/phone",Post);
+    ADD_METHOD_TO(AccountCtrl::accountRegister,"/account/register",Post);
+    ADD_METHOD_TO(AccountCtrl::accountUpdateLevel,"/account/update/level",Post);
+    ADD_METHOD_TO(AccountCtrl::accountUpdateNickname,"/account/update/nickname",Post);
 
     METHOD_LIST_END
-    // your declaration of processing function maybe like this:
-    // void get(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, int p1, std::string p2);
-    // void your_method_name(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, double p1, int p2) const;
+    void accountLoginUsername(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void accountLoginPhone(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void accountRegister(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void accountUpdateLevel(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void accountUpdateNickname(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+
+    bool AuthenticateAuthCode(const string& phone, const string& auth_code);
+    
 };
 }
