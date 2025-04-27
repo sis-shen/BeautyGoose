@@ -1,7 +1,9 @@
 #include "./controllers/btyGoose_TestCtrl.h"
+#include "./controllers/btyGoose_MerchantCtrl.h"
 #include "logger.hpp"
 #include <gflags/gflags.h>
 #include <sw/redis++/redis.h>
+
 
 //服务器相关参数
 DEFINE_string(host,"0.0.0.0","服务器监听的源ip地址范围");
@@ -38,6 +40,7 @@ int main(int argc, char *argv[])
     db->init(FLAGS_db_user,FLAGS_db_password,FLAGS_db_host,FLAGS_db_port,FLAGS_db_database,                         
         std::chrono::seconds(FLAGS_db_reconnect_interval));
     btyGoose::SR::ins().setDB(db);
+    db->start();
     SUP_LOG_DEBUG("数据库对象设置成功");
 
     auto redis = std::make_shared<btyGoose::RedisClient>(
