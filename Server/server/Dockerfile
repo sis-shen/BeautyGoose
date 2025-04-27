@@ -36,6 +36,7 @@ COPY ./src* /src
 
 WORKDIR /src
 RUN make && mkdir -p logs/drogon
+RUN ls -al
 #DEBUG
 # RUN make server_g && mkdir logs
 #end
