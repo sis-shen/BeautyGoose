@@ -1,7 +1,7 @@
 #pragma once
 
 #include <drogon/HttpController.h>
-
+#include "SharedResources.h"
 using namespace drogon;
 
 namespace btyGoose
@@ -9,15 +9,32 @@ namespace btyGoose
 class ConsumerCtrl : public drogon::HttpController<ConsumerCtrl>
 {
   public:
-    METHOD_LIST_BEGIN
-    // use METHOD_ADD to add your custom processing function here;
-    // METHOD_ADD(ConsumerCtrl::get, "/{2}/{1}", Get); // path is /btyGoose/ConsumerCtrl/{arg2}/{arg1}
-    // METHOD_ADD(ConsumerCtrl::your_method_name, "/{1}/{2}/list", Get); // path is /btyGoose/ConsumerCtrl/{arg1}/{arg2}/list
-    // ADD_METHOD_TO(ConsumerCtrl::your_method_name, "/absolute/path/{1}/{2}/list", Get); // path is /absolute/path/{arg1}/{arg2}/list
+  ConsumerCtrl()
+  {
+    redis = SR::ins().redis();
+    db = SR::ins().db();
+  }
 
+  public:
+    METHOD_LIST_BEGIN
+    ADD_METHOD_TO(ConsumerCtrl::consumerOrderDetailDishlist,"/consumer/order/detail/dishlist",Post);
+    ADD_METHOD_TO(ConsumerCtrl::consumerDishList,"/consumer/dish/list",Post);
+    ADD_METHOD_TO(ConsumerCtrl::consumerDishDishInfo,"/consumer/dish/dishInfo",Post);
+    ADD_METHOD_TO(ConsumerCtrl::consumerOrderGenerate,"/consumer/order/generate",Post);
+    ADD_METHOD_TO(ConsumerCtrl::consumerOrderList,"/consumer/order/list",Post);
+    ADD_METHOD_TO(ConsumerCtrl::consumerOrderPayConfirm,"/consumer/order/pay/confirm",Post);
+    ADD_METHOD_TO(ConsumerCtrl::consumerOrderCancel,"/consumer/order/cancel",Post);
     METHOD_LIST_END
-    // your declaration of processing function maybe like this:
-    // void get(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, int p1, std::string p2);
-    // void your_method_name(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, double p1, int p2) const;
+    void consumerOrderDetailDishlist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void consumerDishList(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void consumerDishDishInfo(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void consumerOrderGenerate(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void consumerOrderList(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void consumerOrderPayConfirm(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void consumerOrderCancel(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+
+    private:
+    std::shared_ptr<RedisClient> redis;
+    std::shared_ptr<DatabaseClient> db;
 };
 }
