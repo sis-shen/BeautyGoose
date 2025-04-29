@@ -194,7 +194,7 @@ void AccountCtrl::accountRegister(const HttpRequestPtr &req, std::function<void(
     // 用户名查重
     if (!db->searchAccountByName(acc.name).name.empty())
     {
-        LOG_INFO("[账户注册]失败：用户名已存在");
+        SUP_LOG_INFO("[账户注册]失败：用户名已存在");
         resJson["message"] = "注册失败,用户名已存在:" + acc.name;
         resJson["success"] = false;
         auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
@@ -206,7 +206,7 @@ void AccountCtrl::accountRegister(const HttpRequestPtr &req, std::function<void(
     // 手机号查重
     if (!db->searchAccountByPhone(acc.phone).name.empty())
     {
-        LOG_INFO("[账户注册]失败：手机号已存在");
+        SUP_LOG_INFO("[账户注册]失败：手机号已存在");
         resJson["message"] = "注册失败,手机号已被占用:" + acc.phone;
         resJson["success"] = false;
         auto resp = drogon::HttpResponse::newHttpJsonResponse(resJson);
