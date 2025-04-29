@@ -1,5 +1,6 @@
 #include "./controllers/btyGoose_TestCtrl.h"
 #include "./controllers/btyGoose_MerchantCtrl.h"
+#include "./controllers/btyGoose_ConsumerCtrl.h"
 #include "./controllers/btyGoose_AccountCtrl.h"
 #include "logger.hpp"
 #include <gflags/gflags.h>
