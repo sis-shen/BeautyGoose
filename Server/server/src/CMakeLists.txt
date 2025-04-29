@@ -30,7 +30,10 @@ add_executable(
     logger.cpp 
     main.cpp 
     RedisClient.cpp 
+    ${CONTROLLERS_DIR}/btyGoose_TestCtrl.cc
     ${CONTROLLERS_DIR}/btyGoose_MerchantCtrl.cc
+    ${CONTROLLERS_DIR}/btyGoose_AccountCtrl.cc
+    ${CONTROLLERS_DIR}/btyGoose_ConsumerCtrl.cc
 )
 
 target_link_libraries(server
