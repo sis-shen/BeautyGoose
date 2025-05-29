@@ -1,3 +1,11 @@
+/**
+ * @file DatabaseClient.cpp
+ * @author supdriver
+ * @date 2025-05-26
+ * @brief 数据库客户端类接口实现
+ * @version 2.6.0
+ */
+
 #include "DatabaseClient.hpp"
 #include <fstream>
 #include <jsoncpp/json/json.h>

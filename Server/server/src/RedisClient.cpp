@@ -1,3 +1,11 @@
+/**
+ * @file logger.cpp
+ * @author supdriver
+ * @date 2025-05-26
+ * @brief RedisClient接口实现
+ * @version 2.6.0
+ */
+
 #include "RedisClient.hpp"
 namespace btyGoose
 {
@@ -203,7 +211,7 @@ void RedisClient::delOrderById(const string&id)
     _redis->del(order_prefix+"id:"+id);
 }
 
-void RedisClient::setOrderList(const vector<data::Order> order_list)
+void RedisClient::setOrderList(const vector<data::Order>& order_list)
 {
     for(const auto& order:order_list)
     {

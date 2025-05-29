@@ -1,3 +1,12 @@
+/**
+ * @file main.cpp
+ * @author supdriver
+ * @date 2025-05-26
+ * @brief 入口函数main函数的实现
+ * @version 2.6.0
+ */
+
+
 #include "./controllers/btyGoose_TestCtrl.h"
 #include "./controllers/btyGoose_MerchantCtrl.h"
 #include "./controllers/btyGoose_ConsumerCtrl.h"

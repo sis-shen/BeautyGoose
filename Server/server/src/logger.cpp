@@ -1,10 +1,18 @@
+/**
+ * @file logger.cpp
+ * @author supdriver
+ * @date 2025-05-26
+ * @brief 日志器二次封装的接口实现
+ * @version 2.6.0
+ */
+
 #include "logger.hpp"
 
 namespace btyGoose{
 std::shared_ptr<spdlog::logger> g_default_logger;
-void init_logger(bool mode, const std::string &file, int32_t level)
+void init_logger(bool debug_mode, const std::string &file, int32_t level)
 {
-    if (mode == false) {
+    if (debug_mode == false) {
         //如果是调试模式，则创建标准输出日志器，输出等级为最低
         g_default_logger = spdlog::stdout_color_mt("default-logger");
         g_default_logger->set_level(spdlog::level::level_enum::trace);
