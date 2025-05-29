@@ -9,7 +9,11 @@ RUN git clone https://github.com/drogonframework/drogon.git
 WORKDIR /drogon
 RUN git submodule update --init
 
-RUN apt update -y && apt install -y g++ \
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu|http://mirrors.aliyun.com/ubuntu|g' /etc/apt/sources.list && \
+    apt-get update
+
+
+RUN apt-get update -y && apt-get install -y g++ \
     make \
     cmake \
     libmysqlcppconn-dev \
@@ -21,7 +25,12 @@ RUN apt update -y && apt install -y g++ \
     libhiredis-dev \
     libssl-dev \
     uuid-dev \
-    zlib1g-dev
+    zlib1g-dev \
+    libprotobuf-dev \
+    protobuf-compiler-grpc \
+    libgrpc-dev \
+    libgrpc++-dev \
+    libcpprest-dev
 
 
 WORKDIR /redispp/redis-plus-plus/build
