@@ -9,3 +9,10 @@ clean:
 
 build:
 	mkdir -p build 
+
+.PHONY:cleandoc
+cleandoc:
+	rm -rf ./doc/*
+
+gendoc:
+	@cd doc && doxygen -d extcmd ../Doxyfile
