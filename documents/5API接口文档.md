@@ -66,11 +66,11 @@
 ~~- **认证方式**（如启用）：Token 通过 `Authorization` 头传递~~
 ---
 
-## ~~接口详情~~
+## 接口详情
 
 **以下仅为示例**
 
-### 1. 用户注册
+### 1. 示例-用户注册
 
 **URL：** `/api/account/register`  
 **方法：** POST  
@@ -109,6 +109,23 @@
   "message": "注册成功"
 }
 ```
+
+### 1. 用户注册
+
+**URL：** `/account/register`  
+**方法：** POST  
+**说明：** 创建一个新账户
+
+#### 请求参数
+
+| 参数名   | 类型   | 是否必填 | 说明       |
+|----------|--------|----------|------------|
+| name | string | 是       | 用户名     |
+| password | string | 是       | 密码（加密） |
+| phone    | string | 是       | 手机号     |
+| nickname    | string | 否       | 昵称   |
+| auth_code    | string | 是       | 验证码     |
+| type    | int | 是       | 账号类型     |
 
 ---
 
